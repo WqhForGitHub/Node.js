@@ -8,6 +8,7 @@ const app = new Koa();
 
 // 全局错误处理中间件
 app.use(async (ctx, next) => {
+
   ctx.resData = data => {
     ctx.response.body = {
       code: 0,
