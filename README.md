@@ -11,6 +11,7 @@ app.use(async (ctx, next) => {
 
   ctx.resData = data => {
     ctx.response.body = {
+      statusCode: 200,
       code: 0,
       status: 'success',
       data
@@ -20,11 +21,10 @@ app.use(async (ctx, next) => {
   try {
     await next();
   } catch (err) {
-    ctx.status = err.status || 500;
-
     ctx.response.body = {
-      code: 1,
+      statusCode: 500,
       status: 'fail',
+      code: 1,
       message: err.message
     }
   }
