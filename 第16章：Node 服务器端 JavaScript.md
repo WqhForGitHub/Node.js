@@ -1,3 +1,68 @@
+
+
+# 16.2 Node 默认异步
+
+ ```javascript
+ const fs = require("fs");
+ 
+ function readConfigFile(path, callback) {
+     fs.readFile(path, "utf-8", (err, text) => {
+         if (err) {
+             console.error(err);
+             callback(null);
+             return;
+         }
+         
+         let data = null;
+         try {
+             data = JSON.parse(text);
+         } catch(e) {
+             console.error(e);
+         }
+         
+         callback(data);
+     })
+ }
+ ```
+
+
+
+```javascript
+const util = require("util");
+const fs = require("fs");
+const pfs = {
+    readFile: util.promisify(fs.readFile);
+};
+
+function readConfigFile(path) {
+    return pfs.readFile(path, "utf-8").then(text => {
+        return JSON.parse(text);
+    });
+}
+```
+
+
+
+​             
+
+
+
+# 16.4 事件与 EventEmitter
+
+ ```javascript
+ const net = require("net");
+ let server = new net.Server();
+ server.on("connection", socket => {
+     socket.end("Hello World", "utf-8");
+ })
+ ```
+
+
+
+
+
+
+
 # 16.5 流
 
 ```javascript
@@ -7,7 +72,7 @@ function copyFile(sourceFilename, destinationFilename, callback) {
     fs.readFile(sourceFilename, (err, buffer) => {
         if (err) {
             callback(err);
-        } else {
+        } else {                                  
             fs.writeFile(destinationFilename, buffer, callback);
         } 
     })
@@ -79,5 +144,91 @@ os.userInfo(); // 返回当前用户的 uid、username、home 和 shell 程序
 
 
 
+# 16.7 操作文件
 
 
+
+## 1. 路径、文件描述符和 FileHandle
+
+```javascript
+const path = require("path");
+
+let p = "src/pkg/test.js";
+
+path.basename(p); // "test.js"
+path.extname(p); // ".js"
+path.dirname(p); // "src/pkg"
+path.basename(path.dirname(p)); // "pkg"
+path.dirname(path.dirname(p)); // "src"
+
+// normalize() 清理路径
+path.normalize("a/b/c/../d/"); // "a/b/d"：处理 ../ 部分
+path.normalize("a/./b"); // "a/b"：去掉 ./ 部分
+path.normalize("//a//b//"); // "/a/b/"：去除重复的 /
+
+// join() 组合路径片段、添加分隔符，然后规范化
+path.join("src", "pkg", "t.js"); // "src/pkg/t.js"
+
+path.resolve(); // process.cwd()
+path.resolve("t.js"); // path.join(process.cwd(), "t.js")
+path.resolve("/tmp", "t.js"); "/tmp/t.js"
+path.resolve("/a", "/b", "t.js"); // "/b/t.js"
+```
+
+
+
+## 2. 读文件
+
+ ```javascript
+ const fs = require("fs");
+ let buffer = fs.readFileSync("test.data"); // 同步，返回缓冲区
+ let text = fs.readFileSync("data.csv", "utf-8"); // 同步，返回字符串
+ 
+ // 异步读取文件的字节
+ fs.readFile("test.data", (err, buffer) => {
+     if(err) {
+         
+     } else {
+         
+     }
+ });
+ ```
+
+
+
+## 3. 写文件
+
+```javascript
+const fs = require("fs");
+
+let output = fs.createWriteStream("numbers.txt");
+
+for(let i = 0; i < 100; i++) {
+    output.write(`${i}\n`);
+}
+
+output.end();
+```
+
+
+
+## 5. 文件元数据
+
+```javascript
+const fs = require("fs");
+
+let stats = fs.statSync("book/ch15.md");
+
+stats.isFile(); // true，这是一个普通文件
+stats.isDirectory(); // false：它不是一个目录
+stats.size; // 文件大小（字节）
+stats.atime; // 访问时间：最后读取的日期
+stats.mtime; // 修改时间：最后写入的日期
+stats.uid; // 文件所有者的用户 ID
+stats.gid; // 文件所有者的组 ID
+stats.mode.toString(8); // 八进制字符串形式的文件权限
+```
+
+
+
+​                                                                                                                                                            
