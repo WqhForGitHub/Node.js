@@ -39,3 +39,34 @@ app.use(bodyParser());
 
 app.listen(3000);
 ```
+
+
+
+# 安装运行时依赖
+
+```bash
+npm install -g ts-node typescript
+```
+
+
+
+# 简单 Dockerfile
+
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+EXPOSE 3000
+CMD ["npx", "ts-node", "src/app.ts"]
+```
+
+
+
+
+
+
+
+
+
