@@ -1,0 +1,12 @@
+{
+  "name": "note-api",
+  "version": "1.0.0",
+  "description": "纯 Node.js 实现的笔记管理 API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["notes", "api", "node"],
+  "license": "MIT"
+}
