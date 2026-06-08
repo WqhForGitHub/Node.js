@@ -3,7 +3,8 @@
  * 基于 Base62 编码，将自增 ID 转换为短字符串
  */
 
-const BASE62_CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const BASE62_CHARS =
+  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const BASE = BASE62_CHARS.length;
 
 /**
@@ -13,7 +14,7 @@ const BASE = BASE62_CHARS.length;
  */
 function encode(id) {
   if (id === 0) return BASE62_CHARS[0];
-  let code = '';
+  let code = "";
   let num = id;
   while (num > 0) {
     code = BASE62_CHARS[num % BASE] + code;

@@ -3,20 +3,20 @@
  * 管理短链映射关系及访问统计
  */
 
-const fs = require('fs');
-const path = require('path');
-const shortCode = require('./shortCode');
+const fs = require("fs");
+const path = require("path");
+const shortCode = require("./shortCode");
 
-const DATA_FILE = path.join(__dirname, 'data.json');
+const DATA_FILE = path.join(__dirname, "data.json");
 
 /**
  * 默认数据结构
  */
 function getDefaultData() {
   return {
-    nextId: 1,          // 自增 ID 计数器
-    urls: {},            // shortCode -> { id, originalUrl, createdAt, visits }
-    urlIndex: {}         // originalUrl -> shortCode (防止重复)
+    nextId: 1, // 自增 ID 计数器
+    urls: {}, // shortCode -> { id, originalUrl, createdAt, visits }
+    urlIndex: {}, // originalUrl -> shortCode (防止重复)
   };
 }
 
@@ -27,11 +27,11 @@ function getDefaultData() {
 function loadData() {
   try {
     if (fs.existsSync(DATA_FILE)) {
-      const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+      const raw = fs.readFileSync(DATA_FILE, "utf-8");
       return JSON.parse(raw);
     }
   } catch (err) {
-    console.error('数据文件读取失败，将重新初始化:', err.message);
+    console.error("数据文件读取失败，将重新初始化:", err.message);
   }
   return getDefaultData();
 }
@@ -41,7 +41,7 @@ function loadData() {
  * @param {object} data - 数据对象
  */
 function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
 /**
@@ -59,7 +59,7 @@ function createShortUrl(originalUrl) {
       code: existingCode,
       originalUrl,
       createdAt: data.urls[existingCode].createdAt,
-      isNew: false
+      isNew: false,
     };
   }
 
@@ -72,7 +72,7 @@ function createShortUrl(originalUrl) {
     id,
     originalUrl,
     createdAt,
-    visits: 0
+    visits: 0,
   };
   data.urlIndex[originalUrl] = code;
   data.nextId = id + 1;
@@ -99,7 +99,7 @@ function getByCode(code) {
   return {
     originalUrl: entry.originalUrl,
     visits: entry.visits,
-    createdAt: entry.createdAt
+    createdAt: entry.createdAt,
   };
 }
 
@@ -117,7 +117,7 @@ function getInfo(code) {
     code,
     originalUrl: entry.originalUrl,
     visits: entry.visits,
-    createdAt: entry.createdAt
+    createdAt: entry.createdAt,
   };
 }
 
@@ -127,11 +127,11 @@ function getInfo(code) {
  */
 function listAll() {
   const data = loadData();
-  return Object.keys(data.urls).map(code => ({
+  return Object.keys(data.urls).map((code) => ({
     code,
     originalUrl: data.urls[code].originalUrl,
     visits: data.urls[code].visits,
-    createdAt: data.urls[code].createdAt
+    createdAt: data.urls[code].createdAt,
   }));
 }
 
@@ -157,5 +157,5 @@ module.exports = {
   getByCode,
   getInfo,
   listAll,
-  deleteByCode
+  deleteByCode,
 };
