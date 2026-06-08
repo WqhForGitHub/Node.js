@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTTP 静态服务器 Demo</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🚀 HTTP 静态服务器</h1>
+      <p class="subtitle">纯 Node.js 实现，零依赖</p>
+    </header>
+
+    <main>
+      <section class="features">
+        <h2>功能特性</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">📁</div>
+            <h3>目录列表</h3>
+            <p>自动生成美观的目录浏览页面</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🏷️</div>
+            <h3>MIME 识别</h3>
+            <p>自动识别 30+ 种文件类型</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <h3>流式传输</h3>
+            <p>大文件流式响应，节省内存</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h3>安全防护</h3>
+            <p>防止路径遍历攻击</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⏱️</div>
+            <h3>缓存控制</h3>
+            <p>支持 Last-Modified 和 Cache-Control</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🛠️</div>
+            <h3>命令行配置</h3>
+            <p>端口、目录、缓存等灵活配置</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="demo-links">
+        <h2>测试链接</h2>
+        <ul>
+          <li><a href="/css/style.css">CSS 样式文件</a> - 测试 .css MIME 类型</li>
+          <li><a href="/js/app.js">JavaScript 文件</a> - 测试 .js MIME 类型</li>
+          <li><a href="/data.json">JSON 数据文件</a> - 测试 .json MIME 类型</li>
+          <li><a href="/images/">图片目录</a> - 测试子目录浏览</li>
+          <li><a href="/not-exist.txt">不存在的文件</a> - 测试 404 页面</li>
+        </ul>
+      </section>
+
+      <section class="usage">
+        <h2>使用方式</h2>
+        <div class="code-block">
+          <pre># 默认启动（端口 3000，目录 ./public）
+node server.js
+
+# 自定义端口和目录
+node server.js --port 8080 --root ./dist
+
+# 禁用缓存和目录列表
+node server.js --no-cache --no-listing
+
+# 查看帮助
+node server.js --help</pre>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>纯 Node.js 实现 | 使用 <code>http</code>、<code>fs</code>、<code>path</code> 内置模块</p>
+    </footer>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
