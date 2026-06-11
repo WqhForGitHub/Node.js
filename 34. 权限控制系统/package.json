@@ -1,0 +1,12 @@
+{
+  "name": "34-rbac-permission-system",
+  "version": "1.0.0",
+  "description": "纯 Node.js 实现的 RBAC 权限控制系统 API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["rbac", "permission", "acl", "auth", "nodejs"],
+  "license": "MIT"
+}

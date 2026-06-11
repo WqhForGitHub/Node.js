@@ -1,0 +1,57 @@
+{
+  "admin": {
+    "name": "admin",
+    "description": "超级管理员，拥有所有权限",
+    "permissions": [
+      "article:read",
+      "article:write",
+      "article:delete",
+      "article:publish",
+      "user:read",
+      "user:write",
+      "user:delete",
+      "role:read",
+      "role:write",
+      "role:delete",
+      "permission:read",
+      "permission:write",
+      "dashboard:read",
+      "settings:read",
+      "settings:write"
+    ],
+    "createdAt": "2026-06-11T13:26:53.132Z",
+    "updatedAt": "2026-06-11T13:26:53.133Z",
+    "isSystem": true
+  },
+  "editor": {
+    "name": "editor",
+    "description": "编辑者，可管理文章",
+    "permissions": [
+      "article:read",
+      "article:write",
+      "article:delete",
+      "article:publish",
+      "user:read",
+      "role:read",
+      "permission:read",
+      "dashboard:read"
+    ],
+    "createdAt": "2026-06-11T13:26:53.133Z",
+    "updatedAt": "2026-06-11T13:26:53.133Z",
+    "isSystem": false
+  },
+  "viewer": {
+    "name": "viewer",
+    "description": "查看者，只读权限",
+    "permissions": [
+      "article:read",
+      "user:read",
+      "role:read",
+      "permission:read",
+      "dashboard:read"
+    ],
+    "createdAt": "2026-06-11T13:26:53.133Z",
+    "updatedAt": "2026-06-11T13:26:53.133Z",
+    "isSystem": false
+  }
+}

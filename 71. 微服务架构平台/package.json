@@ -1,0 +1,16 @@
+{
+  "name": "microservices-platform",
+  "version": "1.0.0",
+  "description": "纯 Node.js 微服务架构平台 Demo",
+  "main": "start.js",
+  "scripts": {
+    "start": "node start.js",
+    "registry": "node service-registry.js",
+    "gateway": "node api-gateway.js",
+    "user-service": "node services/user-service.js",
+    "order-service": "node services/order-service.js",
+    "product-service": "node services/product-service.js"
+  },
+  "keywords": ["microservices", "nodejs", "api-gateway", "service-registry"],
+  "license": "MIT"
+}

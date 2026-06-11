@@ -1,0 +1,16 @@
+{
+  "name": "bff-aggregation-layer",
+  "version": "1.0.0",
+  "description": "纯 Node.js API 聚合层（BFF）Demo",
+  "main": "start.js",
+  "scripts": {
+    "start": "node start.js",
+    "bff": "node bff-server.js",
+    "user-service": "node services/user-service.js",
+    "order-service": "node services/order-service.js",
+    "product-service": "node services/product-service.js",
+    "inventory-service": "node services/inventory-service.js"
+  },
+  "keywords": ["bff", "aggregation", "nodejs", "api-gateway"],
+  "license": "MIT"
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "5fcbf7ba-2d8b-4ac7-9776-2c12af1fbff2",
+    "name": "文章所有权策略",
+    "description": "作者只能修改/删除自己的文章，编辑可以管理所有文章",
+    "resource": "article",
+    "action": "write",
+    "condition": "owner_or_admin",
+    "priority": 10,
+    "enabled": true,
+    "createdAt": "2026-06-11T13:43:40.044Z",
+    "updatedAt": "2026-06-11T13:43:40.044Z"
+  },
+  {
+    "id": "33e07d95-4c8d-4323-8ea1-4730cf558688",
+    "name": "文章删除策略",
+    "description": "作者只能删除自己的草稿文章，编辑和管理员可删除任何文章",
+    "resource": "article",
+    "action": "delete",
+    "condition": "owner_draft_or_admin",
+    "priority": 20,
+    "enabled": true,
+    "createdAt": "2026-06-11T13:43:40.044Z",
+    "updatedAt": "2026-06-11T13:43:40.044Z"
+  }
+]

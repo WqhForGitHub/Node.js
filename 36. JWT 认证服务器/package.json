@@ -1,0 +1,11 @@
+{
+  "name": "jwt-auth-server",
+  "version": "1.0.0",
+  "description": "纯 Node.js 实现的 JWT 认证服务器 Demo",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["jwt", "auth", "node"],
+  "license": "MIT"
+}
