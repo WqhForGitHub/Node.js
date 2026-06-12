@@ -156,8 +156,24 @@ function initDefaultData() {
   // 默认资源数据
   if (resources.length === 0) {
     resources = [
-      { id: crypto.randomUUID(), type: "article", title: "RBAC 权限系统介绍", content: "本文介绍基于角色的访问控制系统...", author: "admin", status: "published", createdAt: new Date().toISOString() },
-      { id: crypto.randomUUID(), type: "article", title: "Node.js 最佳实践", content: "Node.js 开发中的最佳实践总结...", author: "editor", status: "draft", createdAt: new Date().toISOString() },
+      {
+        id: crypto.randomUUID(),
+        type: "article",
+        title: "RBAC 权限系统介绍",
+        content: "本文介绍基于角色的访问控制系统...",
+        author: "admin",
+        status: "published",
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: crypto.randomUUID(),
+        type: "article",
+        title: "Node.js 最佳实践",
+        content: "Node.js 开发中的最佳实践总结...",
+        author: "editor",
+        status: "draft",
+        createdAt: new Date().toISOString(),
+      },
     ];
   }
 
@@ -183,7 +199,9 @@ function parseBody(req) {
 }
 
 function send(res, statusCode, data) {
-  res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+  });
   res.end(JSON.stringify(data));
 }
 
@@ -196,7 +214,10 @@ function sendError(res, statusCode, error) {
 }
 
 function hashPassword(password) {
-  return crypto.createHash("sha256").update(password + "rbac_salt_2024").digest("hex");
+  return crypto
+    .createHash("sha256")
+    .update(password + "rbac_salt_2024")
+    .digest("hex");
 }
 
 function generateToken() {
@@ -315,7 +336,11 @@ function requireAnyPermission(...perms) {
     return requireAuth(async (req, res, user, ...args) => {
       const hasAny = perms.some((p) => hasPermission(user, p));
       if (!hasAny) {
-        return sendError(res, 403, `权限不足，需要以下任一权限: ${perms.join(", ")}`);
+        return sendError(
+          res,
+          403,
+          `权限不足，需要以下任一权限: ${perms.join(", ")}`,
+        );
       }
       return handler(req, res, user, ...args);
     });
@@ -379,7 +404,7 @@ async function login(req, res) {
   }
 
   const user = users.find(
-    (u) => u.username === username && u.password === hashPassword(password)
+    (u) => u.username === username && u.password === hashPassword(password),
   );
 
   if (!user) {
@@ -454,7 +479,11 @@ async function checkPermission(req, res, user) {
   const body = await parseBody(req);
   const { permissions: requiredPerms } = body;
 
-  if (!requiredPerms || !Array.isArray(requiredPerms) || requiredPerms.length === 0) {
+  if (
+    !requiredPerms ||
+    !Array.isArray(requiredPerms) ||
+    requiredPerms.length === 0
+  ) {
     return sendError(res, 400, "缺少必填字段: permissions (数组)");
   }
 
@@ -576,7 +605,10 @@ async function changePassword(req, res, currentUser, id) {
   }
 
   // 只能修改自己的密码，或管理员可以修改任何人的密码
-  if (target.id !== currentUser.id && !hasPermission(currentUser, "user:write")) {
+  if (
+    target.id !== currentUser.id &&
+    !hasPermission(currentUser, "user:write")
+  ) {
     return sendError(res, 403, "权限不足");
   }
 
@@ -654,12 +686,18 @@ async function createRole(req, res) {
   }
 
   if (!/^[a-z][a-z0-9_]{1,29}$/.test(name)) {
-    return sendError(res, 400, "角色名只能包含小写字母、数字和下划线，2-30个字符，以字母开头");
+    return sendError(
+      res,
+      400,
+      "角色名只能包含小写字母、数字和下划线，2-30个字符，以字母开头",
+    );
   }
 
   const validatedPerms = (rolePerms || []).filter((p) => {
     const [res, act] = p.split(":");
-    return permissions.some((perm) => perm.resource === res && perm.action === act);
+    return permissions.some(
+      (perm) => perm.resource === res && perm.action === act,
+    );
   });
 
   const role = {
@@ -685,7 +723,12 @@ async function updateRole(req, res, _user, name) {
   }
 
   const body = await parseBody(req);
-  const { description, permissions: rolePerms, addPermissions, removePermissions } = body;
+  const {
+    description,
+    permissions: rolePerms,
+    addPermissions,
+    removePermissions,
+  } = body;
 
   if (description !== undefined) {
     role.description = description;
@@ -698,7 +741,9 @@ async function updateRole(req, res, _user, name) {
     }
     const validatedPerms = rolePerms.filter((p) => {
       const [r, a] = p.split(":");
-      return permissions.some((perm) => perm.resource === r && perm.action === a);
+      return permissions.some(
+        (perm) => perm.resource === r && perm.action === a,
+      );
     });
     role.permissions = validatedPerms;
   }
@@ -710,7 +755,9 @@ async function updateRole(req, res, _user, name) {
     }
     for (const p of addPermissions) {
       const [r, a] = p.split(":");
-      if (permissions.some((perm) => perm.resource === r && perm.action === a)) {
+      if (
+        permissions.some((perm) => perm.resource === r && perm.action === a)
+      ) {
         if (!role.permissions.includes(p)) {
           role.permissions.push(p);
         }
@@ -723,7 +770,9 @@ async function updateRole(req, res, _user, name) {
     if (!Array.isArray(removePermissions)) {
       return sendError(res, 400, "removePermissions 必须是数组");
     }
-    role.permissions = role.permissions.filter((p) => !removePermissions.includes(p));
+    role.permissions = role.permissions.filter(
+      (p) => !removePermissions.includes(p),
+    );
   }
 
   role.updatedAt = new Date().toISOString();
@@ -746,7 +795,11 @@ function deleteRole(req, res, _user, name) {
   // 检查是否有用户正在使用该角色
   const usersWithRole = users.filter((u) => u.roles.includes(name));
   if (usersWithRole.length > 0) {
-    return sendError(res, 409, `该角色正在被 ${usersWithRole.length} 个用户使用，无法删除`);
+    return sendError(
+      res,
+      409,
+      `该角色正在被 ${usersWithRole.length} 个用户使用，无法删除`,
+    );
   }
 
   delete roles[name];
@@ -785,11 +838,19 @@ async function createPermission(req, res) {
   }
 
   if (!/^[a-z][a-z0-9_]*$/.test(resource)) {
-    return sendError(res, 400, "resource 只能包含小写字母、数字和下划线，以字母开头");
+    return sendError(
+      res,
+      400,
+      "resource 只能包含小写字母、数字和下划线，以字母开头",
+    );
   }
 
   if (!/^[a-z][a-z0-9_]*$/.test(action)) {
-    return sendError(res, 400, "action 只能包含小写字母、数字和下划线，以字母开头");
+    return sendError(
+      res,
+      400,
+      "action 只能包含小写字母、数字和下划线，以字母开头",
+    );
   }
 
   const permKey = `${resource}:${action}`;
@@ -811,7 +872,9 @@ async function createPermission(req, res) {
 
 // DELETE /api/permissions/:resource/:action - 删除权限
 function deletePermission(req, res, _user, resource, action) {
-  const idx = permissions.findIndex((p) => p.resource === resource && p.action === action);
+  const idx = permissions.findIndex(
+    (p) => p.resource === resource && p.action === action,
+  );
   if (idx === -1) {
     return sendError(res, 404, "权限不存在");
   }
@@ -905,10 +968,7 @@ function getDashboard(req, res, user) {
     totalPermissions: permissions.length,
     totalArticles: resources.filter((r) => r.type === "article").length,
     activeTokens: Object.keys(tokens).length,
-    recentUsers: users
-      .slice(-5)
-      .map(sanitizeUser)
-      .reverse(),
+    recentUsers: users.slice(-5).map(sanitizeUser).reverse(),
   });
 }
 
@@ -921,7 +981,10 @@ async function handler(req, res) {
 
   // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS",
+  );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   if (method === "OPTIONS") {
     res.writeHead(204);
@@ -1005,7 +1068,12 @@ async function handler(req, res) {
 
     const permMatch = pathname.match(/^\/api\/permissions\/([\w]+)\/([\w]+)$/);
     if (permMatch && method === "DELETE") {
-      return requirePermission("permission:write")(deletePermission)(req, res, permMatch[1], permMatch[2]);
+      return requirePermission("permission:write")(deletePermission)(
+        req,
+        res,
+        permMatch[1],
+        permMatch[2],
+      );
     }
 
     // ========== 受保护资源路由（演示权限检查）==========
@@ -1016,14 +1084,26 @@ async function handler(req, res) {
       return requirePermission("article:write")(createArticle)(req, res);
     }
 
-    const articlePublishMatch = pathname.match(/^\/api\/resources\/articles\/([\w-]+)\/publish$/);
+    const articlePublishMatch = pathname.match(
+      /^\/api\/resources\/articles\/([\w-]+)\/publish$/,
+    );
     if (articlePublishMatch && method === "PUT") {
-      return requirePermission("article:publish")(publishArticle)(req, res, articlePublishMatch[1]);
+      return requirePermission("article:publish")(publishArticle)(
+        req,
+        res,
+        articlePublishMatch[1],
+      );
     }
 
-    const articleMatch = pathname.match(/^\/api\/resources\/articles\/([\w-]+)$/);
+    const articleMatch = pathname.match(
+      /^\/api\/resources\/articles\/([\w-]+)$/,
+    );
     if (articleMatch && method === "DELETE") {
-      return requirePermission("article:delete")(deleteArticle)(req, res, articleMatch[1]);
+      return requirePermission("article:delete")(deleteArticle)(
+        req,
+        res,
+        articleMatch[1],
+      );
     }
 
     if (method === "GET" && pathname === "/api/resources/dashboard") {

@@ -11,6 +11,11 @@
     "product-service": "node services/product-service.js",
     "inventory-service": "node services/inventory-service.js"
   },
-  "keywords": ["bff", "aggregation", "nodejs", "api-gateway"],
+  "keywords": [
+    "bff",
+    "aggregation",
+    "nodejs",
+    "api-gateway"
+  ],
   "license": "MIT"
 }

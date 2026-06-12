@@ -20,7 +20,7 @@
  *   - HTML 标签（原样保留）
  */
 
-'use strict';
+"use strict";
 
 // ============================================================
 // 工具函数
@@ -28,10 +28,10 @@
 
 function escapeHtml(text) {
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 // ============================================================
@@ -51,19 +51,19 @@ function parseInline(text) {
   text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
   // 粗体 + 斜体 (***text***)
-  text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-  text = text.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
+  text = text.replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>");
+  text = text.replace(/___(.+?)___/g, "<strong><em>$1</em></strong>");
 
   // 粗体
-  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+  text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  text = text.replace(/__(.+?)__/g, "<strong>$1</strong>");
 
   // 斜体
-  text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  text = text.replace(/_(.+?)_/g, '<em>$1</em>');
+  text = text.replace(/\*(.+?)\*/g, "<em>$1</em>");
+  text = text.replace(/_(.+?)_/g, "<em>$1</em>");
 
   // 删除线
-  text = text.replace(/~~(.+?)~~/g, '<del>$1</del>');
+  text = text.replace(/~~(.+?)~~/g, "<del>$1</del>");
 
   return text;
 }
@@ -86,39 +86,43 @@ function parseTable(lines) {
   if (!/^\|?\s*[-:]+[-|\s:]*\|?\s*$/.test(separatorLine)) return null;
 
   const parseRow = (line) => {
-    return line.replace(/^\|/, '').replace(/\|$/, '').split('|').map(cell => cell.trim());
+    return line
+      .replace(/^\|/, "")
+      .replace(/\|$/, "")
+      .split("|")
+      .map((cell) => cell.trim());
   };
 
   const headers = parseRow(headerLine);
-  const aligns = parseRow(separatorLine).map(cell => {
-    if (cell.startsWith(':') && cell.endsWith(':')) return 'center';
-    if (cell.endsWith(':')) return 'right';
-    if (cell.startsWith(':')) return 'left';
-    return '';
+  const aligns = parseRow(separatorLine).map((cell) => {
+    if (cell.startsWith(":") && cell.endsWith(":")) return "center";
+    if (cell.endsWith(":")) return "right";
+    if (cell.startsWith(":")) return "left";
+    return "";
   });
 
-  let html = '<table>\n<thead>\n<tr>\n';
+  let html = "<table>\n<thead>\n<tr>\n";
   headers.forEach((h, i) => {
-    const align = aligns[i] ? ` style="text-align:${aligns[i]}"` : '';
+    const align = aligns[i] ? ` style="text-align:${aligns[i]}"` : "";
     html += `<th${align}>${parseInline(h)}</th>\n`;
   });
-  html += '</tr>\n</thead>\n';
+  html += "</tr>\n</thead>\n";
 
   if (lines.length > 2) {
-    html += '<tbody>\n';
+    html += "<tbody>\n";
     for (let i = 2; i < lines.length; i++) {
       const cells = parseRow(lines[i].trim());
-      html += '<tr>\n';
+      html += "<tr>\n";
       cells.forEach((c, ci) => {
-        const align = aligns[ci] ? ` style="text-align:${aligns[ci]}"` : '';
+        const align = aligns[ci] ? ` style="text-align:${aligns[ci]}"` : "";
         html += `<td${align}>${parseInline(c)}</td>\n`;
       });
-      html += '</tr>\n';
+      html += "</tr>\n";
     }
-    html += '</tbody>\n';
+    html += "</tbody>\n";
   }
 
-  html += '</table>';
+  html += "</table>";
   return html;
 }
 
@@ -126,8 +130,8 @@ function parseTable(lines) {
  * 解析代码块
  */
 function parseCodeBlock(lines, lang) {
-  const code = lines.map(l => escapeHtml(l)).join('\n');
-  const langAttr = lang ? ` class="language-${lang}"` : '';
+  const code = lines.map((l) => escapeHtml(l)).join("\n");
+  const langAttr = lang ? ` class="language-${lang}"` : "";
   return `<pre><code${langAttr}>${code}</code></pre>`;
 }
 
@@ -135,7 +139,7 @@ function parseCodeBlock(lines, lang) {
  * 解析引用块
  */
 function parseBlockquote(lines) {
-  const content = lines.map(l => l.replace(/^>\s?/, '')).join('\n');
+  const content = lines.map((l) => l.replace(/^>\s?/, "")).join("\n");
   const inner = convert(content);
   return `<blockquote>\n${inner}\n</blockquote>`;
 }
@@ -144,22 +148,22 @@ function parseBlockquote(lines) {
  * 解析无序列表
  */
 function parseUnorderedList(lines) {
-  const items = lines.map(l => {
-    const text = l.replace(/^\s*[-*+]\s+/, '');
+  const items = lines.map((l) => {
+    const text = l.replace(/^\s*[-*+]\s+/, "");
     return `<li>${parseInline(text)}</li>`;
   });
-  return `<ul>\n${items.join('\n')}\n</ul>`;
+  return `<ul>\n${items.join("\n")}\n</ul>`;
 }
 
 /**
  * 解析有序列表
  */
 function parseOrderedList(lines) {
-  const items = lines.map(l => {
-    const text = l.replace(/^\s*\d+\.\s+/, '');
+  const items = lines.map((l) => {
+    const text = l.replace(/^\s*\d+\.\s+/, "");
     return `<li>${parseInline(text)}</li>`;
   });
-  return `<ol>\n${items.join('\n')}\n</ol>`;
+  return `<ol>\n${items.join("\n")}\n</ol>`;
 }
 
 // ============================================================
@@ -167,9 +171,9 @@ function parseOrderedList(lines) {
 // ============================================================
 
 function convert(markdown) {
-  if (!markdown || typeof markdown !== 'string') return '';
+  if (!markdown || typeof markdown !== "string") return "";
 
-  const lines = markdown.split('\n');
+  const lines = markdown.split("\n");
   const htmlParts = [];
   let i = 0;
 
@@ -178,17 +182,17 @@ function convert(markdown) {
     const trimmed = line.trim();
 
     // 空行
-    if (trimmed === '') {
+    if (trimmed === "") {
       i++;
       continue;
     }
 
     // 代码块
-    if (trimmed.startsWith('```')) {
+    if (trimmed.startsWith("```")) {
       const lang = trimmed.slice(3).trim();
       const codeLines = [];
       i++;
-      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+      while (i < lines.length && !lines[i].trim().startsWith("```")) {
         codeLines.push(lines[i]);
         i++;
       }
@@ -199,7 +203,7 @@ function convert(markdown) {
 
     // 水平线
     if (/^[-*_]{3,}\s*$/.test(trimmed)) {
-      htmlParts.push('<hr>');
+      htmlParts.push("<hr>");
       i++;
       continue;
     }
@@ -215,7 +219,11 @@ function convert(markdown) {
     }
 
     // 表格
-    if (i + 1 < lines.length && /^\|.*\|$/.test(trimmed) && /^\|?\s*[-:]+/.test(lines[i + 1].trim())) {
+    if (
+      i + 1 < lines.length &&
+      /^\|.*\|$/.test(trimmed) &&
+      /^\|?\s*[-:]+/.test(lines[i + 1].trim())
+    ) {
       const tableLines = [];
       while (i < lines.length && /^\|/.test(lines[i].trim())) {
         tableLines.push(lines[i]);
@@ -267,10 +275,10 @@ function convert(markdown) {
     const paraLines = [];
     while (
       i < lines.length &&
-      lines[i].trim() !== '' &&
-      !lines[i].trim().startsWith('#') &&
-      !lines[i].trim().startsWith('```') &&
-      !lines[i].trim().startsWith('>') &&
+      lines[i].trim() !== "" &&
+      !lines[i].trim().startsWith("#") &&
+      !lines[i].trim().startsWith("```") &&
+      !lines[i].trim().startsWith(">") &&
       !/^\s*[-*+]\s+/.test(lines[i].trim()) &&
       !/^\s*\d+\.\s+/.test(lines[i].trim()) &&
       !/^[-*_]{3,}\s*$/.test(lines[i].trim())
@@ -279,11 +287,11 @@ function convert(markdown) {
       i++;
     }
     if (paraLines.length > 0) {
-      htmlParts.push(`<p>${parseInline(paraLines.join('\n'))}</p>`);
+      htmlParts.push(`<p>${parseInline(paraLines.join("\n"))}</p>`);
     }
   }
 
-  return htmlParts.join('\n\n');
+  return htmlParts.join("\n\n");
 }
 
 // ============================================================
@@ -291,8 +299,10 @@ function convert(markdown) {
 // ============================================================
 
 function convertToFullHtml(markdown, options = {}) {
-  const title = options.title || 'Markdown Document';
-  const css = options.css || `
+  const title = options.title || "Markdown Document";
+  const css =
+    options.css ||
+    `
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       max-width: 800px;

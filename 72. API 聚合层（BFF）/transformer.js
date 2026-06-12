@@ -76,11 +76,13 @@ const ProductTransformer = {
       rating: product.rating,
       reviewCount: product.reviewCount,
       tags: product.tags,
-      stock: inventoryInfo ? {
-        available: inventoryInfo.available,
-        status: inventoryInfo.status,
-        warehouse: inventoryInfo.warehouse,
-      } : null,
+      stock: inventoryInfo
+        ? {
+            available: inventoryInfo.available,
+            status: inventoryInfo.status,
+            warehouse: inventoryInfo.warehouse,
+          }
+        : null,
     };
   },
 
@@ -95,7 +97,7 @@ const ProductTransformer = {
       originalPrice: product.originalPrice,
       image: product.images[0] || null,
       rating: product.rating,
-      stockStatus: inventoryInfo ? inventoryInfo.status : 'unknown',
+      stockStatus: inventoryInfo ? inventoryInfo.status : "unknown",
     };
   },
 
@@ -203,11 +205,11 @@ const OrderTransformer = {
 
   _statusText(status) {
     const map = {
-      pending: '待付款',
-      paid: '已付款',
-      shipped: '已发货',
-      completed: '已完成',
-      cancelled: '已取消',
+      pending: "待付款",
+      paid: "已付款",
+      shipped: "已发货",
+      completed: "已完成",
+      cancelled: "已取消",
     };
     return map[status] || status;
   },

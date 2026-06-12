@@ -7,6 +7,10 @@
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
-  "keywords": ["notes", "api", "node"],
+  "keywords": [
+    "notes",
+    "api",
+    "node"
+  ],
   "license": "MIT"
 }

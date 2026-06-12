@@ -3,12 +3,8 @@
     "id": "29a9ad8b-dc2b-4eca-93e2-19f7541661e5",
     "name": "技术部",
     "description": "技术部门用户组",
-    "roles": [
-      "editor"
-    ],
-    "members": [
-      "7ff9178e-7033-422d-8264-a97ec3803888"
-    ],
+    "roles": ["editor"],
+    "members": ["7ff9178e-7033-422d-8264-a97ec3803888"],
     "createdAt": "2026-06-11T13:43:40.043Z",
     "updatedAt": "2026-06-11T13:43:40.043Z"
   },
@@ -16,12 +12,8 @@
     "id": "2f1ec086-3c39-495f-86e0-4459b9a087c0",
     "name": "编辑部",
     "description": "内容编辑部门用户组",
-    "roles": [
-      "author"
-    ],
-    "members": [
-      "1790ff3e-8133-42ab-82e2-bbf0533ad51e"
-    ],
+    "roles": ["author"],
+    "members": ["1790ff3e-8133-42ab-82e2-bbf0533ad51e"],
     "createdAt": "2026-06-11T13:43:40.043Z",
     "updatedAt": "2026-06-11T13:43:40.043Z"
   }

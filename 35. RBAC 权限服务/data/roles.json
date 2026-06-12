@@ -2,9 +2,7 @@
   "superadmin": {
     "name": "superadmin",
     "description": "超级管理员，拥有所有权限，包含通配符",
-    "permissions": [
-      "*:*"
-    ],
+    "permissions": ["*:*"],
     "inherits": [],
     "dataScope": "all",
     "isSystem": true,
@@ -31,9 +29,7 @@
       "system:read",
       "system:audit"
     ],
-    "inherits": [
-      "editor"
-    ],
+    "inherits": ["editor"],
     "dataScope": "all",
     "isSystem": true,
     "createdAt": "2026-06-11T13:43:40.042Z",
@@ -53,9 +49,7 @@
       "permission:read",
       "group:read"
     ],
-    "inherits": [
-      "author"
-    ],
+    "inherits": ["author"],
     "dataScope": "department",
     "isSystem": false,
     "createdAt": "2026-06-11T13:43:40.042Z",
@@ -72,9 +66,7 @@
       "role:read",
       "permission:read"
     ],
-    "inherits": [
-      "viewer"
-    ],
+    "inherits": ["viewer"],
     "dataScope": "self",
     "isSystem": false,
     "createdAt": "2026-06-11T13:43:40.042Z",

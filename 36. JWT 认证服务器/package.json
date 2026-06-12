@@ -6,6 +6,10 @@
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": ["jwt", "auth", "node"],
+  "keywords": [
+    "jwt",
+    "auth",
+    "node"
+  ],
   "license": "MIT"
 }

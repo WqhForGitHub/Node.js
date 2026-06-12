@@ -19,21 +19,27 @@
  *   - br → 换行
  */
 
-'use strict';
+"use strict";
 
 // ============================================================
 // 简易 DOM 树构建
 // ============================================================
 
 function createNode(type, tag, attrs, content) {
-  return { type, tag: tag || '', attrs: attrs || {}, children: [], content: content || '' };
+  return {
+    type,
+    tag: tag || "",
+    attrs: attrs || {},
+    children: [],
+    content: content || "",
+  };
 }
 
 /**
  * 将 HTML 字符串解析为 DOM 树
  */
 function parseHtml(html) {
-  const root = createNode('root', '', {});
+  const root = createNode("root", "", {});
   const stack = [root];
   const regex = /<(\/?)(\w[\w-]*)\s*([^>]*?)(\/?)>|([^<]+)/g;
   let match;
@@ -45,13 +51,13 @@ function parseHtml(html) {
       // 文本节点
       const text = match[5];
       if (text) {
-        parent.children.push(createNode('text', '', {}, text));
+        parent.children.push(createNode("text", "", {}, text));
       }
     } else {
-      const isClosing = match[1] === '/';
+      const isClosing = match[1] === "/";
       const tag = match[2].toLowerCase();
       const attrs = parseAttrs(match[3]);
-      const isSelfClosing = match[4] === '/';
+      const isSelfClosing = match[4] === "/";
 
       if (isClosing) {
         // 找到匹配的 open tag 并弹出
@@ -62,7 +68,7 @@ function parseHtml(html) {
           }
         }
       } else {
-        const node = createNode('element', tag, attrs);
+        const node = createNode("element", tag, attrs);
         parent.children.push(node);
         if (!isSelfClosing && !VOID_TAGS.has(tag)) {
           stack.push(node);
@@ -74,14 +80,14 @@ function parseHtml(html) {
   return root;
 }
 
-const VOID_TAGS = new Set(['br', 'hr', 'img', 'input', 'meta', 'link']);
+const VOID_TAGS = new Set(["br", "hr", "img", "input", "meta", "link"]);
 
 function parseAttrs(attrStr) {
   const attrs = {};
   const regex = /(\w[\w-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|(\S+))/g;
   let match;
   while ((match = regex.exec(attrStr))) {
-    attrs[match[1].toLowerCase()] = match[2] || match[3] || match[4] || '';
+    attrs[match[1].toLowerCase()] = match[2] || match[3] || match[4] || "";
   }
   return attrs;
 }
@@ -92,12 +98,12 @@ function parseAttrs(attrStr) {
 
 function decodeHtmlEntities(text) {
   return text
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ');
+    .replace(/&nbsp;/g, " ");
 }
 
 // ============================================================
@@ -105,7 +111,7 @@ function decodeHtmlEntities(text) {
 // ============================================================
 
 function renderNode(node, listDepth) {
-  if (node.type === 'text') {
+  if (node.type === "text") {
     return decodeHtmlEntities(node.content);
   }
 
@@ -114,46 +120,56 @@ function renderNode(node, listDepth) {
 
   switch (tag) {
     // 标题
-    case 'h1': return `\n\n# ${childrenMd.trim()}\n\n`;
-    case 'h2': return `\n\n## ${childrenMd.trim()}\n\n`;
-    case 'h3': return `\n\n### ${childrenMd.trim()}\n\n`;
-    case 'h4': return `\n\n#### ${childrenMd.trim()}\n\n`;
-    case 'h5': return `\n\n##### ${childrenMd.trim()}\n\n`;
-    case 'h6': return `\n\n###### ${childrenMd.trim()}\n\n`;
+    case "h1":
+      return `\n\n# ${childrenMd.trim()}\n\n`;
+    case "h2":
+      return `\n\n## ${childrenMd.trim()}\n\n`;
+    case "h3":
+      return `\n\n### ${childrenMd.trim()}\n\n`;
+    case "h4":
+      return `\n\n#### ${childrenMd.trim()}\n\n`;
+    case "h5":
+      return `\n\n##### ${childrenMd.trim()}\n\n`;
+    case "h6":
+      return `\n\n###### ${childrenMd.trim()}\n\n`;
 
     // 段落
-    case 'p':
+    case "p":
       return `\n\n${childrenMd.trim()}\n\n`;
 
     // 粗体
-    case 'strong': case 'b':
+    case "strong":
+    case "b":
       return `**${childrenMd}**`;
 
     // 斜体
-    case 'em': case 'i':
+    case "em":
+    case "i":
       return `*${childrenMd}*`;
 
     // 删除线
-    case 'del': case 's': case 'strike':
+    case "del":
+    case "s":
+    case "strike":
       return `~~${childrenMd}~~`;
 
     // 行内代码
-    case 'code':
+    case "code":
       return `\`${childrenMd}\``;
 
     // 代码块
-    case 'pre': {
+    case "pre": {
       // 提取代码内容，可能包含 <code> 标签
-      let codeContent = '';
-      let lang = '';
+      let codeContent = "";
+      let lang = "";
       for (const child of node.children) {
-        if (child.tag === 'code') {
+        if (child.tag === "code") {
           // 从 class="language-xxx" 提取语言
-          const codeClass = child.attrs.class || '';
+          const codeClass = child.attrs.class || "";
           const langMatch = codeClass.match(/language-(\w+)/);
           if (langMatch) lang = langMatch[1];
           codeContent = renderTextOnly(child);
-        } else if (child.type === 'text') {
+        } else if (child.type === "text") {
           codeContent += decodeHtmlEntities(child.content);
         }
       }
@@ -162,48 +178,52 @@ function renderNode(node, listDepth) {
     }
 
     // 链接
-    case 'a':
-      return `[${childrenMd}](${node.attrs.href || ''})`;
+    case "a":
+      return `[${childrenMd}](${node.attrs.href || ""})`;
 
     // 图片
-    case 'img':
-      return `![${decodeHtmlEntities(node.attrs.alt || '')}](${node.attrs.src || ''})`;
+    case "img":
+      return `![${decodeHtmlEntities(node.attrs.alt || "")}](${node.attrs.src || ""})`;
 
     // 无序列表
-    case 'ul':
+    case "ul":
       return `\n${childrenMd}\n`;
 
     // 有序列表
-    case 'ol':
+    case "ol":
       return `\n${childrenMd}\n`;
 
     // 列表项
-    case 'li': {
-      const indent = '  '.repeat(Math.max(0, listDepth));
+    case "li": {
+      const indent = "  ".repeat(Math.max(0, listDepth));
       return `${indent}- ${childrenMd.trim()}\n`;
     }
 
     // 引用
-    case 'blockquote': {
-      const lines = childrenMd.trim().split('\n');
-      return '\n' + lines.map(l => `> ${l}`).join('\n') + '\n\n';
+    case "blockquote": {
+      const lines = childrenMd.trim().split("\n");
+      return "\n" + lines.map((l) => `> ${l}`).join("\n") + "\n\n";
     }
 
     // 水平线
-    case 'hr':
-      return '\n\n---\n\n';
+    case "hr":
+      return "\n\n---\n\n";
 
     // 换行
-    case 'br':
-      return '\n';
+    case "br":
+      return "\n";
 
     // 表格
-    case 'table':
+    case "table":
       return renderTable(node);
 
     // 忽略的标签（head, style, script, meta 等）
-    case 'head': case 'style': case 'script': case 'meta': case 'title':
-      return '';
+    case "head":
+    case "style":
+    case "script":
+    case "meta":
+    case "title":
+      return "";
 
     // 默认：只渲染子内容
     default:
@@ -212,28 +232,34 @@ function renderNode(node, listDepth) {
 }
 
 function renderChildren(children, parentTag, listDepth) {
-  if (parentTag === 'ol') {
+  if (parentTag === "ol") {
     let liIndex = 0;
-    return children.map((child) => {
-      if (child.tag === 'li') {
-        liIndex++;
-        const indent = '  '.repeat(Math.max(0, listDepth));
-        const liContent = renderChildren(child.children, 'li', listDepth + 1).trim();
-        return `${indent}${liIndex}. ${liContent}\n`;
-      }
-      return renderNode(child, listDepth);
-    }).join('');
+    return children
+      .map((child) => {
+        if (child.tag === "li") {
+          liIndex++;
+          const indent = "  ".repeat(Math.max(0, listDepth));
+          const liContent = renderChildren(
+            child.children,
+            "li",
+            listDepth + 1,
+          ).trim();
+          return `${indent}${liIndex}. ${liContent}\n`;
+        }
+        return renderNode(child, listDepth);
+      })
+      .join("");
   }
 
-  return children.map(child => renderNode(child, listDepth)).join('');
+  return children.map((child) => renderNode(child, listDepth)).join("");
 }
 
 /**
  * 仅提取纯文本内容（用于代码块等）
  */
 function renderTextOnly(node) {
-  if (node.type === 'text') return decodeHtmlEntities(node.content);
-  return node.children.map(c => renderTextOnly(c)).join('');
+  if (node.type === "text") return decodeHtmlEntities(node.content);
+  return node.children.map((c) => renderTextOnly(c)).join("");
 }
 
 // ============================================================
@@ -244,41 +270,41 @@ function renderTable(tableNode) {
   const rows = [];
 
   function collectRows(node) {
-    if (node.tag === 'tr') {
+    if (node.tag === "tr") {
       const cells = [];
       for (const child of node.children) {
-        if (child.tag === 'th' || child.tag === 'td') {
+        if (child.tag === "th" || child.tag === "td") {
           cells.push(renderChildren(child.children, child.tag, 0).trim());
         }
       }
       rows.push(cells);
     } else {
       for (const child of node.children) {
-        if (child.type === 'element') collectRows(child);
+        if (child.type === "element") collectRows(child);
       }
     }
   }
 
   collectRows(tableNode);
 
-  if (rows.length === 0) return '';
+  if (rows.length === 0) return "";
 
-  const colCount = Math.max(...rows.map(r => r.length));
-  let md = '\n';
+  const colCount = Math.max(...rows.map((r) => r.length));
+  let md = "\n";
 
   // 表头
   const header = rows[0];
-  while (header.length < colCount) header.push('');
-  md += '| ' + header.join(' | ') + ' |\n';
-  md += '| ' + header.map(() => '---').join(' | ') + ' |\n';
+  while (header.length < colCount) header.push("");
+  md += "| " + header.join(" | ") + " |\n";
+  md += "| " + header.map(() => "---").join(" | ") + " |\n";
 
   // 数据行
   for (let i = 1; i < rows.length; i++) {
-    while (rows[i].length < colCount) rows[i].push('');
-    md += '| ' + rows[i].join(' | ') + ' |\n';
+    while (rows[i].length < colCount) rows[i].push("");
+    md += "| " + rows[i].join(" | ") + " |\n";
   }
 
-  return md + '\n';
+  return md + "\n";
 }
 
 // ============================================================
@@ -286,10 +312,10 @@ function renderTable(tableNode) {
 // ============================================================
 
 function convert(html) {
-  if (!html || typeof html !== 'string') return '';
+  if (!html || typeof html !== "string") return "";
 
   const tree = parseHtml(html);
-  let md = '';
+  let md = "";
 
   for (const child of tree.children) {
     md += renderNode(child, 0);
@@ -297,8 +323,8 @@ function convert(html) {
 
   // 清理多余空行和空格
   return md
-    .replace(/\n{3,}/g, '\n\n')
-    .replace(/^[ \t]+$/gm, '')
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/^[ \t]+$/gm, "")
     .trim();
 }
 

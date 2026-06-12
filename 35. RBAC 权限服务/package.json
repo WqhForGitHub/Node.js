@@ -7,6 +7,11 @@
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
-  "keywords": ["rbac", "permission", "role", "access-control"],
+  "keywords": [
+    "rbac",
+    "permission",
+    "role",
+    "access-control"
+  ],
   "license": "MIT"
 }

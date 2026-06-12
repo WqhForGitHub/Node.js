@@ -11,6 +11,11 @@
     "order-service": "node services/order-service.js",
     "product-service": "node services/product-service.js"
   },
-  "keywords": ["microservices", "nodejs", "api-gateway", "service-registry"],
+  "keywords": [
+    "microservices",
+    "nodejs",
+    "api-gateway",
+    "service-registry"
+  ],
   "license": "MIT"
 }

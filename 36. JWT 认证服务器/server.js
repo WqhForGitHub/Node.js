@@ -106,7 +106,9 @@ function generateSalt() {
 }
 
 function hashPassword(password, salt) {
-  return crypto.pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, HASH_ALGORITHM).toString("hex");
+  return crypto
+    .pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, HASH_ALGORITHM)
+    .toString("hex");
 }
 
 function verifyPassword(password, salt, hash) {
@@ -137,7 +139,10 @@ function b64UrlEncode(data) {
 /** Base64URL 解码为字符串 */
 function b64UrlDecode(str) {
   const padded = str + "=".repeat((4 - (str.length % 4)) % 4);
-  return Buffer.from(padded.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf-8");
+  return Buffer.from(
+    padded.replace(/-/g, "+").replace(/_/g, "/"),
+    "base64",
+  ).toString("utf-8");
 }
 
 /** Base64URL 解码为 JSON */
@@ -208,7 +213,11 @@ function createSignature(encodedHeader, encodedPayload, algorithm) {
   sign.update(`${encodedHeader}.${encodedPayload}`);
 
   if (isRsa) {
-    return sign.sign(key, "base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+    return sign
+      .sign(key, "base64")
+      .replace(/=/g, "")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_");
   } else {
     return crypto
       .createHmac(cryptoAlgo.replace("SHA", "sha"), key)
@@ -223,10 +232,7 @@ function createSignature(encodedHeader, encodedPayload, algorithm) {
 /** 验证签名 */
 function verifySignature(encodedHeader, encodedPayload, signature, algorithm) {
   const expected = createSignature(encodedHeader, encodedPayload, algorithm);
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expected)
-  );
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
 }
 
 /**
@@ -267,18 +273,31 @@ function generateJwt(payload, expiresIn, algorithm = "HS256", options = {}) {
 function verifyJwt(token) {
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) return { valid: false, payload: null, header: null, error: "JWT 格式错误" };
+    if (parts.length !== 3)
+      return {
+        valid: false,
+        payload: null,
+        header: null,
+        error: "JWT 格式错误",
+      };
 
     const [encodedHeader, encodedPayload, signature] = parts;
     const header = b64UrlDecodeJson(encodedHeader);
 
     if (!header.alg || !ALGO_MAP[header.alg]) {
-      return { valid: false, payload: null, header, error: `不支持的算法: ${header.alg}` };
+      return {
+        valid: false,
+        payload: null,
+        header,
+        error: `不支持的算法: ${header.alg}`,
+      };
     }
 
     // 验证签名
     try {
-      if (!verifySignature(encodedHeader, encodedPayload, signature, header.alg)) {
+      if (
+        !verifySignature(encodedHeader, encodedPayload, signature, header.alg)
+      ) {
         return { valid: false, payload: null, header, error: "签名验证失败" };
       }
     } catch {
@@ -384,8 +403,12 @@ function revokeAllRefreshTokens(userId) {
 
 // ─── 客户端（应用）管理 ──────────────────────────────────────────
 
-function readClients() { return readJson(CLIENTS_FILE); }
-function writeClients(data) { writeJson(CLIENTS_FILE, data); }
+function readClients() {
+  return readJson(CLIENTS_FILE);
+}
+function writeClients(data) {
+  writeJson(CLIENTS_FILE, data);
+}
 
 // 初始化默认客户端
 function initDefaultClient() {
@@ -404,8 +427,12 @@ function initDefaultClient() {
 
 // ─── API Key 管理 ──────────────────────────────────────────────
 
-function readApiKeys() { return readJson(API_KEYS_FILE); }
-function writeApiKeys(data) { writeJson(API_KEYS_FILE, data); }
+function readApiKeys() {
+  return readJson(API_KEYS_FILE);
+}
+function writeApiKeys(data) {
+  writeJson(API_KEYS_FILE, data);
+}
 
 function validateApiKey(keyValue) {
   const keys = readApiKeys();
@@ -420,8 +447,12 @@ function validateApiKey(keyValue) {
 
 // ─── 用户数据 ──────────────────────────────────────────────────
 
-function readUsers() { return readJson(USERS_FILE); }
-function writeUsers(data) { writeJson(USERS_FILE, data); }
+function readUsers() {
+  return readJson(USERS_FILE);
+}
+function writeUsers(data) {
+  writeJson(USERS_FILE, data);
+}
 
 // ─── 限流器 ──────────────────────────────────────────────────────
 
@@ -496,14 +527,21 @@ function requireApiKey(req) {
 async function handleRegister(req, res) {
   const body = await parseBody(req);
 
-  if (!body.username || typeof body.username !== "string" || !body.username.trim()) {
+  if (
+    !body.username ||
+    typeof body.username !== "string" ||
+    !body.username.trim()
+  ) {
     return sendJson(res, 400, { success: false, error: "username 为必填字段" });
   }
   if (!body.email || !isValidEmail(body.email)) {
     return sendJson(res, 400, { success: false, error: "email 格式不正确" });
   }
   if (!body.password || body.password.length < 6) {
-    return sendJson(res, 400, { success: false, error: "password 至少需要 6 个字符" });
+    return sendJson(res, 400, {
+      success: false,
+      error: "password 至少需要 6 个字符",
+    });
   }
 
   const users = readUsers();
@@ -541,7 +579,7 @@ async function handleRegister(req, res) {
     { userId: user.id, username: user.username, roles: user.roles },
     ACCESS_TOKEN_EXPIRES,
     algorithm,
-    { issuer: "jwt-auth-server", subject: user.id }
+    { issuer: "jwt-auth-server", subject: user.id },
   );
   const refreshToken = crypto.randomBytes(40).toString("hex");
   storeRefreshToken(user.id, refreshToken, clientId);
@@ -565,7 +603,10 @@ async function handleLogin(req, res) {
   const body = await parseBody(req);
 
   if (!body.username || !body.password) {
-    return sendJson(res, 400, { success: false, error: "username 和 password 为必填字段" });
+    return sendJson(res, 400, {
+      success: false,
+      error: "username 和 password 为必填字段",
+    });
   }
 
   const users = readUsers();
@@ -587,7 +628,7 @@ async function handleLogin(req, res) {
     { userId: user.id, username: user.username, roles: user.roles },
     ACCESS_TOKEN_EXPIRES,
     algorithm,
-    { issuer: "jwt-auth-server", subject: user.id }
+    { issuer: "jwt-auth-server", subject: user.id },
   );
   const refreshToken = crypto.randomBytes(40).toString("hex");
   storeRefreshToken(user.id, refreshToken, clientId);
@@ -614,7 +655,10 @@ async function handleRefresh(req, res) {
   const body = await parseBody(req);
 
   if (!body.refreshToken) {
-    return sendJson(res, 400, { success: false, error: "refreshToken 为必填字段" });
+    return sendJson(res, 400, {
+      success: false,
+      error: "refreshToken 为必填字段",
+    });
   }
 
   // 从旧 accessToken 解析 userId
@@ -627,11 +671,17 @@ async function handleRefresh(req, res) {
   if (!userId && body.userId) userId = body.userId;
 
   if (!userId) {
-    return sendJson(res, 401, { success: false, error: "无法识别用户，请重新登录" });
+    return sendJson(res, 401, {
+      success: false,
+      error: "无法识别用户，请重新登录",
+    });
   }
 
   if (!isValidRefreshToken(userId, body.refreshToken)) {
-    return sendJson(res, 401, { success: false, error: "刷新令牌无效或已过期，请重新登录" });
+    return sendJson(res, 401, {
+      success: false,
+      error: "刷新令牌无效或已过期，请重新登录",
+    });
   }
 
   const users = readUsers();
@@ -650,7 +700,7 @@ async function handleRefresh(req, res) {
     { userId: user.id, username: user.username, roles: user.roles },
     ACCESS_TOKEN_EXPIRES,
     algorithm,
-    { issuer: "jwt-auth-server", subject: user.id }
+    { issuer: "jwt-auth-server", subject: user.id },
   );
   const newRefreshToken = crypto.randomBytes(40).toString("hex");
   storeRefreshToken(user.id, newRefreshToken, clientId);
@@ -669,7 +719,8 @@ async function handleRefresh(req, res) {
 /** POST /api/auth/logout — 登出 */
 async function handleLogout(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const body = await parseBody(req);
 
@@ -691,7 +742,8 @@ async function handleLogout(req, res) {
 /** GET /api/auth/profile — 获取当前用户信息 */
 function handleGetProfile(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const users = readUsers();
   const user = users.find((u) => u.id === auth.payload.userId);
@@ -704,21 +756,25 @@ function handleGetProfile(req, res) {
 /** PUT /api/auth/profile — 更新用户信息 */
 async function handleUpdateProfile(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const body = await parseBody(req);
   const users = readUsers();
   const idx = users.findIndex((u) => u.id === auth.payload.userId);
-  if (idx === -1) return sendJson(res, 404, { success: false, error: "用户不存在" });
+  if (idx === -1)
+    return sendJson(res, 404, { success: false, error: "用户不存在" });
 
   const user = users[idx];
 
   if (body.nickname !== undefined) {
-    if (!body.nickname.trim()) return sendJson(res, 400, { success: false, error: "nickname 不能为空" });
+    if (!body.nickname.trim())
+      return sendJson(res, 400, { success: false, error: "nickname 不能为空" });
     user.nickname = body.nickname.trim();
   }
   if (body.email !== undefined) {
-    if (!isValidEmail(body.email)) return sendJson(res, 400, { success: false, error: "email 格式不正确" });
+    if (!isValidEmail(body.email))
+      return sendJson(res, 400, { success: false, error: "email 格式不正确" });
     const newEmail = body.email.trim().toLowerCase();
     if (newEmail !== user.email && users.find((u) => u.email === newEmail)) {
       return sendJson(res, 409, { success: false, error: "邮箱已被使用" });
@@ -733,7 +789,10 @@ async function handleUpdateProfile(req, res) {
       return sendJson(res, 401, { success: false, error: "旧密码不正确" });
     }
     if (body.newPassword.length < 6) {
-      return sendJson(res, 400, { success: false, error: "新密码至少需要 6 个字符" });
+      return sendJson(res, 400, {
+        success: false,
+        error: "新密码至少需要 6 个字符",
+      });
     }
     const newSalt = generateSalt();
     user.password = `${newSalt}:${hashPassword(body.newPassword, newSalt)}`;
@@ -751,14 +810,21 @@ async function handleUpdateProfile(req, res) {
 /** POST /api/auth/change-password — 修改密码 */
 async function handleChangePassword(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const body = await parseBody(req);
   if (!body.oldPassword || !body.newPassword) {
-    return sendJson(res, 400, { success: false, error: "oldPassword 和 newPassword 为必填字段" });
+    return sendJson(res, 400, {
+      success: false,
+      error: "oldPassword 和 newPassword 为必填字段",
+    });
   }
   if (body.newPassword.length < 6) {
-    return sendJson(res, 400, { success: false, error: "新密码至少需要 6 个字符" });
+    return sendJson(res, 400, {
+      success: false,
+      error: "新密码至少需要 6 个字符",
+    });
   }
 
   const users = readUsers();
@@ -781,7 +847,10 @@ async function handleChangePassword(req, res) {
   // 将当前 access token 加入黑名单
   if (auth.payload.jti) revokeToken(auth.payload.jti, auth.payload.exp);
 
-  sendJson(res, 200, { success: true, data: { message: "密码修改成功，请重新登录" } });
+  sendJson(res, 200, {
+    success: true,
+    data: { message: "密码修改成功，请重新登录" },
+  });
 }
 
 // ─── JWT 工具端点 ──────────────────────────────────────────────
@@ -789,7 +858,8 @@ async function handleChangePassword(req, res) {
 /** POST /api/jwt/generate — 自定义生成 JWT */
 async function handleJwtGenerate(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const body = await parseBody(req);
 
@@ -827,7 +897,8 @@ async function handleJwtGenerate(req, res) {
 /** POST /api/jwt/verify — 验证 JWT */
 async function handleJwtVerify(req, res) {
   const body = await parseBody(req);
-  if (!body.token) return sendJson(res, 400, { success: false, error: "token 为必填字段" });
+  if (!body.token)
+    return sendJson(res, 400, { success: false, error: "token 为必填字段" });
 
   const result = verifyJwt(body.token);
   sendJson(res, 200, {
@@ -844,10 +915,12 @@ async function handleJwtVerify(req, res) {
 /** POST /api/jwt/decode — 解码 JWT（不验证签名） */
 async function handleJwtDecode(req, res) {
   const body = await parseBody(req);
-  if (!body.token) return sendJson(res, 400, { success: false, error: "token 为必填字段" });
+  if (!body.token)
+    return sendJson(res, 400, { success: false, error: "token 为必填字段" });
 
   const decoded = decodeJwt(body.token);
-  if (!decoded) return sendJson(res, 400, { success: false, error: "无法解码令牌" });
+  if (!decoded)
+    return sendJson(res, 400, { success: false, error: "无法解码令牌" });
 
   sendJson(res, 200, { success: true, data: decoded });
 }
@@ -855,24 +928,33 @@ async function handleJwtDecode(req, res) {
 /** POST /api/jwt/revoke — 撤销 JWT */
 async function handleJwtRevoke(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const body = await parseBody(req);
-  if (!body.token) return sendJson(res, 400, { success: false, error: "token 为必填字段" });
+  if (!body.token)
+    return sendJson(res, 400, { success: false, error: "token 为必填字段" });
 
   const decoded = decodeJwt(body.token);
   if (!decoded || !decoded.payload || !decoded.payload.jti) {
-    return sendJson(res, 400, { success: false, error: "令牌不包含 jti，无法撤销" });
+    return sendJson(res, 400, {
+      success: false,
+      error: "令牌不包含 jti，无法撤销",
+    });
   }
 
   revokeToken(decoded.payload.jti, decoded.payload.exp);
-  sendJson(res, 200, { success: true, data: { message: "令牌已撤销", jti: decoded.payload.jti } });
+  sendJson(res, 200, {
+    success: true,
+    data: { message: "令牌已撤销", jti: decoded.payload.jti },
+  });
 }
 
 /** POST /api/jwt/introspect — 令牌内省 (RFC 7662 风格) */
 async function handleJwtIntrospect(req, res) {
   const body = await parseBody(req);
-  if (!body.token) return sendJson(res, 400, { success: false, error: "token 为必填字段" });
+  if (!body.token)
+    return sendJson(res, 400, { success: false, error: "token 为必填字段" });
 
   const result = verifyJwt(body.token);
 
@@ -893,7 +975,8 @@ async function handleJwtIntrospect(req, res) {
 /** POST /api/keys — 创建 API Key */
 async function handleCreateApiKey(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const body = await parseBody(req);
   if (!body.name || !body.name.trim()) {
@@ -927,7 +1010,8 @@ async function handleCreateApiKey(req, res) {
 /** GET /api/keys — 列出当前用户的 API Keys */
 function handleListApiKeys(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const keys = readApiKeys().filter((k) => k.userId === auth.payload.userId);
   // 不返回 key 值的完整形式，只显示前 8 位
@@ -942,11 +1026,15 @@ function handleListApiKeys(req, res) {
 /** DELETE /api/keys/:id — 撤销 API Key */
 function handleRevokeApiKey(req, res, keyId) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const keys = readApiKeys();
-  const idx = keys.findIndex((k) => k.id === keyId && k.userId === auth.payload.userId);
-  if (idx === -1) return sendJson(res, 404, { success: false, error: "API Key 不存在" });
+  const idx = keys.findIndex(
+    (k) => k.id === keyId && k.userId === auth.payload.userId,
+  );
+  if (idx === -1)
+    return sendJson(res, 404, { success: false, error: "API Key 不存在" });
 
   keys[idx].active = false;
   writeApiKeys(keys);
@@ -959,7 +1047,8 @@ function handleRevokeApiKey(req, res, keyId) {
 /** GET /api/clients — 列出客户端 */
 function handleListClients(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const clients = readClients();
   const safeClients = clients.map((c) => ({
@@ -975,7 +1064,8 @@ function handleListClients(req, res) {
 /** POST /api/clients — 创建客户端 */
 async function handleCreateClient(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const body = await parseBody(req);
   if (!body.name || !body.name.trim()) {
@@ -1000,11 +1090,13 @@ async function handleCreateClient(req, res) {
 /** DELETE /api/clients/:id — 删除客户端 */
 function handleDeleteClient(req, res, clientId) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   const clients = readClients();
   const idx = clients.findIndex((c) => c.id === clientId);
-  if (idx === -1) return sendJson(res, 404, { success: false, error: "客户端不存在" });
+  if (idx === -1)
+    return sendJson(res, 404, { success: false, error: "客户端不存在" });
 
   clients.splice(idx, 1);
   writeClients(clients);
@@ -1017,7 +1109,8 @@ function handleDeleteClient(req, res, clientId) {
 /** GET /api/admin/stats — 系统统计 */
 function handleAdminStats(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   // 检查是否有 admin 角色
   if (!auth.payload.roles || !auth.payload.roles.includes("admin")) {
@@ -1052,7 +1145,8 @@ function handleAdminStats(req, res) {
 /** GET /api/admin/blacklist — 查看黑名单 */
 function handleAdminBlacklist(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   if (!auth.payload.roles || !auth.payload.roles.includes("admin")) {
     return sendJson(res, 403, { success: false, error: "需要管理员权限" });
@@ -1069,24 +1163,32 @@ function handleAdminBlacklist(req, res) {
 /** DELETE /api/admin/blacklist/:jti — 从黑名单移除 */
 function handleAdminUnblacklist(req, res, jti) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   if (!auth.payload.roles || !auth.payload.roles.includes("admin")) {
     return sendJson(res, 403, { success: false, error: "需要管理员权限" });
   }
 
   if (!tokenBlacklist.has(jti)) {
-    return sendJson(res, 404, { success: false, error: "黑名单中不存在该令牌" });
+    return sendJson(res, 404, {
+      success: false,
+      error: "黑名单中不存在该令牌",
+    });
   }
 
   tokenBlacklist.delete(jti);
-  sendJson(res, 200, { success: true, data: { message: "令牌已从黑名单移除" } });
+  sendJson(res, 200, {
+    success: true,
+    data: { message: "令牌已从黑名单移除" },
+  });
 }
 
 /** GET /api/admin/users — 列出所有用户（管理员） */
 function handleAdminListUsers(req, res) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   if (!auth.payload.roles || !auth.payload.roles.includes("admin")) {
     return sendJson(res, 403, { success: false, error: "需要管理员权限" });
@@ -1103,7 +1205,8 @@ function handleAdminListUsers(req, res) {
 /** PUT /api/admin/users/:id/roles — 修改用户角色 */
 async function handleAdminUpdateRoles(req, res, userId) {
   const auth = requireAuth(req);
-  if (!auth.authenticated) return sendJson(res, 401, { success: false, error: auth.error });
+  if (!auth.authenticated)
+    return sendJson(res, 401, { success: false, error: auth.error });
 
   if (!auth.payload.roles || !auth.payload.roles.includes("admin")) {
     return sendJson(res, 403, { success: false, error: "需要管理员权限" });
@@ -1136,15 +1239,21 @@ async function handleRequest(req, res) {
   if (handleCors(req, res)) return;
 
   // 限流
-  const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+  const clientIp =
+    req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
   const rateResult = checkRateLimit(clientIp);
   res.setHeader("X-RateLimit-Limit", RATE_LIMIT_MAX);
   res.setHeader("X-RateLimit-Remaining", rateResult.remaining);
   res.setHeader("X-RateLimit-Reset", Math.ceil(rateResult.resetAt / 1000));
 
   if (!rateResult.allowed) {
-    res.writeHead(429, { "Content-Type": "application/json; charset=utf-8", ...corsHeaders() });
-    return res.end(JSON.stringify({ success: false, error: "请求过于频繁，请稍后再试" }));
+    res.writeHead(429, {
+      "Content-Type": "application/json; charset=utf-8",
+      ...corsHeaders(),
+    });
+    return res.end(
+      JSON.stringify({ success: false, error: "请求过于频繁，请稍后再试" }),
+    );
   }
 
   const segments = parsePath(req.url);
@@ -1162,56 +1271,83 @@ async function handleRequest(req, res) {
     if (segments[0] === "api" && segments[1] === "auth") {
       const action = segments[2];
 
-      if (method === "POST" && action === "register") return await handleRegister(req, res);
-      if (method === "POST" && action === "login") return await handleLogin(req, res);
-      if (method === "POST" && action === "refresh") return await handleRefresh(req, res);
-      if (method === "POST" && action === "logout") return await handleLogout(req, res);
-      if (method === "GET" && action === "profile") return handleGetProfile(req, res);
-      if (method === "PUT" && action === "profile") return await handleUpdateProfile(req, res);
-      if (method === "POST" && action === "change-password") return await handleChangePassword(req, res);
+      if (method === "POST" && action === "register")
+        return await handleRegister(req, res);
+      if (method === "POST" && action === "login")
+        return await handleLogin(req, res);
+      if (method === "POST" && action === "refresh")
+        return await handleRefresh(req, res);
+      if (method === "POST" && action === "logout")
+        return await handleLogout(req, res);
+      if (method === "GET" && action === "profile")
+        return handleGetProfile(req, res);
+      if (method === "PUT" && action === "profile")
+        return await handleUpdateProfile(req, res);
+      if (method === "POST" && action === "change-password")
+        return await handleChangePassword(req, res);
     }
 
     // /api/jwt/* — JWT 工具路由
     if (segments[0] === "api" && segments[1] === "jwt") {
       const action = segments[2];
 
-      if (method === "POST" && action === "generate") return await handleJwtGenerate(req, res);
-      if (method === "POST" && action === "verify") return await handleJwtVerify(req, res);
-      if (method === "POST" && action === "decode") return await handleJwtDecode(req, res);
-      if (method === "POST" && action === "revoke") return await handleJwtRevoke(req, res);
-      if (method === "POST" && action === "introspect") return await handleJwtIntrospect(req, res);
+      if (method === "POST" && action === "generate")
+        return await handleJwtGenerate(req, res);
+      if (method === "POST" && action === "verify")
+        return await handleJwtVerify(req, res);
+      if (method === "POST" && action === "decode")
+        return await handleJwtDecode(req, res);
+      if (method === "POST" && action === "revoke")
+        return await handleJwtRevoke(req, res);
+      if (method === "POST" && action === "introspect")
+        return await handleJwtIntrospect(req, res);
     }
 
     // /api/keys/* — API Key 路由
     if (segments[0] === "api" && segments[1] === "keys") {
       if (method === "GET") return handleListApiKeys(req, res);
       if (method === "POST") return await handleCreateApiKey(req, res);
-      if (method === "DELETE" && segments[2]) return handleRevokeApiKey(req, res, segments[2]);
+      if (method === "DELETE" && segments[2])
+        return handleRevokeApiKey(req, res, segments[2]);
     }
 
     // /api/clients/* — 客户端管理路由
     if (segments[0] === "api" && segments[1] === "clients") {
       if (method === "GET") return handleListClients(req, res);
       if (method === "POST") return await handleCreateClient(req, res);
-      if (method === "DELETE" && segments[2]) return handleDeleteClient(req, res, segments[2]);
+      if (method === "DELETE" && segments[2])
+        return handleDeleteClient(req, res, segments[2]);
     }
 
     // /api/admin/* — 管理路由
     if (segments[0] === "api" && segments[1] === "admin") {
       const action = segments[2];
 
-      if (method === "GET" && action === "stats") return handleAdminStats(req, res);
-      if (method === "GET" && action === "blacklist") return handleAdminBlacklist(req, res);
-      if (method === "DELETE" && action === "blacklist" && segments[3]) return handleAdminUnblacklist(req, res, segments[3]);
-      if (method === "GET" && action === "users") return handleAdminListUsers(req, res);
-      if (method === "PUT" && action === "users" && segments[3] && segments[4] === "roles") {
+      if (method === "GET" && action === "stats")
+        return handleAdminStats(req, res);
+      if (method === "GET" && action === "blacklist")
+        return handleAdminBlacklist(req, res);
+      if (method === "DELETE" && action === "blacklist" && segments[3])
+        return handleAdminUnblacklist(req, res, segments[3]);
+      if (method === "GET" && action === "users")
+        return handleAdminListUsers(req, res);
+      if (
+        method === "PUT" &&
+        action === "users" &&
+        segments[3] &&
+        segments[4] === "roles"
+      ) {
         return await handleAdminUpdateRoles(req, res, segments[3]);
       }
     }
 
     // /health — 健康检查
     if (segments[0] === "health" && segments.length === 1) {
-      return sendJson(res, 200, { status: "ok", uptime: process.uptime(), timestamp: new Date().toISOString() });
+      return sendJson(res, 200, {
+        status: "ok",
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+      });
     }
 
     // 404

@@ -11,6 +11,10 @@
     "html2md": "node cli.js html2md",
     "demo": "node cli.js md2html sample.md -o output.html"
   },
-  "keywords": ["markdown", "html", "converter"],
+  "keywords": [
+    "markdown",
+    "html",
+    "converter"
+  ],
   "license": "MIT"
 }

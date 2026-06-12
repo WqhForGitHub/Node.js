@@ -1,47 +1,47 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const url = require('url');
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const url = require("url");
 
 // MIME 类型映射表
 const MIME_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.htm': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon',
-  '.webp': 'image/webp',
-  '.bmp': 'image/bmp',
-  '.mp3': 'audio/mpeg',
-  '.mp4': 'video/mp4',
-  '.wav': 'audio/wav',
-  '.ogg': 'audio/ogg',
-  '.webm': 'video/webm',
-  '.pdf': 'application/pdf',
-  '.zip': 'application/zip',
-  '.tar': 'application/x-tar',
-  '.gz': 'application/gzip',
-  '.txt': 'text/plain; charset=utf-8',
-  '.md': 'text/markdown; charset=utf-8',
-  '.xml': 'application/xml; charset=utf-8',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
-  '.ttf': 'font/ttf',
-  '.eot': 'application/vnd.ms-fontobject',
+  ".html": "text/html; charset=utf-8",
+  ".htm": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
+  ".webp": "image/webp",
+  ".bmp": "image/bmp",
+  ".mp3": "audio/mpeg",
+  ".mp4": "video/mp4",
+  ".wav": "audio/wav",
+  ".ogg": "audio/ogg",
+  ".webm": "video/webm",
+  ".pdf": "application/pdf",
+  ".zip": "application/zip",
+  ".tar": "application/x-tar",
+  ".gz": "application/gzip",
+  ".txt": "text/plain; charset=utf-8",
+  ".md": "text/markdown; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
+  ".eot": "application/vnd.ms-fontobject",
 };
 
 // 默认配置
 const DEFAULT_CONFIG = {
   port: 3000,
-  host: '127.0.0.1',
-  root: './public',
-  indexFiles: ['index.html', 'index.htm'],
+  host: "127.0.0.1",
+  root: "./public",
+  indexFiles: ["index.html", "index.htm"],
   cacheMaxAge: 3600, // 缓存时间（秒）
   showDirectoryListing: true,
 };
@@ -56,25 +56,25 @@ function parseArgs() {
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--port':
-      case '-p':
+      case "--port":
+      case "-p":
         config.port = parseInt(args[++i], 10) || DEFAULT_CONFIG.port;
         break;
-      case '--host':
-      case '-h':
+      case "--host":
+      case "-h":
         config.host = args[++i] || DEFAULT_CONFIG.host;
         break;
-      case '--root':
-      case '-r':
+      case "--root":
+      case "-r":
         config.root = args[++i] || DEFAULT_CONFIG.root;
         break;
-      case '--no-cache':
+      case "--no-cache":
         config.cacheMaxAge = 0;
         break;
-      case '--no-listing':
+      case "--no-listing":
         config.showDirectoryListing = false;
         break;
-      case '--help':
+      case "--help":
         printHelp();
         process.exit(0);
     }
@@ -109,29 +109,29 @@ HTTP 静态服务器 - 使用说明
  */
 function getMimeType(filePath) {
   const ext = path.extname(filePath).toLowerCase();
-  return MIME_TYPES[ext] || 'application/octet-stream';
+  return MIME_TYPES[ext] || "application/octet-stream";
 }
 
 /**
  * 格式化文件大小
  */
 function formatSize(bytes) {
-  if (bytes === 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes === 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + units[i];
+  return (bytes / Math.pow(1024, i)).toFixed(2) + " " + units[i];
 }
 
 /**
  * 格式化日期
  */
 function formatDate(date) {
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
+  return date.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -174,11 +174,11 @@ function generateDirectoryListing(dirPath, urlPath) {
   <div class="breadcrumb">路径: `;
 
   // 生成面包屑导航
-  const parts = urlPath.split('/').filter(Boolean);
+  const parts = urlPath.split("/").filter(Boolean);
   html += `<a href="/">根目录</a>`;
-  let breadcrumbPath = '';
+  let breadcrumbPath = "";
   for (const part of parts) {
-    breadcrumbPath += '/' + part;
+    breadcrumbPath += "/" + part;
     html += ` / <a href="${breadcrumbPath}">${part}</a>`;
   }
 
@@ -190,8 +190,8 @@ function generateDirectoryListing(dirPath, urlPath) {
     <tbody>`;
 
   // 父目录链接
-  if (urlPath !== '/') {
-    const parentPath = path.dirname(urlPath) || '/';
+  if (urlPath !== "/") {
+    const parentPath = path.dirname(urlPath) || "/";
     html += `<tr>
       <td><span class="icon">📂</span><a href="${parentPath}">..</a></td>
       <td class="size">-</td>
@@ -222,7 +222,7 @@ function generateDirectoryListing(dirPath, urlPath) {
   files.sort((a, b) => a.name.localeCompare(b.name));
 
   for (const dir of dirs) {
-    const link = path.join(urlPath, dir.name).replace(/\\/g, '/');
+    const link = path.join(urlPath, dir.name).replace(/\\/g, "/");
     html += `<tr>
       <td><span class="icon">📂</span><a href="${link}/">${dir.name}/</a></td>
       <td class="size">-</td>
@@ -231,9 +231,9 @@ function generateDirectoryListing(dirPath, urlPath) {
   }
 
   for (const file of files) {
-    const link = path.join(urlPath, file.name).replace(/\\/g, '/');
+    const link = path.join(urlPath, file.name).replace(/\\/g, "/");
     const ext = path.extname(file.name).toLowerCase();
-    const icon = getImageIcon(ext) || '📄';
+    const icon = getImageIcon(ext) || "📄";
     html += `<tr>
       <td><span class="icon">${icon}</span><a href="${link}">${file.name}</a></td>
       <td class="size">${formatSize(file.stat.size)}</td>
@@ -259,10 +259,22 @@ function generateDirectoryListing(dirPath, urlPath) {
  */
 function getImageIcon(ext) {
   const iconMap = {
-    '.html': '🌐', '.htm': '🌐', '.css': '🎨', '.js': '⚡',
-    '.json': '📋', '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️',
-    '.gif': '🖼️', '.svg': '🖼️', '.mp3': '🎵', '.mp4': '🎬',
-    '.pdf': '📕', '.zip': '📦', '.md': '📝', '.txt': '📃',
+    ".html": "🌐",
+    ".htm": "🌐",
+    ".css": "🎨",
+    ".js": "⚡",
+    ".json": "📋",
+    ".png": "🖼️",
+    ".jpg": "🖼️",
+    ".jpeg": "🖼️",
+    ".gif": "🖼️",
+    ".svg": "🖼️",
+    ".mp3": "🎵",
+    ".mp4": "🎬",
+    ".pdf": "📕",
+    ".zip": "📦",
+    ".md": "📝",
+    ".txt": "📃",
   };
   return iconMap[ext] || null;
 }
@@ -272,18 +284,18 @@ function getImageIcon(ext) {
  */
 function sendError(res, statusCode, message) {
   const statusText = {
-    400: 'Bad Request',
-    403: 'Forbidden',
-    404: 'Not Found',
-    405: 'Method Not Allowed',
-    500: 'Internal Server Error',
+    400: "Bad Request",
+    403: "Forbidden",
+    404: "Not Found",
+    405: "Method Not Allowed",
+    500: "Internal Server Error",
   };
 
   const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>${statusCode} ${statusText[statusCode] || 'Error'}</title>
+  <title>${statusCode} ${statusText[statusCode] || "Error"}</title>
   <style>
     body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f5f5f5; margin: 0; }
     .error-card { text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -294,12 +306,12 @@ function sendError(res, statusCode, message) {
 <body>
   <div class="error-card">
     <div class="error-code">${statusCode}</div>
-    <div class="error-msg">${message || statusText[statusCode] || 'Unknown Error'}</div>
+    <div class="error-msg">${message || statusText[statusCode] || "Unknown Error"}</div>
   </div>
 </body>
 </html>`;
 
-  res.writeHead(statusCode, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.writeHead(statusCode, { "Content-Type": "text/html; charset=utf-8" });
   res.end(html);
 }
 
@@ -309,8 +321,8 @@ function sendError(res, statusCode, message) {
 function handleRequest(rootDir, config) {
   return (req, res) => {
     // 仅支持 GET 和 HEAD
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      sendError(res, 405, '仅支持 GET 和 HEAD 请求');
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      sendError(res, 405, "仅支持 GET 和 HEAD 请求");
       return;
     }
 
@@ -319,24 +331,24 @@ function handleRequest(rootDir, config) {
     const decodedPath = decodeURIComponent(parsedUrl.pathname);
 
     // 安全检查：防止路径遍历
-    const safePath = path.normalize(decodedPath).replace(/^(\.\.[\/\\])+/, '');
+    const safePath = path.normalize(decodedPath).replace(/^(\.\.[\/\\])+/, "");
     const filePath = path.join(rootDir, safePath);
 
     // 确保文件路径在根目录内
     if (!filePath.startsWith(path.resolve(rootDir))) {
-      sendError(res, 403, '禁止访问');
+      sendError(res, 403, "禁止访问");
       return;
     }
 
     // 检查文件/目录是否存在
     fs.stat(filePath, (err, stat) => {
       if (err) {
-        if (err.code === 'ENOENT') {
-          sendError(res, 404, '文件未找到');
-        } else if (err.code === 'EACCES') {
-          sendError(res, 403, '禁止访问');
+        if (err.code === "ENOENT") {
+          sendError(res, 404, "文件未找到");
+        } else if (err.code === "EACCES") {
+          sendError(res, 403, "禁止访问");
         } else {
-          sendError(res, 500, '服务器内部错误');
+          sendError(res, 500, "服务器内部错误");
         }
         return;
       }
@@ -347,14 +359,14 @@ function handleRequest(rootDir, config) {
         for (const indexFile of config.indexFiles) {
           const indexPath = path.join(filePath, indexFile);
           if (fs.existsSync(indexPath)) {
-            serveFile(res, indexPath, config, req.method === 'HEAD');
+            serveFile(res, indexPath, config, req.method === "HEAD");
             return;
           }
         }
 
         // 如果 URL 不以 / 结尾，重定向
-        if (!decodedPath.endsWith('/')) {
-          res.writeHead(302, { Location: decodedPath + '/' });
+        if (!decodedPath.endsWith("/")) {
+          res.writeHead(302, { Location: decodedPath + "/" });
           res.end();
           return;
         }
@@ -363,19 +375,19 @@ function handleRequest(rootDir, config) {
         if (config.showDirectoryListing) {
           try {
             const html = generateDirectoryListing(filePath, decodedPath);
-            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-            res.end(req.method === 'HEAD' ? '' : html);
+            res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+            res.end(req.method === "HEAD" ? "" : html);
           } catch (listErr) {
-            sendError(res, 500, '无法生成目录列表');
+            sendError(res, 500, "无法生成目录列表");
           }
         } else {
-          sendError(res, 403, '目录列表已禁用');
+          sendError(res, 403, "目录列表已禁用");
         }
         return;
       }
 
       // 如果是文件，直接提供
-      serveFile(res, filePath, config, req.method === 'HEAD');
+      serveFile(res, filePath, config, req.method === "HEAD");
     });
   };
 }
@@ -388,23 +400,23 @@ function serveFile(res, filePath, config, isHead) {
 
   fs.stat(filePath, (err, stat) => {
     if (err) {
-      sendError(res, 500, '无法读取文件');
+      sendError(res, 500, "无法读取文件");
       return;
     }
 
     // 设置响应头
     const headers = {
-      'Content-Type': mimeType,
-      'Content-Length': stat.size,
-      'Last-Modified': stat.mtime.toUTCString(),
-      'Accept-Ranges': 'bytes',
+      "Content-Type": mimeType,
+      "Content-Length": stat.size,
+      "Last-Modified": stat.mtime.toUTCString(),
+      "Accept-Ranges": "bytes",
     };
 
     // 缓存控制
     if (config.cacheMaxAge > 0) {
-      headers['Cache-Control'] = `public, max-age=${config.cacheMaxAge}`;
+      headers["Cache-Control"] = `public, max-age=${config.cacheMaxAge}`;
     } else {
-      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
     }
 
     // 如果是 HEAD 请求，只返回头信息
@@ -421,8 +433,8 @@ function serveFile(res, filePath, config, isHead) {
     const stream = fs.createReadStream(filePath);
     res.writeHead(200, headers);
 
-    stream.on('error', () => {
-      sendError(res, 500, '文件读取错误');
+    stream.on("error", () => {
+      sendError(res, 500, "文件读取错误");
     });
 
     stream.pipe(res);
@@ -452,24 +464,24 @@ function start() {
 ╠══════════════════════════════════════════╣
 ║  地址:     http://${config.host}:${config.port}           ║
 ║  根目录:   ${rootDir.padEnd(28)}║
-║  缓存:     ${config.cacheMaxAge > 0 ? (config.cacheMaxAge + 's').padEnd(28) : '已禁用'.padEnd(28)}║
+║  缓存:     ${config.cacheMaxAge > 0 ? (config.cacheMaxAge + "s").padEnd(28) : "已禁用".padEnd(28)}║
 ║  目录列表: ${String(config.showDirectoryListing).padEnd(28)}║
 ╚══════════════════════════════════════════╝
     `);
   });
 
   // 优雅关闭
-  process.on('SIGINT', () => {
-    console.log('\n正在关闭服务器...');
+  process.on("SIGINT", () => {
+    console.log("\n正在关闭服务器...");
     server.close(() => {
-      console.log('服务器已关闭');
+      console.log("服务器已关闭");
       process.exit(0);
     });
   });
 
-  process.on('SIGTERM', () => {
+  process.on("SIGTERM", () => {
     server.close(() => {
-      console.log('服务器已关闭');
+      console.log("服务器已关闭");
       process.exit(0);
     });
   });

@@ -15,12 +15,12 @@
  *   -h, --help            显示帮助信息
  */
 
-'use strict';
+"use strict";
 
-const fs = require('fs');
-const path = require('path');
-const md2html = require('./lib/md2html');
-const html2md = require('./lib/html2md');
+const fs = require("fs");
+const path = require("path");
+const md2html = require("./lib/md2html");
+const html2md = require("./lib/html2md");
 
 // ============================================================
 // 参数解析
@@ -31,38 +31,38 @@ function parseArgs(argv) {
     command: null,
     input: null,
     output: null,
-    title: 'Markdown Document',
+    title: "Markdown Document",
     full: false,
   };
 
   const rest = argv.slice(2);
 
-  if (rest.length === 0 || rest.includes('-h') || rest.includes('--help')) {
+  if (rest.length === 0 || rest.includes("-h") || rest.includes("--help")) {
     return { ...args, help: true };
   }
 
   args.command = rest[0];
 
-  if (args.command !== 'md2html' && args.command !== 'html2md') {
+  if (args.command !== "md2html" && args.command !== "html2md") {
     // 如果不是命令，当作 md2html 的输入文件
     args.input = args.command;
-    args.command = 'md2html';
+    args.command = "md2html";
   } else {
     if (rest.length < 2) {
-      console.error('错误: 请指定输入文件');
+      console.error("错误: 请指定输入文件");
       process.exit(1);
     }
     args.input = rest[1];
   }
 
   for (let i = 0; i < rest.length; i++) {
-    if ((rest[i] === '-o' || rest[i] === '--output') && rest[i + 1]) {
+    if ((rest[i] === "-o" || rest[i] === "--output") && rest[i + 1]) {
       args.output = rest[++i];
     }
-    if ((rest[i] === '-t' || rest[i] === '--title') && rest[i + 1]) {
+    if ((rest[i] === "-t" || rest[i] === "--title") && rest[i + 1]) {
       args.title = rest[++i];
     }
-    if (rest[i] === '--full') {
+    if (rest[i] === "--full") {
       args.full = true;
     }
   }
@@ -121,23 +121,23 @@ function main() {
     process.exit(1);
   }
 
-  const inputContent = fs.readFileSync(inputPath, 'utf-8');
+  const inputContent = fs.readFileSync(inputPath, "utf-8");
   let result;
 
-  if (args.command === 'md2html') {
+  if (args.command === "md2html") {
     if (args.full) {
       result = md2html.convertToFullHtml(inputContent, { title: args.title });
     } else {
       result = md2html.convert(inputContent);
     }
-  } else if (args.command === 'html2md') {
+  } else if (args.command === "html2md") {
     result = html2md.convert(inputContent);
   }
 
   // 输出
   if (args.output) {
     const outputPath = path.resolve(args.output);
-    fs.writeFileSync(outputPath, result, 'utf-8');
+    fs.writeFileSync(outputPath, result, "utf-8");
     console.log(`已输出到: ${outputPath}`);
   } else {
     console.log(result);

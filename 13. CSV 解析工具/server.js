@@ -76,11 +76,15 @@ function createSampleFiles() {
   // 示例 4: 服务器日志（Tab 分隔）
   const logs = path.join(DATA_DIR, "服务器日志.csv");
   if (!fs.existsSync(logs)) {
-    const lines = [
-      "时间\t级别\t来源\t状态码\t耗时(ms)\t详情",
-    ];
+    const lines = ["时间\t级别\t来源\t状态码\t耗时(ms)\t详情"];
     const levels = ["INFO", "WARN", "ERROR", "DEBUG"];
-    const sources = ["api-gateway", "auth-service", "user-service", "order-service", "payment-service"];
+    const sources = [
+      "api-gateway",
+      "auth-service",
+      "user-service",
+      "order-service",
+      "payment-service",
+    ];
     const statuses = [200, 201, 301, 400, 401, 403, 404, 500, 502, 503];
     for (let i = 0; i < 30; i++) {
       const d = new Date(Date.now() - (30 - i) * 3600000);
@@ -88,7 +92,12 @@ function createSampleFiles() {
       const source = sources[i % sources.length];
       const status = statuses[i % statuses.length];
       const duration = Math.floor(Math.random() * 500) + 10;
-      const detail = status >= 500 ? `Connection timeout after ${duration}ms` : status >= 400 ? `Invalid request parameter` : `Request processed successfully`;
+      const detail =
+        status >= 500
+          ? `Connection timeout after ${duration}ms`
+          : status >= 400
+            ? `Invalid request parameter`
+            : `Request processed successfully`;
       lines.push(
         `${d.toISOString()}\t${level}\t${source}\t${status}\t${duration}\t${detail}`,
       );
@@ -201,7 +210,11 @@ class CSVParser {
       if (inQuotes) {
         if (ch === this.quote) {
           // 检查是否为转义引号（双引号）
-          if (this.escape && i + 1 < input.length && input[i + 1] === this.quote) {
+          if (
+            this.escape &&
+            i + 1 < input.length &&
+            input[i + 1] === this.quote
+          ) {
             field += this.quote;
             i += 2;
             continue;
@@ -423,7 +436,9 @@ function isNumeric(val) {
 
 /** 计算列统计信息 */
 function columnStats(values) {
-  const nonEmpty = values.filter((v) => v !== "" && v !== null && v !== undefined);
+  const nonEmpty = values.filter(
+    (v) => v !== "" && v !== null && v !== undefined,
+  );
   const numericVals = nonEmpty.filter(isNumeric).map(Number);
 
   const stats = {
@@ -448,7 +463,9 @@ function columnStats(values) {
       freq[v] = (freq[v] || 0) + 1;
     }
     const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
-    stats.topValues = sorted.slice(0, 5).map(([val, count]) => ({ val, count }));
+    stats.topValues = sorted
+      .slice(0, 5)
+      .map(([val, count]) => ({ val, count }));
   }
 
   return stats;
@@ -1080,10 +1097,15 @@ function handleListFiles(req, res) {
   const files = [];
   for (const [id, data] of csvStore) {
     const delimiterName =
-      data.delimiter === "," ? "逗号" :
-      data.delimiter === ";" ? "分号" :
-      data.delimiter === "\t" ? "Tab" :
-      data.delimiter === "|" ? "竖线" : data.delimiter;
+      data.delimiter === ","
+        ? "逗号"
+        : data.delimiter === ";"
+          ? "分号"
+          : data.delimiter === "\t"
+            ? "Tab"
+            : data.delimiter === "|"
+              ? "竖线"
+              : data.delimiter;
     files.push({
       id,
       filename: data.filename,
@@ -1120,7 +1142,10 @@ async function handleUpload(req, res) {
   try {
     const contentType = req.headers["content-type"] || "";
     if (!contentType.includes("multipart/form-data")) {
-      return send(res, 400, { success: false, error: "需要 multipart/form-data" });
+      return send(res, 400, {
+        success: false,
+        error: "需要 multipart/form-data",
+      });
     }
 
     const boundary = contentType.split("boundary=")[1];
@@ -1142,7 +1167,10 @@ async function handleUpload(req, res) {
     const result = parser.parse(content);
 
     if (result.headers.length === 0) {
-      return send(res, 400, { success: false, error: "无法解析 CSV，文件可能为空" });
+      return send(res, 400, {
+        success: false,
+        error: "无法解析 CSV，文件可能为空",
+      });
     }
 
     const id = String(++fileIdCounter);
@@ -1245,7 +1273,9 @@ function handleExport(req, res, fileId, parsedUrl) {
   const format = (parsedUrl.query && parsedUrl.query.format) || "csv";
 
   if (format === "csv") {
-    const csv = serializeCSV(data.headers, data.rows, { delimiter: data.delimiter });
+    const csv = serializeCSV(data.headers, data.rows, {
+      delimiter: data.delimiter,
+    });
     const baseName = data.filename.replace(/\.\w+$/, "");
     res.writeHead(200, {
       "Content-Type": "text/csv; charset=utf-8",
@@ -1265,17 +1295,20 @@ function handleExport(req, res, fileId, parsedUrl) {
     });
     res.end(json, "utf-8");
   } else if (format === "sql") {
-    const tableName = data.filename.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, "_").replace(/^_+|_+$/g, "") || "csv_data";
-    const safeColumns = data.headers.map((h) => h.replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g, "_"));
+    const tableName =
+      data.filename
+        .replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, "_")
+        .replace(/^_+|_+$/g, "") || "csv_data";
+    const safeColumns = data.headers.map((h) =>
+      h.replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g, "_"),
+    );
     const lines = [];
 
     // CREATE TABLE
     lines.push(`CREATE TABLE IF NOT EXISTS \`${tableName}\` (`);
     lines.push(`  id INTEGER PRIMARY KEY AUTOINCREMENT,`);
     lines.push(
-      data.headers
-        .map((h, i) => `  \`${safeColumns[i]}\` TEXT`)
-        .join(",\n"),
+      data.headers.map((h, i) => `  \`${safeColumns[i]}\` TEXT`).join(",\n"),
     );
     lines.push(");");
     lines.push("");
@@ -1315,7 +1348,10 @@ function handleStats(req, res, fileId) {
     stats[h] = columnStats(data.rows.map((r) => r[h]));
   }
 
-  send(res, 200, { success: true, data: { headers: data.headers, stats, totalRows: data.rows.length } });
+  send(res, 200, {
+    success: true,
+    data: { headers: data.headers, stats, totalRows: data.rows.length },
+  });
 }
 
 // ============================================================
@@ -1328,7 +1364,10 @@ function handler(req, res) {
 
   // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS",
+  );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (method === "OPTIONS") {
     res.writeHead(204);

@@ -1,17 +1,17 @@
 {
-  "name": "33-like-favorite-system",
+  "name": "api-gateway",
   "version": "1.0.0",
-  "description": "纯 Node.js 实现的点赞收藏系统 API",
+  "description": "纯 Node.js 实现的 API 网关 Demo",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
   "keywords": [
-    "like",
-    "favorite",
-    "api",
-    "nodejs"
+    "api-gateway",
+    "proxy",
+    "router",
+    "node"
   ],
   "license": "MIT"
 }

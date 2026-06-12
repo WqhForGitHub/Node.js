@@ -114,7 +114,9 @@ function ensureTarget(targetId, targetType, title) {
 function recalcTarget(targetId) {
   if (!targets[targetId]) return;
   targets[targetId].likeCount = Object.keys(likes[targetId] || {}).length;
-  targets[targetId].favoriteCount = Object.keys(favorites[targetId] || {}).length;
+  targets[targetId].favoriteCount = Object.keys(
+    favorites[targetId] || {},
+  ).length;
 }
 
 // ==================== 点赞 API ====================
@@ -128,7 +130,14 @@ async function addLike(req, res) {
     return sendError(res, 400, "缺少必填字段: targetId, targetType, userId");
   }
 
-  const validTypes = ["post", "article", "comment", "video", "photo", "product"];
+  const validTypes = [
+    "post",
+    "article",
+    "comment",
+    "video",
+    "photo",
+    "product",
+  ];
   if (!validTypes.includes(targetType)) {
     return sendError(res, 400, `targetType 必须是: ${validTypes.join(", ")}`);
   }
@@ -248,7 +257,14 @@ async function addFavorite(req, res) {
     return sendError(res, 400, "缺少必填字段: targetId, targetType, userId");
   }
 
-  const validTypes = ["post", "article", "comment", "video", "photo", "product"];
+  const validTypes = [
+    "post",
+    "article",
+    "comment",
+    "video",
+    "photo",
+    "product",
+  ];
   if (!validTypes.includes(targetType)) {
     return sendError(res, 400, `targetType 必须是: ${validTypes.join(", ")}`);
   }
@@ -429,7 +445,12 @@ function getTargets(req, res) {
   }
 
   // 排序
-  const sortField = sort === "likes" ? "likeCount" : sort === "favorites" ? "favoriteCount" : "createdAt";
+  const sortField =
+    sort === "likes"
+      ? "likeCount"
+      : sort === "favorites"
+        ? "favoriteCount"
+        : "createdAt";
   list.sort((a, b) => {
     if (sortField === "createdAt") {
       return new Date(b.createdAt) - new Date(a.createdAt);
@@ -563,13 +584,21 @@ function getStats(req, res) {
   const topLiked = Object.entries(targets)
     .sort((a, b) => b[1].likeCount - a[1].likeCount)
     .slice(0, 5)
-    .map(([id, t]) => ({ targetId: id, title: t.title, likeCount: t.likeCount }));
+    .map(([id, t]) => ({
+      targetId: id,
+      title: t.title,
+      likeCount: t.likeCount,
+    }));
 
   // 收藏数 Top 5
   const topFavorited = Object.entries(targets)
     .sort((a, b) => b[1].favoriteCount - a[1].favoriteCount)
     .slice(0, 5)
-    .map(([id, t]) => ({ targetId: id, title: t.title, favoriteCount: t.favoriteCount }));
+    .map(([id, t]) => ({
+      targetId: id,
+      title: t.title,
+      favoriteCount: t.favoriteCount,
+    }));
 
   sendSuccess(res, {
     totalTargets,

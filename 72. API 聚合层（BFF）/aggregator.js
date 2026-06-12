@@ -10,18 +10,18 @@
  * - 缓存集成
  */
 
-const http = require('http');
-const { cache, Cache } = require('./cache');
+const http = require("http");
+const { cache, Cache } = require("./cache");
 
 // ============================================================
 // 后端服务配置
 // ============================================================
 
 const SERVICES = {
-  user: { host: '127.0.0.1', port: 5001 },
-  order: { host: '127.0.0.1', port: 5002 },
-  product: { host: '127.0.0.1', port: 5003 },
-  inventory: { host: '127.0.0.1', port: 5004 },
+  user: { host: "127.0.0.1", port: 5001 },
+  order: { host: "127.0.0.1", port: 5002 },
+  product: { host: "127.0.0.1", port: 5003 },
+  inventory: { host: "127.0.0.1", port: 5004 },
 };
 
 // 请求超时配置
@@ -35,7 +35,7 @@ const DEFAULT_TIMEOUT = 5000;
  * 向后端服务发起 HTTP 请求
  */
 function request(serviceName, path, options = {}) {
-  const { method = 'GET', body = null, timeout = DEFAULT_TIMEOUT } = options;
+  const { method = "GET", body = null, timeout = DEFAULT_TIMEOUT } = options;
   const service = SERVICES[serviceName];
   if (!service) return Promise.reject(new Error(`未知服务: ${serviceName}`));
 
@@ -45,18 +45,18 @@ function request(serviceName, path, options = {}) {
       port: service.port,
       path,
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
       timeout,
     };
 
     const req = http.request(reqOptions, (res) => {
-      let data = '';
-      res.on('data', (chunk) => (data += chunk));
-      res.on('end', () => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
         try {
           const parsed = JSON.parse(data);
           if (parsed.success === false) {
-            reject(new Error(parsed.error || '后端服务返回错误'));
+            reject(new Error(parsed.error || "后端服务返回错误"));
           } else {
             resolve(parsed);
           }
@@ -66,8 +66,8 @@ function request(serviceName, path, options = {}) {
       });
     });
 
-    req.on('error', (err) => reject(err));
-    req.on('timeout', () => {
+    req.on("error", (err) => reject(err));
+    req.on("timeout", () => {
       req.destroy();
       reject(new Error(`请求超时 (${serviceName})`));
     });
@@ -87,13 +87,17 @@ function request(serviceName, path, options = {}) {
  * 带缓存的 GET 请求
  */
 async function cachedGet(serviceName, path, ttl, postBody) {
-  const cacheKey = Cache.key(serviceName, path, postBody ? JSON.stringify(postBody) : '');
+  const cacheKey = Cache.key(
+    serviceName,
+    path,
+    postBody ? JSON.stringify(postBody) : "",
+  );
   const cached = cache.get(cacheKey);
   if (cached) {
     console.log(`[Aggregator] 缓存命中: ${cacheKey}`);
     return cached;
   }
-  const options = postBody ? { method: 'POST', body: postBody } : {};
+  const options = postBody ? { method: "POST", body: postBody } : {};
   const result = await request(serviceName, path, options);
   cache.set(cacheKey, result, ttl);
   return result;
@@ -110,7 +114,9 @@ async function resilientGet(serviceName, path, ttl, postBody) {
   try {
     return await cachedGet(serviceName, path, ttl, postBody);
   } catch (err) {
-    console.warn(`[Aggregator] 请求降级: ${serviceName}${path} - ${err.message}`);
+    console.warn(
+      `[Aggregator] 请求降级: ${serviceName}${path} - ${err.message}`,
+    );
     return null;
   }
 }
@@ -129,10 +135,12 @@ async function parallel(tasks) {
   const output = {};
   entries.forEach(([key], index) => {
     const result = results[index];
-    if (result.status === 'fulfilled') {
+    if (result.status === "fulfilled") {
       output[key] = result.value;
     } else {
-      console.warn(`[Aggregator] 并发任务失败 [${key}]: ${result.reason?.message}`);
+      console.warn(
+        `[Aggregator] 并发任务失败 [${key}]: ${result.reason?.message}`,
+      );
       output[key] = null;
     }
   });
@@ -151,9 +159,10 @@ async function parallel(tasks) {
  */
 async function getHomepageData() {
   const { products, categories, lowStockItems } = await parallel({
-    products: () => cachedGet('product', '/products', 60000),
-    categories: () => cachedGet('product', '/products/categories', 120000),
-    lowStockItems: () => resilientGet('inventory', '/inventory?lowStock=true', 30000),
+    products: () => cachedGet("product", "/products", 60000),
+    categories: () => cachedGet("product", "/products/categories", 120000),
+    lowStockItems: () =>
+      resilientGet("inventory", "/inventory?lowStock=true", 30000),
   });
 
   return {
@@ -176,10 +185,12 @@ async function getHomepageData() {
  */
 async function getUserDashboard(userId) {
   const { user, orderStats, recentOrders, preferences } = await parallel({
-    user: () => cachedGet('user', `/users/${userId}`, 60000),
-    orderStats: () => resilientGet('order', `/orders/stats/${userId}`, 30000),
-    recentOrders: () => resilientGet('order', `/orders?userId=${userId}`, 30000),
-    preferences: () => resilientGet('user', `/users/${userId}/preferences`, 120000),
+    user: () => cachedGet("user", `/users/${userId}`, 60000),
+    orderStats: () => resilientGet("order", `/orders/stats/${userId}`, 30000),
+    recentOrders: () =>
+      resilientGet("order", `/orders?userId=${userId}`, 30000),
+    preferences: () =>
+      resilientGet("user", `/users/${userId}/preferences`, 120000),
   });
 
   // 取最近 3 条订单
@@ -204,7 +215,7 @@ async function getUserDashboard(userId) {
  */
 async function getOrderDetail(orderId) {
   // 第一步：获取订单信息
-  const orderResult = await cachedGet('order', `/orders/${orderId}`, 30000);
+  const orderResult = await cachedGet("order", `/orders/${orderId}`, 30000);
   const order = orderResult.data;
 
   if (!order) return null;
@@ -213,20 +224,26 @@ async function getOrderDetail(orderId) {
   const productIds = order.items.map((item) => item.productId);
 
   const { user, productsBatch, inventoryBatch } = await parallel({
-    user: () => resilientGet('user', `/users/${order.userId}`, 60000),
-    productsBatch: () => resilientGet('product', '/products/batch', 60000, { ids: productIds }),
-    inventoryBatch: () => resilientGet('inventory', '/inventory/batch', 30000, { productIds }),
+    user: () => resilientGet("user", `/users/${order.userId}`, 60000),
+    productsBatch: () =>
+      resilientGet("product", "/products/batch", 60000, { ids: productIds }),
+    inventoryBatch: () =>
+      resilientGet("inventory", "/inventory/batch", 30000, { productIds }),
   });
 
   // 注意：batch 请求使用 POST，不走缓存直接请求
   const productsMap = {};
   if (productsBatch?.data) {
-    productsBatch.data.forEach((p) => { productsMap[p.id] = p; });
+    productsBatch.data.forEach((p) => {
+      productsMap[p.id] = p;
+    });
   }
 
   const inventoryMap = {};
   if (inventoryBatch?.data) {
-    inventoryBatch.data.forEach((i) => { inventoryMap[i.productId] = i; });
+    inventoryBatch.data.forEach((i) => {
+      inventoryMap[i.productId] = i;
+    });
   }
 
   return {
@@ -245,9 +262,10 @@ async function getOrderDetail(orderId) {
  */
 async function getProductDetailPage(productId) {
   const { product, inventory, allProducts } = await parallel({
-    product: () => cachedGet('product', `/products/${productId}`, 60000),
-    inventory: () => resilientGet('inventory', `/inventory/${productId}`, 30000),
-    allProducts: () => resilientGet('product', '/products', 60000),
+    product: () => cachedGet("product", `/products/${productId}`, 60000),
+    inventory: () =>
+      resilientGet("inventory", `/inventory/${productId}`, 30000),
+    allProducts: () => resilientGet("product", "/products", 60000),
   });
 
   const productData = product?.data;
@@ -268,21 +286,28 @@ async function getProductDetailPage(productId) {
  * - 库存批量信息
  */
 async function getProductListPage(category, keyword) {
-  let path = '/products';
+  let path = "/products";
   const params = [];
   if (category) params.push(`category=${category}`);
   if (keyword) params.push(`keyword=${encodeURIComponent(keyword)}`);
-  if (params.length) path += '?' + params.join('&');
+  if (params.length) path += "?" + params.join("&");
 
-  const productsResult = await cachedGet('product', path, 60000);
+  const productsResult = await cachedGet("product", path, 60000);
   const products = productsResult?.data || [];
 
   // 批量查库存
   const productIds = products.map((p) => p.id);
-  const inventoryResult = await resilientGet('inventory', '/inventory/batch', 30000, { productIds });
+  const inventoryResult = await resilientGet(
+    "inventory",
+    "/inventory/batch",
+    30000,
+    { productIds },
+  );
   const inventoryMap = {};
   if (inventoryResult?.data) {
-    inventoryResult.data.forEach((i) => { inventoryMap[i.productId] = i; });
+    inventoryResult.data.forEach((i) => {
+      inventoryMap[i.productId] = i;
+    });
   }
 
   return { products, inventoryMap };
