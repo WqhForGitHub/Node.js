@@ -1,0 +1,10 @@
+{
+  "name": "metrics-monitor",
+  "version": "1.0.0",
+  "description": "指标监控系统 - Counter/Gauge/Histogram + 告警",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "client": "node client.js"
+  }
+}

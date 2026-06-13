@@ -1,0 +1,10 @@
+{
+  "name": "search-engine",
+  "version": "1.0.0",
+  "description": "搜索引擎 - 倒排索引 + TF-IDF + BM25",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "demo": "node demo.js"
+  }
+}

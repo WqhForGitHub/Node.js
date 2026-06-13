@@ -1,0 +1,7 @@
+{
+  "name": "im-chat-service",
+  "version": "1.0.0",
+  "description": "纯 Node.js 聊天 IM 服务",
+  "scripts": { "start": "node server.js" },
+  "license": "MIT"
+}

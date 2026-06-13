@@ -1,0 +1,10 @@
+{
+  "name": "apm-platform",
+  "version": "1.0.0",
+  "description": "性能监控平台 - APM 调用链追踪",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "demo": "node app.js"
+  }
+}

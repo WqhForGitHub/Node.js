@@ -1,0 +1,7 @@
+{
+  "name": "realtime-collab-edit",
+  "version": "1.0.0",
+  "description": "纯 Node.js 实时协作编辑服务（OT 算法）",
+  "scripts": { "start": "node server.js" },
+  "license": "MIT"
+}

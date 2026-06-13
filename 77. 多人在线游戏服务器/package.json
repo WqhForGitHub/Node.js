@@ -1,0 +1,7 @@
+{
+  "name": "multiplayer-game-server",
+  "version": "1.0.0",
+  "description": "纯 Node.js 多人在线游戏服务器（2D 射击）",
+  "scripts": { "start": "node server.js" },
+  "license": "MIT"
+}

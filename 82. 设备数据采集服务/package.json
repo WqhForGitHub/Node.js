@@ -1,0 +1,10 @@
+{
+  "name": "device-data-collector",
+  "version": "1.0.0",
+  "description": "设备数据采集服务 - 多协议采集、批处理、持久化",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "simulator": "node simulator.js"
+  }
+}

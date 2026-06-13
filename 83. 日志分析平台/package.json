@@ -1,0 +1,10 @@
+{
+  "name": "log-analytics-platform",
+  "version": "1.0.0",
+  "description": "日志分析平台 - 接收、解析、聚合、查询",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "shipper": "node shipper.js"
+  }
+}

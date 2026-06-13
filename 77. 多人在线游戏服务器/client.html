@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>多人射击</title>
+<style>
+  body { margin: 0; background: #1a1a2e; color: white; font-family: Arial; overflow: hidden; }
+  #login { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  input { padding: 8px; font-size: 16px; }
+  button { padding: 8px 16px; font-size: 16px; cursor: pointer; }
+  #canvas { display: block; background: #0f3460; }
+  #scoreboard { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; font-size: 14px; min-width: 200px; }
+  #hud { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="login">
+  <h1>🎮 多人射击</h1>
+  <input id="name" placeholder="昵称" value="">
+  <button id="start">加入游戏</button>
+  <p style="font-size:14px;color:#aaa">WASD 移动，鼠标瞄准，左键射击</p>
+</div>
+<canvas id="canvas" style="display:none"></canvas>
+<div id="hud" style="display:none">HP: <span id="hp">100</span> | 击杀: <span id="kills">0</span> | 死亡: <span id="deaths">0</span></div>
+<div id="scoreboard" style="display:none"></div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let ws, myId, worldSize = { width: 1200, height: 800 };
+let state = { players: [], bullets: [] };
+const input = { up: false, down: false, left: false, right: false };
+let mouseAngle = 0;
+
+document.getElementById('start').onclick = () => {
+  const name = document.getElementById('name').value.trim();
+  document.getElementById('login').style.display = 'none';
+  canvas.style.display = 'block';
+  document.getElementById('hud').style.display = 'block';
+  document.getElementById('scoreboard').style.display = 'block';
+  resize();
+  connect(name);
+};
+
+function resize() {
+  canvas.width = Math.min(window.innerWidth, worldSize.width);
+  canvas.height = Math.min(window.innerHeight, worldSize.height);
+}
+window.addEventListener('resize', resize);
+
+function connect(name) {
+  ws = new WebSocket('ws://' + location.host);
+  ws.onopen = () => ws.send(JSON.stringify({ type: 'join', name }));
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'init') {
+      myId = msg.id;
+      worldSize = msg.world;
+      resize();
+    } else if (msg.type === 'state') {
+      state = msg.snap;
+      render();
+      updateHUD();
+    }
+  };
+}
+
+function render() {
+  // 视角中心：本玩家
+  const me = state.players.find(p => p.id === myId);
+  let camX = 0, camY = 0;
+  if (me) {
+    camX = me.x - canvas.width / 2;
+    camY = me.y - canvas.height / 2;
+    camX = Math.max(0, Math.min(worldSize.width - canvas.width, camX));
+    camY = Math.max(0, Math.min(worldSize.height - canvas.height, camY));
+  }
+
+  ctx.fillStyle = '#0f3460';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 网格
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  for (let x = -camX % 50; x < canvas.width; x += 50) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = -camY % 50; y < canvas.height; y += 50) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+
+  // 玩家
+  for (const p of state.players) {
+    if (!p.alive) continue;
+    const x = p.x - camX, y = p.y - camY;
+    ctx.fillStyle = p.id === myId ? '#2ecc71' : '#e74c3c';
+    ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI * 2); ctx.fill();
+    // 朝向
+    ctx.strokeStyle = 'white'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(p.angle) * 24, y + Math.sin(p.angle) * 24);
+    ctx.stroke();
+    // 名字 + HP
+    ctx.fillStyle = 'white'; ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.name, x, y - 22);
+    // HP 条
+    ctx.fillStyle = '#444';
+    ctx.fillRect(x - 20, y - 32, 40, 4);
+    ctx.fillStyle = '#2ecc71';
+    ctx.fillRect(x - 20, y - 32, 40 * (p.hp / 100), 4);
+  }
+
+  // 死亡玩家
+  for (const p of state.players) {
+    if (p.alive) continue;
+    const x = p.x - camX, y = p.y - camY;
+    ctx.fillStyle = 'rgba(150,150,150,0.5)';
+    ctx.fillText('💀', x, y);
+  }
+
+  // 子弹
+  for (const b of state.bullets) {
+    ctx.fillStyle = '#f39c12';
+    ctx.beginPath(); ctx.arc(b.x - camX, b.y - camY, 4, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function updateHUD() {
+  const me = state.players.find(p => p.id === myId);
+  if (me) {
+    document.getElementById('hp').textContent = me.hp;
+    document.getElementById('kills').textContent = me.kills;
+    document.getElementById('deaths').textContent = me.deaths;
+  }
+  // 排行榜
+  const sb = document.getElementById('scoreboard');
+  const sorted = [...state.players].sort((a, b) => b.score - a.score);
+  sb.innerHTML = '<b>🏆 排行榜</b><br>' + sorted.slice(0, 10).map(p =>
+    `${p.name}: ${p.score} (${p.kills}/${p.deaths})`).join('<br>');
+}
+
+// 输入
+const keyMap = { w: 'up', a: 'left', s: 'down', d: 'right',
+                 ArrowUp: 'up', ArrowLeft: 'left', ArrowDown: 'down', ArrowRight: 'right' };
+window.addEventListener('keydown', (e) => {
+  if (keyMap[e.key]) { input[keyMap[e.key]] = true; sendInput(); }
+});
+window.addEventListener('keyup', (e) => {
+  if (keyMap[e.key]) { input[keyMap[e.key]] = false; sendInput(); }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  const me = state.players.find(p => p.id === myId);
+  if (!me) return;
+  const rect = canvas.getBoundingClientRect();
+  const camX = Math.max(0, Math.min(worldSize.width - canvas.width, me.x - canvas.width / 2));
+  const camY = Math.max(0, Math.min(worldSize.height - canvas.height, me.y - canvas.height / 2));
+  const wx = e.clientX - rect.left + camX;
+  const wy = e.clientY - rect.top + camY;
+  mouseAngle = Math.atan2(wy - me.y, wx - me.x);
+  sendInput();
+});
+
+canvas.addEventListener('mousedown', () => {
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'shoot' }));
+});
+
+function sendInput() {
+  if (!ws || ws.readyState !== 1) return;
+  ws.send(JSON.stringify({ type: 'input', input: { ...input, angle: mouseAngle } }));
+}
+</script>
+</body>
+</html>

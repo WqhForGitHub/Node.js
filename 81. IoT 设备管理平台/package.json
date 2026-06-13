@@ -1,0 +1,10 @@
+{
+  "name": "iot-device-platform",
+  "version": "1.0.0",
+  "description": "IoT 设备管理平台 - 纯 Node.js 实现",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "device": "node device.js"
+  }
+}
