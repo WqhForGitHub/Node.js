@@ -25,11 +25,15 @@ class EnvRepository {
     return v;
   }
   find(scope?: Scope, keyword?: string) {
-    return this.vars.filter((v) =>
-      (!scope || v.scope === scope) &&
-      (!keyword || v.key.toLowerCase().includes(keyword.toLowerCase())));
+    return this.vars.filter(
+      (v) =>
+        (!scope || v.scope === scope) &&
+        (!keyword || v.key.toLowerCase().includes(keyword.toLowerCase())),
+    );
   }
-  findById(id: number) { return this.vars.find((v) => v.id === id); }
+  findById(id: number) {
+    return this.vars.find((v) => v.id === id);
+  }
   update(id: number, patch: Partial<EnvVar>) {
     const v = this.findById(id);
     if (!v) return undefined;
@@ -46,7 +50,13 @@ class EnvRepository {
     const created: EnvVar[] = [];
     for (const it of items) {
       if (!this.vars.find((v) => v.key === it.key && v.scope === scope)) {
-        const v: EnvVar = { id: this.seq++, key: it.key, value: it.value, scope, updatedAt: Date.now() };
+        const v: EnvVar = {
+          id: this.seq++,
+          key: it.key,
+          value: it.value,
+          scope,
+          updatedAt: Date.now(),
+        };
         this.vars.push(v);
         created.push(v);
       }
@@ -58,11 +68,14 @@ class EnvRepository {
 class EnvService {
   constructor(private repo: EnvRepository) {}
   create(body: any) {
-    if (!body || !body.key || body.value === undefined || !body.scope) throw new Error('参数缺失: key/value/scope');
+    if (!body || !body.key || body.value === undefined || !body.scope)
+      throw new Error('参数缺失: key/value/scope');
     if (!['project', 'service'].includes(body.scope)) throw new Error('scope 非法');
     return this.repo.create(body.key, String(body.value), body.scope);
   }
-  list(scope?: Scope, keyword?: string) { return this.repo.find(scope, keyword); }
+  list(scope?: Scope, keyword?: string) {
+    return this.repo.find(scope, keyword);
+  }
   update(id: number, body: any) {
     if (!body) throw new Error('参数缺失');
     const v = this.repo.update(id, {
@@ -79,12 +92,14 @@ class EnvService {
   }
   export(scope: Scope | undefined, format: 'env' | 'json') {
     const list = this.repo.find(scope);
-    if (format === 'json') return { contentType: 'application/json', body: JSON.stringify(list, null, 2) };
+    if (format === 'json')
+      return { contentType: 'application/json', body: JSON.stringify(list, null, 2) };
     const text = list.map((v) => `${v.key}=${v.value}`).join('\n');
     return { contentType: 'text/plain', body: text };
   }
   import(body: any) {
-    if (!body || !body.scope || typeof body.content !== 'string') throw new Error('参数缺失: scope/content');
+    if (!body || !body.scope || typeof body.content !== 'string')
+      throw new Error('参数缺失: scope/content');
     if (!['project', 'service'].includes(body.scope)) throw new Error('scope 非法');
     // 解析 .env 文本：每行 KEY=VALUE
     const items = body.content
@@ -107,22 +122,38 @@ const service = new EnvService(new EnvRepository());
 
 // 创建变量
 router.post('/api/envs', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.create(ctx.request.body); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.create(ctx.request.body);
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // 列表（按 scope/keyword 过滤）
 router.get('/api/envs', (ctx) => {
-  ctx.body = service.list(ctx.query.scope as Scope | undefined, ctx.query.keyword as string | undefined);
+  ctx.body = service.list(
+    ctx.query.scope as Scope | undefined,
+    ctx.query.keyword as string | undefined,
+  );
 });
 // 更新
 router.put('/api/envs/:id', (ctx) => {
-  try { ctx.body = service.update(Number(ctx.params.id), ctx.request.body); }
-  catch (e: any) { ctx.status = e.message === 'not found' ? 404 : 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.body = service.update(Number(ctx.params.id), ctx.request.body);
+  } catch (e: any) {
+    ctx.status = e.message === 'not found' ? 404 : 400;
+    ctx.body = { message: e.message };
+  }
 });
 // 删除
 router.delete('/api/envs/:id', (ctx) => {
-  try { ctx.body = service.delete(Number(ctx.params.id)); }
-  catch (e: any) { ctx.status = e.message === 'not found' ? 404 : 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.body = service.delete(Number(ctx.params.id));
+  } catch (e: any) {
+    ctx.status = e.message === 'not found' ? 404 : 400;
+    ctx.body = { message: e.message };
+  }
 });
 // 导出
 router.get('/api/envs/export', (ctx) => {
@@ -133,8 +164,13 @@ router.get('/api/envs/export', (ctx) => {
 });
 // 批量导入 .env 文本
 router.post('/api/envs/import', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.import(ctx.request.body); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.import(ctx.request.body);
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 
 app.use(router.routes()).use(router.allowedMethods());

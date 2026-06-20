@@ -48,7 +48,9 @@ class ShortLinkRepository {
     this.links.push(link);
     return link;
   }
-  findByCode(code: string) { return this.links.find((l) => l.code === code); }
+  findByCode(code: string) {
+    return this.links.find((l) => l.code === code);
+  }
   recordClick(code: string) {
     const l = this.findByCode(code);
     if (!l) return null;
@@ -57,7 +59,9 @@ class ShortLinkRepository {
     if (l.recentAccess.length > 10) l.recentAccess.shift();
     return l;
   }
-  all() { return this.links; }
+  all() {
+    return this.links;
+  }
 }
 
 // 服务层
@@ -67,13 +71,17 @@ class ShortLinkService {
     if (!url) throw new Error('url 必填');
     return this.repo.create(url);
   }
-  redirect(code: string) { return this.repo.recordClick(code); }
+  redirect(code: string) {
+    return this.repo.recordClick(code);
+  }
   stats(code: string) {
     const l = this.repo.findByCode(code);
     if (!l) return null;
     return { code: l.code, url: l.url, clicks: l.clicks, recentAccess: l.recentAccess };
   }
-  list() { return this.repo.all(); }
+  list() {
+    return this.repo.all();
+  }
 }
 
 const repo = new ShortLinkRepository();
@@ -84,23 +92,45 @@ router.post('/api/short-links', (ctx) => {
   try {
     const l = service.create((ctx.request.body as any).url);
     ctx.status = 201;
-    ctx.body = { id: l.id, code: l.code, url: l.url, shortUrl: `http://localhost:${process.env.PORT || 3000}/${l.code}` };
-  } catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+    ctx.body = {
+      id: l.id,
+      code: l.code,
+      url: l.url,
+      shortUrl: `http://localhost:${process.env.PORT || 3000}/${l.code}`,
+    };
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // GET /api/short-links - 管理列表
-router.get('/api/short-links', (ctx) => { ctx.body = service.list(); });
+router.get('/api/short-links', (ctx) => {
+  ctx.body = service.list();
+});
 // GET /api/short-links/:code/stats - 点击次数与最近访问
 router.get('/api/short-links/:code/stats', (ctx) => {
   const s = service.stats(ctx.params.code);
-  if (!s) { ctx.status = 404; ctx.body = { message: '短链不存在' }; return; }
+  if (!s) {
+    ctx.status = 404;
+    ctx.body = { message: '短链不存在' };
+    return;
+  }
   ctx.body = s;
 });
 // GET /:code - 302 重定向到长链并记录点击（放在最后避免与其他路由冲突）
 router.get('/:code', (ctx) => {
   // 排除明显非短链 code（长度过长或包含 / ）
-  if (ctx.params.code.length > 12) { ctx.status = 404; ctx.body = { message: '短链不存在' }; return; }
+  if (ctx.params.code.length > 12) {
+    ctx.status = 404;
+    ctx.body = { message: '短链不存在' };
+    return;
+  }
   const l = service.redirect(ctx.params.code);
-  if (!l) { ctx.status = 404; ctx.body = { message: '短链不存在' }; return; }
+  if (!l) {
+    ctx.status = 404;
+    ctx.body = { message: '短链不存在' };
+    return;
+  }
   ctx.redirect(l.url);
 });
 

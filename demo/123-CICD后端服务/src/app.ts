@@ -98,7 +98,9 @@ class PipelineService {
     if (r.status === 'success' || r.status === 'failed') throw new Error('运行已结束，无法取消');
     r.status = 'canceled';
     r.finishedAt = Date.now();
-    r.stages.forEach((s) => { if (s.status === 'pending' || s.status === 'running') s.status = 'failed'; });
+    r.stages.forEach((s) => {
+      if (s.status === 'pending' || s.status === 'running') s.status = 'failed';
+    });
     return r;
   }
 }
@@ -114,7 +116,8 @@ router.post('/api/pipelines', (ctx) => {
     ctx.status = 201;
     ctx.body = service.define(ctx.request.body);
   } catch (e: any) {
-    ctx.status = 400; ctx.body = { message: e.message };
+    ctx.status = 400;
+    ctx.body = { message: e.message };
   }
 });
 // 触发运行
@@ -122,24 +125,37 @@ router.post('/api/pipelines/:id/run', (ctx) => {
   try {
     ctx.body = service.run(Number(ctx.params.id));
   } catch (e: any) {
-    ctx.status = e.message === 'not found' ? 404 : 400; ctx.body = { message: e.message };
+    ctx.status = e.message === 'not found' ? 404 : 400;
+    ctx.body = { message: e.message };
   }
 });
 // 运行详情
 router.get('/api/runs/:runId', (ctx) => {
   const r = service.getRun(Number(ctx.params.runId));
-  if (!r) { ctx.status = 404; ctx.body = { message: 'not found' }; return; }
+  if (!r) {
+    ctx.status = 404;
+    ctx.body = { message: 'not found' };
+    return;
+  }
   ctx.body = r;
 });
 // 流水线历史运行
 router.get('/api/pipelines/:id/runs', (ctx) => {
-  try { ctx.body = service.history(Number(ctx.params.id)); }
-  catch (e: any) { ctx.status = 404; ctx.body = { message: e.message }; }
+  try {
+    ctx.body = service.history(Number(ctx.params.id));
+  } catch (e: any) {
+    ctx.status = 404;
+    ctx.body = { message: e.message };
+  }
 });
 // 取消运行
 router.post('/api/runs/:runId/cancel', (ctx) => {
-  try { ctx.body = service.cancel(Number(ctx.params.runId)); }
-  catch (e: any) { ctx.status = e.message === 'not found' ? 404 : 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.body = service.cancel(Number(ctx.params.runId));
+  } catch (e: any) {
+    ctx.status = e.message === 'not found' ? 404 : 400;
+    ctx.body = { message: e.message };
+  }
 });
 
 app.use(router.routes()).use(router.allowedMethods());

@@ -10,11 +10,23 @@ import bodyParser from 'koa-bodyparser';
 // 生成项目结构（返回文件树）
 function generateProject(projectName: string, template: string) {
   const files: { path: string; content: string }[] = [];
-  files.push({ path: `${projectName}/package.json`, content: `{\n  "name": "${projectName}",\n  "version": "1.0.0",\n  "template": "${template}"\n}` });
-  files.push({ path: `${projectName}/README.md`, content: `# ${projectName}\n\nGenerated from template: ${template}\n` });
-  files.push({ path: `${projectName}/src/index.ts`, content: `console.log('Hello from ${projectName}');\n` });
+  files.push({
+    path: `${projectName}/package.json`,
+    content: `{\n  "name": "${projectName}",\n  "version": "1.0.0",\n  "template": "${template}"\n}`,
+  });
+  files.push({
+    path: `${projectName}/README.md`,
+    content: `# ${projectName}\n\nGenerated from template: ${template}\n`,
+  });
+  files.push({
+    path: `${projectName}/src/index.ts`,
+    content: `console.log('Hello from ${projectName}');\n`,
+  });
   if (template === 'koa' || template === 'koa-api') {
-    files.push({ path: `${projectName}/src/app.ts`, content: `import Koa from 'koa';\nconst app = new Koa();\napp.listen(3000);\n` });
+    files.push({
+      path: `${projectName}/src/app.ts`,
+      content: `import Koa from 'koa';\nconst app = new Koa();\napp.listen(3000);\n`,
+    });
   }
   return files;
 }

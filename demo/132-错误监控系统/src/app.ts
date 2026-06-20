@@ -100,7 +100,12 @@ class ErrorService {
     return e;
   }
 
-  list(filter: { release?: string; type?: string; page?: number; pageSize?: number }): { items: ErrorEvent[]; total: number; page: number; pageSize: number } {
+  list(filter: { release?: string; type?: string; page?: number; pageSize?: number }): {
+    items: ErrorEvent[];
+    total: number;
+    page: number;
+    pageSize: number;
+  } {
     let list = this.repo.findAll();
     if (filter.release) list = list.filter((e) => e.release === filter.release);
     if (filter.type) list = list.filter((e) => e.type === filter.type);
@@ -151,7 +156,7 @@ router.get('/api/errors/stats', (ctx) => {
 // POST /api/errors - 上报错误
 router.post('/api/errors', (ctx) => {
   try {
-    const e = service.report(ctx.request.body as any || {});
+    const e = service.report((ctx.request.body as any) || {});
     ctx.status = 201;
     ctx.body = e;
   } catch (e: any) {

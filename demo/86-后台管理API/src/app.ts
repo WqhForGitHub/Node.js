@@ -50,7 +50,8 @@ class AdminRepository {
     return this.orders.length;
   }
   sumRevenue() {
-    return this.orders.filter((o) => o.status === 'paid' || o.status === 'shipped')
+    return this.orders
+      .filter((o) => o.status === 'paid' || o.status === 'shipped')
       .reduce((s, o) => s + o.amount, 0);
   }
   listUsers() {

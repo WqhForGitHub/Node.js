@@ -43,7 +43,9 @@ class CdnRepository {
     this.nodes.push(n);
     return n;
   }
-  findNode(id: number) { return this.nodes.find((n) => n.id === id); }
+  findNode(id: number) {
+    return this.nodes.find((n) => n.id === id);
+  }
   listNodes(region: string | null) {
     return region ? this.nodes.filter((n) => n.region === region) : this.nodes;
   }
@@ -59,10 +61,16 @@ class CdnRepository {
     this.contents.push(c);
     return c;
   }
-  findContent(id: number) { return this.contents.find((c) => c.id === id); }
+  findContent(id: number) {
+    return this.contents.find((c) => c.id === id);
+  }
   distribute(content: Content, nodeIds: number[]) {
     nodeIds.forEach((nodeId) => {
-      const dist: { nodeId: number; status: 'pending' | 'copying' | 'done'; progress: number } = { nodeId, status: 'pending', progress: 0 };
+      const dist: { nodeId: number; status: 'pending' | 'copying' | 'done'; progress: number } = {
+        nodeId,
+        status: 'pending',
+        progress: 0,
+      };
       content.distributions.push(dist);
       // 模拟复制进度，每 700ms +25
       const timer = setInterval(() => {
@@ -83,7 +91,9 @@ class CdnService {
     }
     return this.repo.createNode(data);
   }
-  nodes(region: string | null) { return this.repo.listNodes(region); }
+  nodes(region: string | null) {
+    return this.repo.listNodes(region);
+  }
   createContent(data: any) {
     if (!data.key) throw new Error('key 必填');
     return this.repo.createContent(data);
@@ -110,28 +120,52 @@ const service = new CdnService(repo);
 
 // POST /api/nodes - 注册边缘节点
 router.post('/api/nodes', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.createNode(ctx.request.body || {}); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.createNode(ctx.request.body || {});
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // GET /api/nodes - 节点列表（按 region 过滤）
-router.get('/api/nodes', (ctx) => { ctx.body = service.nodes((ctx.query.region as string) || null); });
+router.get('/api/nodes', (ctx) => {
+  ctx.body = service.nodes((ctx.query.region as string) || null);
+});
 // POST /api/content - 上传源内容
 router.post('/api/content', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.createContent(ctx.request.body || {}); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.createContent(ctx.request.body || {});
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // POST /api/content/:id/distribute - 分发到指定节点
 router.post('/api/content/:id/distribute', (ctx) => {
   try {
     const r = service.distribute(Number(ctx.params.id), (ctx.request.body as any).nodeIds);
-    if (r === null) { ctx.status = 404; ctx.body = { message: '内容不存在' }; return; }
-    ctx.status = 202; ctx.body = r;
-  } catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+    if (r === null) {
+      ctx.status = 404;
+      ctx.body = { message: '内容不存在' };
+      return;
+    }
+    ctx.status = 202;
+    ctx.body = r;
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // GET /api/content/:id/distribution - 各节点分发状态
 router.get('/api/content/:id/distribution', (ctx) => {
   const d = service.distribution(Number(ctx.params.id));
-  if (d === null) { ctx.status = 404; ctx.body = { message: '内容不存在' }; return; }
+  if (d === null) {
+    ctx.status = 404;
+    ctx.body = { message: '内容不存在' };
+    return;
+  }
   ctx.body = d;
 });
 

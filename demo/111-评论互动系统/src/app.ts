@@ -38,9 +38,17 @@ class CommentRepository {
     this.comments.push(c);
     return c;
   }
-  findById(id: number) { return this.comments.find((c) => c.id === id); }
-  findByTarget(targetId: string) { return this.comments.filter((c) => c.targetId === targetId); }
-  like(id: number) { const c = this.findById(id); if (c) c.likes++; return c; }
+  findById(id: number) {
+    return this.comments.find((c) => c.id === id);
+  }
+  findByTarget(targetId: string) {
+    return this.comments.filter((c) => c.targetId === targetId);
+  }
+  like(id: number) {
+    const c = this.findById(id);
+    if (c) c.likes++;
+    return c;
+  }
   delete(id: number): boolean {
     if (!this.findById(id)) return false;
     // 级联删除所有子孙回复
@@ -50,7 +58,8 @@ class CommentRepository {
       changed = false;
       for (const c of this.comments) {
         if (c.parentId !== null && toDel.has(c.parentId) && !toDel.has(c.id)) {
-          toDel.add(c.id); changed = true;
+          toDel.add(c.id);
+          changed = true;
         }
       }
     }
@@ -63,14 +72,20 @@ class CommentRepository {
 class CommentService {
   constructor(private repo: CommentRepository) {}
   create(data: any) {
-    if (!data.targetId || !data.userId || !data.content) throw new Error('参数缺失: targetId/userId/content');
+    if (!data.targetId || !data.userId || !data.content)
+      throw new Error('参数缺失: targetId/userId/content');
     return this.repo.create(data);
   }
   reply(id: number, data: any) {
     const parent = this.repo.findById(id);
     if (!parent) return null;
     if (!data.userId || !data.content) throw new Error('参数缺失: userId/content');
-    return this.repo.create({ targetId: parent.targetId, userId: data.userId, content: data.content, parentId: id });
+    return this.repo.create({
+      targetId: parent.targetId,
+      userId: data.userId,
+      content: data.content,
+      parentId: id,
+    });
   }
   tree(targetId: string) {
     const list = this.repo.findByTarget(targetId);
@@ -84,8 +99,12 @@ class CommentService {
     });
     return roots;
   }
-  like(id: number) { return this.repo.like(id); }
-  delete(id: number) { return this.repo.delete(id); }
+  like(id: number) {
+    return this.repo.like(id);
+  }
+  delete(id: number) {
+    return this.repo.delete(id);
+  }
 }
 
 const repo = new CommentRepository();
@@ -93,32 +112,57 @@ const service = new CommentService(repo);
 
 // POST /api/comments - 发表评论
 router.post('/api/comments', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.create(ctx.request.body || {}); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.create(ctx.request.body || {});
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // GET /api/comments?targetId= - 某目标的评论树（含 replies）
 router.get('/api/comments', (ctx) => {
   const targetId = ctx.query.targetId as string;
-  if (!targetId) { ctx.status = 400; ctx.body = { message: 'targetId 必填' }; return; }
+  if (!targetId) {
+    ctx.status = 400;
+    ctx.body = { message: 'targetId 必填' };
+    return;
+  }
   ctx.body = service.tree(targetId);
 });
 // POST /api/comments/:id/reply - 回复评论
 router.post('/api/comments/:id/reply', (ctx) => {
   try {
     const c = service.reply(Number(ctx.params.id), ctx.request.body || {});
-    if (!c) { ctx.status = 404; ctx.body = { message: '评论不存在' }; return; }
-    ctx.status = 201; ctx.body = c;
-  } catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+    if (!c) {
+      ctx.status = 404;
+      ctx.body = { message: '评论不存在' };
+      return;
+    }
+    ctx.status = 201;
+    ctx.body = c;
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // POST /api/comments/:id/like - 点赞
 router.post('/api/comments/:id/like', (ctx) => {
   const c = service.like(Number(ctx.params.id));
-  if (!c) { ctx.status = 404; ctx.body = { message: '评论不存在' }; return; }
+  if (!c) {
+    ctx.status = 404;
+    ctx.body = { message: '评论不存在' };
+    return;
+  }
   ctx.body = c;
 });
 // DELETE /api/comments/:id - 删除评论（含子孙回复）
 router.delete('/api/comments/:id', (ctx) => {
-  if (!service.delete(Number(ctx.params.id))) { ctx.status = 404; ctx.body = { message: '评论不存在' }; return; }
+  if (!service.delete(Number(ctx.params.id))) {
+    ctx.status = 404;
+    ctx.body = { message: '评论不存在' };
+    return;
+  }
   ctx.status = 204;
 });
 

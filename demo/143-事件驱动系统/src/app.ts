@@ -51,7 +51,12 @@ class EventBus {
   subscribe(topicName: string, subscriberUrl: string) {
     if (!subscriberUrl) throw new Error('参数缺失: subscriberUrl');
     if (!this.topics.has(topicName)) throw new Error('topic 不存在');
-    const sub: Subscription = { id: this.subSeq++, topicName, subscriberUrl, createdAt: Date.now() };
+    const sub: Subscription = {
+      id: this.subSeq++,
+      topicName,
+      subscriberUrl,
+      createdAt: Date.now(),
+    };
     this.subscriptions.push(sub);
     return sub;
   }

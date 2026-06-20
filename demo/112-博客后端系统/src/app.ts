@@ -20,12 +20,18 @@ interface Post {
   views: number;
   createdAt: string;
 }
-interface Category { id: number; name: string; }
+interface Category {
+  id: number;
+  name: string;
+}
 
 // 仓储层
 class BlogRepository {
   posts: Post[] = [];
-  categories: Category[] = [{ id: 1, name: '默认' }, { id: 2, name: '技术' }];
+  categories: Category[] = [
+    { id: 1, name: '默认' },
+    { id: 2, name: '技术' },
+  ];
   private seq = 0;
   create(data: any): Post {
     const p: Post = {
@@ -41,7 +47,9 @@ class BlogRepository {
     this.posts.push(p);
     return p;
   }
-  findById(id: number) { return this.posts.find((p) => p.id === id); }
+  findById(id: number) {
+    return this.posts.find((p) => p.id === id);
+  }
   update(id: number, data: any) {
     const p = this.findById(id);
     if (!p) return null;
@@ -70,52 +78,85 @@ class BlogService {
     list = list.slice((page - 1) * size, page * size);
     return { list, total, page, size };
   }
-  get(id: number) { const p = this.repo.findById(id); if (p) p.views++; return p; }
+  get(id: number) {
+    const p = this.repo.findById(id);
+    if (p) p.views++;
+    return p;
+  }
   create(data: any) {
     if (!data.title) throw new Error('title 必填');
     return this.repo.create(data);
   }
-  update(id: number, data: any) { return this.repo.update(id, data); }
-  delete(id: number) { return this.repo.delete(id); }
+  update(id: number, data: any) {
+    return this.repo.update(id, data);
+  }
+  delete(id: number) {
+    return this.repo.delete(id);
+  }
   tags() {
     const set = new Set<string>();
     this.repo.posts.forEach((p) => p.tags.forEach((t) => set.add(t)));
     return [...set];
   }
-  categories() { return this.repo.categories; }
+  categories() {
+    return this.repo.categories;
+  }
 }
 
 const repo = new BlogRepository();
 const service = new BlogService(repo);
 
 // GET /api/posts - 文章列表（tag/category 过滤 + 分页）
-router.get('/api/posts', (ctx) => { ctx.body = service.list(ctx.query); });
+router.get('/api/posts', (ctx) => {
+  ctx.body = service.list(ctx.query);
+});
 // GET /api/posts/:id - 文章详情（浏览量+1）
 router.get('/api/posts/:id', (ctx) => {
   const p = service.get(Number(ctx.params.id));
-  if (!p) { ctx.status = 404; ctx.body = { message: '文章不存在' }; return; }
+  if (!p) {
+    ctx.status = 404;
+    ctx.body = { message: '文章不存在' };
+    return;
+  }
   ctx.body = p;
 });
 // POST /api/posts - 创建文章
 router.post('/api/posts', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.create(ctx.request.body || {}); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.create(ctx.request.body || {});
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // PUT /api/posts/:id - 更新文章
 router.put('/api/posts/:id', (ctx) => {
   const p = service.update(Number(ctx.params.id), ctx.request.body || {});
-  if (!p) { ctx.status = 404; ctx.body = { message: '文章不存在' }; return; }
+  if (!p) {
+    ctx.status = 404;
+    ctx.body = { message: '文章不存在' };
+    return;
+  }
   ctx.body = p;
 });
 // DELETE /api/posts/:id - 删除文章
 router.delete('/api/posts/:id', (ctx) => {
-  if (!service.delete(Number(ctx.params.id))) { ctx.status = 404; ctx.body = { message: '文章不存在' }; return; }
+  if (!service.delete(Number(ctx.params.id))) {
+    ctx.status = 404;
+    ctx.body = { message: '文章不存在' };
+    return;
+  }
   ctx.status = 204;
 });
 // GET /api/tags - 全部标签
-router.get('/api/tags', (ctx) => { ctx.body = service.tags(); });
+router.get('/api/tags', (ctx) => {
+  ctx.body = service.tags();
+});
 // GET /api/categories - 全部分类
-router.get('/api/categories', (ctx) => { ctx.body = service.categories(); });
+router.get('/api/categories', (ctx) => {
+  ctx.body = service.categories();
+});
 
 app.use(router.routes()).use(router.allowedMethods());
 const PORT = process.env.PORT || 3000;

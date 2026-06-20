@@ -82,7 +82,8 @@ class GatewayService {
   }
 
   update(id: string, data: any): GatewayRoute {
-    if (data.methods && !Array.isArray(data.methods)) throw { status: 400, message: 'methods must be array' };
+    if (data.methods && !Array.isArray(data.methods))
+      throw { status: 400, message: 'methods must be array' };
     return this.repo.update(id, data);
   }
 
@@ -120,7 +121,7 @@ const service = new GatewayService(new RouteRepository());
 apiRouter.post('/api/routes', (ctx) => {
   try {
     ctx.status = 201;
-    ctx.body = service.create(ctx.request.body as any || {});
+    ctx.body = service.create((ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };
@@ -133,7 +134,7 @@ apiRouter.get('/api/routes', (ctx) => {
 
 apiRouter.put('/api/routes/:id', (ctx) => {
   try {
-    ctx.body = service.update(ctx.params.id, ctx.request.body as any || {});
+    ctx.body = service.update(ctx.params.id, (ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };

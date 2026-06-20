@@ -22,15 +22,27 @@ interface Preset {
 // ---- 工厂生成函数 ----
 function buildRestApi(cfg: BuildConfig): { path: string; content: string }[] {
   return [
-    { path: `${cfg.name}/package.json`, content: `{\n  "name": "${cfg.name}",\n  "type": "rest-api"\n}` },
-    { path: `${cfg.name}/src/app.ts`, content: `import Koa from 'koa';\nimport Router from 'koa-router';\nconst app = new Koa();\nconst router = new Router();\napp.use(router.routes());\napp.listen(3000);\n` },
+    {
+      path: `${cfg.name}/package.json`,
+      content: `{\n  "name": "${cfg.name}",\n  "type": "rest-api"\n}`,
+    },
+    {
+      path: `${cfg.name}/src/app.ts`,
+      content: `import Koa from 'koa';\nimport Router from 'koa-router';\nconst app = new Koa();\nconst router = new Router();\napp.use(router.routes());\napp.listen(3000);\n`,
+    },
     { path: `${cfg.name}/src/routes/index.ts`, content: `export default {};\n` },
   ];
 }
 function buildCrudService(cfg: BuildConfig): { path: string; content: string }[] {
   const files: { path: string; content: string }[] = [
-    { path: `${cfg.name}/package.json`, content: `{\n  "name": "${cfg.name}",\n  "type": "crud-service"\n}` },
-    { path: `${cfg.name}/src/app.ts`, content: `import Koa from 'koa';\nconst app = new Koa();\napp.listen(3000);\n` },
+    {
+      path: `${cfg.name}/package.json`,
+      content: `{\n  "name": "${cfg.name}",\n  "type": "crud-service"\n}`,
+    },
+    {
+      path: `${cfg.name}/src/app.ts`,
+      content: `import Koa from 'koa';\nconst app = new Koa();\napp.listen(3000);\n`,
+    },
   ];
   // 根据 entities 生成对应 model/controller
   for (const e of cfg.entities || []) {
@@ -47,24 +59,48 @@ function buildCrudService(cfg: BuildConfig): { path: string; content: string }[]
 }
 function buildRealtimeApp(cfg: BuildConfig): { path: string; content: string }[] {
   return [
-    { path: `${cfg.name}/package.json`, content: `{\n  "name": "${cfg.name}",\n  "type": "realtime-app"\n}` },
-    { path: `${cfg.name}/src/app.ts`, content: `import Koa from 'koa';\nconst app = new Koa();\napp.listen(3000);\n` },
-    { path: `${cfg.name}/src/ws/server.ts`, content: `// WebSocket server\nexport function start() { console.log('ws://localhost:3001'); }\n` },
-    { path: `${cfg.name}/src/events/handler.ts`, content: `export function onMessage(msg: any) { console.log(msg); }\n` },
+    {
+      path: `${cfg.name}/package.json`,
+      content: `{\n  "name": "${cfg.name}",\n  "type": "realtime-app"\n}`,
+    },
+    {
+      path: `${cfg.name}/src/app.ts`,
+      content: `import Koa from 'koa';\nconst app = new Koa();\napp.listen(3000);\n`,
+    },
+    {
+      path: `${cfg.name}/src/ws/server.ts`,
+      content: `// WebSocket server\nexport function start() { console.log('ws://localhost:3001'); }\n`,
+    },
+    {
+      path: `${cfg.name}/src/events/handler.ts`,
+      content: `export function onMessage(msg: any) { console.log(msg); }\n`,
+    },
   ];
 }
 function buildMicroservice(cfg: BuildConfig): { path: string; content: string }[] {
   const files: { path: string; content: string }[] = [
-    { path: `${cfg.name}/package.json`, content: `{\n  "name": "${cfg.name}",\n  "type": "microservice"\n}` },
+    {
+      path: `${cfg.name}/package.json`,
+      content: `{\n  "name": "${cfg.name}",\n  "type": "microservice"\n}`,
+    },
     { path: `${cfg.name}/README.md`, content: `# ${cfg.name}\n\nMicroservice composition.\n` },
   ];
   // 生成多个 service 目录
   const services = cfg.entities && cfg.entities.length ? cfg.entities : ['user', 'order'];
   for (const s of services) {
-    files.push({ path: `${cfg.name}/services/${s}/index.ts`, content: `import Koa from 'koa';\nconst app = new Koa();\napp.listen(0);\nexport default app;\n` });
-    files.push({ path: `${cfg.name}/services/${s}/handler.ts`, content: `export function handle() { return '${s} ok'; }\n` });
+    files.push({
+      path: `${cfg.name}/services/${s}/index.ts`,
+      content: `import Koa from 'koa';\nconst app = new Koa();\napp.listen(0);\nexport default app;\n`,
+    });
+    files.push({
+      path: `${cfg.name}/services/${s}/handler.ts`,
+      content: `export function handle() { return '${s} ok'; }\n`,
+    });
   }
-  files.push({ path: `${cfg.name}/gateway/index.ts`, content: `import Koa from 'koa';\nconst app = new Koa();\napp.listen(3000);\n` });
+  files.push({
+    path: `${cfg.name}/gateway/index.ts`,
+    content: `import Koa from 'koa';\nconst app = new Koa();\napp.listen(3000);\n`,
+  });
   return files;
 }
 function cap(s: string) {
@@ -74,9 +110,24 @@ function cap(s: string) {
 class FactoryService {
   private presets: Preset[] = [
     { id: 'p1', name: 'REST API 基础', type: 'rest-api', config: { name: 'my-api' } },
-    { id: 'p2', name: 'CRUD 用户服务', type: 'crud-service', config: { name: 'user-service', entities: ['user'] } },
-    { id: 'p3', name: '实时聊天', type: 'realtime-app', config: { name: 'chat-app', features: ['websocket'] } },
-    { id: 'p4', name: '电商微服务', type: 'microservice', config: { name: 'ecommerce', entities: ['user', 'order', 'payment'] } },
+    {
+      id: 'p2',
+      name: 'CRUD 用户服务',
+      type: 'crud-service',
+      config: { name: 'user-service', entities: ['user'] },
+    },
+    {
+      id: 'p3',
+      name: '实时聊天',
+      type: 'realtime-app',
+      config: { name: 'chat-app', features: ['websocket'] },
+    },
+    {
+      id: 'p4',
+      name: '电商微服务',
+      type: 'microservice',
+      config: { name: 'ecommerce', entities: ['user', 'order', 'payment'] },
+    },
   ];
   types() {
     return [
@@ -87,7 +138,8 @@ class FactoryService {
     ];
   }
   build(type: FactoryType, config: BuildConfig) {
-    if (!['rest-api', 'crud-service', 'realtime-app', 'microservice'].includes(type)) throw new Error('未知 type');
+    if (!['rest-api', 'crud-service', 'realtime-app', 'microservice'].includes(type))
+      throw new Error('未知 type');
     if (!config || !config.name) throw new Error('参数缺失: config.name');
     let files: { path: string; content: string }[];
     if (type === 'rest-api') files = buildRestApi(config);

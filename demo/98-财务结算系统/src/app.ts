@@ -26,9 +26,7 @@ interface Settlement {
 
 // ---- Repository 层 ----
 class FinanceRepository {
-  private accounts: Account[] = [
-    { id: 1, name: '主账户', balance: 10000 },
-  ];
+  private accounts: Account[] = [{ id: 1, name: '主账户', balance: 10000 }];
   private settlements: Settlement[] = [];
   findAccounts() {
     return this.accounts;

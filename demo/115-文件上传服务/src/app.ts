@@ -35,7 +35,9 @@ class FileRepository {
     this.files.push(f);
     return f;
   }
-  findById(id: number) { return this.files.find((f) => f.id === id); }
+  findById(id: number) {
+    return this.files.find((f) => f.id === id);
+  }
   list(mimeType: string | null, page: number, size: number) {
     let list = this.files;
     if (mimeType) list = list.filter((f) => f.mimeType === mimeType);
@@ -67,10 +69,18 @@ class FileService {
     return rest;
   }
   list(query: any) {
-    return this.repo.list(query.mimeType ? String(query.mimeType) : null, Number(query.page) || 1, Number(query.size) || 10);
+    return this.repo.list(
+      query.mimeType ? String(query.mimeType) : null,
+      Number(query.page) || 1,
+      Number(query.size) || 10,
+    );
   }
-  download(id: number) { return this.repo.findById(id); }
-  delete(id: number) { return this.repo.delete(id); }
+  download(id: number) {
+    return this.repo.findById(id);
+  }
+  delete(id: number) {
+    return this.repo.delete(id);
+  }
 }
 
 const repo = new FileRepository();
@@ -78,28 +88,47 @@ const service = new FileService(repo);
 
 // POST /api/files - 上传文件（元数据 + base64 内容）
 router.post('/api/files', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.create(ctx.request.body || {}); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.create(ctx.request.body || {});
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // GET /api/files - 列表（mimeType 过滤 + 分页，不含内容）
-router.get('/api/files', (ctx) => { ctx.body = service.list(ctx.query); });
+router.get('/api/files', (ctx) => {
+  ctx.body = service.list(ctx.query);
+});
 // GET /api/files/:id - 元数据
 router.get('/api/files/:id', (ctx) => {
   const f = service.meta(Number(ctx.params.id));
-  if (!f) { ctx.status = 404; ctx.body = { message: '文件不存在' }; return; }
+  if (!f) {
+    ctx.status = 404;
+    ctx.body = { message: '文件不存在' };
+    return;
+  }
   ctx.body = f;
 });
 // GET /api/files/:id/download - 下载原始内容
 router.get('/api/files/:id/download', (ctx) => {
   const f = service.download(Number(ctx.params.id));
-  if (!f) { ctx.status = 404; ctx.body = { message: '文件不存在' }; return; }
+  if (!f) {
+    ctx.status = 404;
+    ctx.body = { message: '文件不存在' };
+    return;
+  }
   ctx.set('Content-Type', f.mimeType);
   ctx.set('Content-Disposition', `attachment; filename="${encodeURIComponent(f.name)}"`);
   ctx.body = Buffer.from(f.contentBase64, 'base64');
 });
 // DELETE /api/files/:id - 删除文件
 router.delete('/api/files/:id', (ctx) => {
-  if (!service.delete(Number(ctx.params.id))) { ctx.status = 404; ctx.body = { message: '文件不存在' }; return; }
+  if (!service.delete(Number(ctx.params.id))) {
+    ctx.status = 404;
+    ctx.body = { message: '文件不存在' };
+    return;
+  }
   ctx.status = 204;
 });
 

@@ -72,7 +72,8 @@ class CronService {
     if (!data.name) throw { status: 400, message: 'name required' };
     if (data.intervalSec === undefined) throw { status: 400, message: 'intervalSec required' };
     const intervalSec = Number(data.intervalSec);
-    if (Number.isNaN(intervalSec) || intervalSec <= 0) throw { status: 400, message: 'invalid intervalSec' };
+    if (Number.isNaN(intervalSec) || intervalSec <= 0)
+      throw { status: 400, message: 'invalid intervalSec' };
     const job: CronJob = {
       id: crypto.randomBytes(8).toString('hex'),
       name: data.name,
@@ -165,14 +166,18 @@ const service = new CronService(new CronRepository());
 
 // 后台 setInterval 每 1s 检查到期任务
 setInterval(() => {
-  try { service.tick(); } catch (e) { /* 忽略 */ }
+  try {
+    service.tick();
+  } catch (e) {
+    /* 忽略 */
+  }
 }, 1000);
 
 // POST /api/jobs - 创建定时任务
 router.post('/api/jobs', (ctx) => {
   try {
     ctx.status = 201;
-    ctx.body = service.create(ctx.request.body as any || {});
+    ctx.body = service.create((ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };
@@ -182,7 +187,7 @@ router.post('/api/jobs', (ctx) => {
 // PUT /api/jobs/:id - 更新
 router.put('/api/jobs/:id', (ctx) => {
   try {
-    ctx.body = service.update(ctx.params.id, ctx.request.body as any || {});
+    ctx.body = service.update(ctx.params.id, (ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };

@@ -42,13 +42,17 @@ class KbRepository {
     this.articles.push(a);
     return a;
   }
-  findArticle(id: number) { return this.articles.find((a) => a.id === id); }
+  findArticle(id: number) {
+    return this.articles.find((a) => a.id === id);
+  }
   searchArticles(categoryId: number | null, q: string) {
     let list = this.articles;
     if (categoryId) list = list.filter((a) => a.categoryId === categoryId);
     if (q) {
       const kw = q.toLowerCase();
-      list = list.filter((a) => a.title.toLowerCase().includes(kw) || a.content.toLowerCase().includes(kw));
+      list = list.filter(
+        (a) => a.title.toLowerCase().includes(kw) || a.content.toLowerCase().includes(kw),
+      );
     }
     return list;
   }
@@ -58,7 +62,9 @@ class KbRepository {
     this.categories.push(c);
     return c;
   }
-  allCategories() { return this.categories; }
+  allCategories() {
+    return this.categories;
+  }
 }
 
 // 服务层：构建分类树
@@ -71,7 +77,11 @@ class KbService {
   search(categoryId: string | undefined, q: string | undefined) {
     return this.repo.searchArticles(categoryId ? Number(categoryId) : null, (q || '').toString());
   }
-  get(id: number) { const a = this.repo.findArticle(id); if (a) a.views++; return a; }
+  get(id: number) {
+    const a = this.repo.findArticle(id);
+    if (a) a.views++;
+    return a;
+  }
   categoryTree() {
     const list = this.repo.allCategories();
     const map = new Map<number, any>();
@@ -97,8 +107,13 @@ const service = new KbService(repo);
 
 // POST /api/kb/articles - 创建知识条目
 router.post('/api/kb/articles', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.create(ctx.request.body || {}); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.create(ctx.request.body || {});
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // GET /api/kb/articles?categoryId=&q= - 分类过滤 + 全文模糊搜索
 router.get('/api/kb/articles', (ctx) => {
@@ -107,15 +122,26 @@ router.get('/api/kb/articles', (ctx) => {
 // GET /api/kb/articles/:id - 详情（浏览量+1）
 router.get('/api/kb/articles/:id', (ctx) => {
   const a = service.get(Number(ctx.params.id));
-  if (!a) { ctx.status = 404; ctx.body = { message: '条目不存在' }; return; }
+  if (!a) {
+    ctx.status = 404;
+    ctx.body = { message: '条目不存在' };
+    return;
+  }
   ctx.body = a;
 });
 // GET /api/kb/categories - 树形分类
-router.get('/api/kb/categories', (ctx) => { ctx.body = service.categoryTree(); });
+router.get('/api/kb/categories', (ctx) => {
+  ctx.body = service.categoryTree();
+});
 // POST /api/kb/categories - 创建分类
 router.post('/api/kb/categories', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.createCategory(ctx.request.body || {}); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.createCategory(ctx.request.body || {});
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 
 app.use(router.routes()).use(router.allowedMethods());

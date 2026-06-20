@@ -72,7 +72,12 @@ class ConsumerGroupRepository {
   create(groupName: string, topic: string, partitions: number) {
     if (!groupName) throw new Error('参数缺失: groupName');
     if (this.map.has(groupName)) throw new Error('consumer group 已存在');
-    const g: ConsumerGroup = { groupName, topic, offsets: new Array(partitions).fill(0), createdAt: Date.now() };
+    const g: ConsumerGroup = {
+      groupName,
+      topic,
+      offsets: new Array(partitions).fill(0),
+      createdAt: Date.now(),
+    };
     this.map.set(groupName, g);
     return g;
   }
@@ -100,7 +105,10 @@ class ConsumerGroupRepository {
 }
 // ---- Service 层 ----
 class MQService {
-  constructor(private topics: TopicRepository, private groups: ConsumerGroupRepository) {}
+  constructor(
+    private topics: TopicRepository,
+    private groups: ConsumerGroupRepository,
+  ) {}
   createTopic(name: string, partitions: number) {
     return this.topics.create(name, partitions);
   }

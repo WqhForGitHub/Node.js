@@ -94,7 +94,11 @@ class SchedulerService {
   ) {}
   registerScheduler(data: any) {
     if (!data || !data.name || !data.intervalSec) throw new Error('参数缺失: name, intervalSec');
-    return this.schedulers.create({ name: data.name, intervalSec: Number(data.intervalSec), payload: data.payload });
+    return this.schedulers.create({
+      name: data.name,
+      intervalSec: Number(data.intervalSec),
+      payload: data.payload,
+    });
   }
   registerWorker(data: any) {
     if (!data || !data.name || !data.capacity) throw new Error('参数缺失: name, capacity');
@@ -121,14 +125,24 @@ class SchedulerService {
   workerLoad(id: number) {
     const w = this.workers.findById(id);
     if (!w) throw new Error('worker 不存在');
-    return { id: w.id, name: w.name, capacity: w.capacity, currentLoad: w.currentLoad, idle: w.currentLoad < w.capacity };
+    return {
+      id: w.id,
+      name: w.name,
+      capacity: w.capacity,
+      currentLoad: w.currentLoad,
+      idle: w.currentLoad < w.capacity,
+    };
   }
 }
 // ---- 装配与路由 ----
 const app = new Koa();
 const router = new Router();
 app.use(bodyParser());
-const service = new SchedulerService(new SchedulerRepository(), new WorkerRepository(), new ExecutionRepository());
+const service = new SchedulerService(
+  new SchedulerRepository(),
+  new WorkerRepository(),
+  new ExecutionRepository(),
+);
 
 // POST /api/schedulers - 注册调度器
 router.post('/api/schedulers', (ctx) => {

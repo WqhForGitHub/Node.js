@@ -144,7 +144,7 @@ const service = new QueueService(new QueueRepository());
 router.post('/api/queues', (ctx) => {
   try {
     ctx.status = 201;
-    ctx.body = service.createQueue(ctx.request.body as any || {});
+    ctx.body = service.createQueue((ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };
@@ -155,7 +155,7 @@ router.post('/api/queues', (ctx) => {
 router.post('/api/queues/:name/enqueue', (ctx) => {
   try {
     ctx.status = 201;
-    ctx.body = service.enqueue(ctx.params.name, ctx.request.body as any || {});
+    ctx.body = service.enqueue(ctx.params.name, (ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };
@@ -195,7 +195,7 @@ router.get('/api/queues/:name/jobs/:id', (ctx) => {
 // POST /api/queues/:name/jobs/:id/complete - 标记完成
 router.post('/api/queues/:name/jobs/:id/complete', (ctx) => {
   try {
-    ctx.body = service.complete(ctx.params.name, ctx.params.id, ctx.request.body as any || {});
+    ctx.body = service.complete(ctx.params.name, ctx.params.id, (ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };

@@ -32,7 +32,13 @@ class WorkerPool {
   // 注册 worker
   registerWorker(name: string, concurrency: number): Worker {
     if (!name || !concurrency) throw new Error('参数缺失: name, concurrency');
-    const w: Worker = { id: this.workerSeq++, name, concurrency, runningJobs: [], createdAt: Date.now() };
+    const w: Worker = {
+      id: this.workerSeq++,
+      name,
+      concurrency,
+      runningJobs: [],
+      createdAt: Date.now(),
+    };
     this.workers.push(w);
     return w;
   }

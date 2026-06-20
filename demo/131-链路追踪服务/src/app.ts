@@ -140,8 +140,12 @@ const service = new TraceService(new TraceRepository());
 
 // POST /api/traces - 创建 trace
 router.post('/api/traces', (ctx) => {
-  const body = ctx.request.body as any || {};
-  if (!body.service) { ctx.status = 400; ctx.body = { message: 'service required' }; return; }
+  const body = (ctx.request.body as any) || {};
+  if (!body.service) {
+    ctx.status = 400;
+    ctx.body = { message: 'service required' };
+    return;
+  }
   ctx.status = 201;
   ctx.body = service.createTrace(body.service);
 });
@@ -149,7 +153,7 @@ router.post('/api/traces', (ctx) => {
 // POST /api/traces/:traceId/spans - 添加 span
 router.post('/api/traces/:traceId/spans', (ctx) => {
   try {
-    const span = service.addSpan(ctx.params.traceId, ctx.request.body as any || {});
+    const span = service.addSpan(ctx.params.traceId, (ctx.request.body as any) || {});
     ctx.status = 201;
     ctx.body = span;
   } catch (e: any) {

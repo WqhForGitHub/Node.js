@@ -47,7 +47,9 @@ class ImageRepository {
     this.images.push(img);
     return img;
   }
-  findImage(id: number) { return this.images.find((i) => i.id === id); }
+  findImage(id: number) {
+    return this.images.find((i) => i.id === id);
+  }
   createTask(imageId: number, width: number, height: number): Task {
     const t: Task = {
       id: ++this.taskSeq,
@@ -72,7 +74,9 @@ class ImageRepository {
     }, 1000);
     return t;
   }
-  findTask(id: number) { return this.tasks.find((t) => t.id === id); }
+  findTask(id: number) {
+    return this.tasks.find((t) => t.id === id);
+  }
 }
 
 // 服务层
@@ -84,15 +88,22 @@ class ImageService {
     }
     return this.repo.createImage(data);
   }
-  get(id: number) { return this.repo.findImage(id); }
+  get(id: number) {
+    return this.repo.findImage(id);
+  }
   resize(id: number, data: any) {
     const img = this.repo.findImage(id);
     if (!img) return null;
     if (!data.width || !data.height) throw new Error('参数缺失: width/height');
     return this.repo.createTask(id, Number(data.width), Number(data.height));
   }
-  task(taskId: number) { return this.repo.findTask(taskId); }
-  variants(id: number) { const img = this.repo.findImage(id); return img ? img.variants : null; }
+  task(taskId: number) {
+    return this.repo.findTask(taskId);
+  }
+  variants(id: number) {
+    const img = this.repo.findImage(id);
+    return img ? img.variants : null;
+  }
 }
 
 const repo = new ImageRepository();
@@ -100,33 +111,58 @@ const service = new ImageService(repo);
 
 // POST /api/images - 上传图片元数据 + base64
 router.post('/api/images', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.create(ctx.request.body || {}); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.create(ctx.request.body || {});
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // GET /api/images/:id - 图片详情
 router.get('/api/images/:id', (ctx) => {
   const img = service.get(Number(ctx.params.id));
-  if (!img) { ctx.status = 404; ctx.body = { message: '图片不存在' }; return; }
+  if (!img) {
+    ctx.status = 404;
+    ctx.body = { message: '图片不存在' };
+    return;
+  }
   ctx.body = img;
 });
 // POST /api/images/:id/resize - 创建 resize 任务
 router.post('/api/images/:id/resize', (ctx) => {
   try {
     const t = service.resize(Number(ctx.params.id), ctx.request.body || {});
-    if (!t) { ctx.status = 404; ctx.body = { message: '图片不存在' }; return; }
-    ctx.status = 201; ctx.body = { taskId: t.id, status: t.status };
-  } catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+    if (!t) {
+      ctx.status = 404;
+      ctx.body = { message: '图片不存在' };
+      return;
+    }
+    ctx.status = 201;
+    ctx.body = { taskId: t.id, status: t.status };
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // GET /api/tasks/:taskId - 任务状态查询
 router.get('/api/tasks/:taskId', (ctx) => {
   const t = service.task(Number(ctx.params.taskId));
-  if (!t) { ctx.status = 404; ctx.body = { message: '任务不存在' }; return; }
+  if (!t) {
+    ctx.status = 404;
+    ctx.body = { message: '任务不存在' };
+    return;
+  }
   ctx.body = t;
 });
 // GET /api/images/:id/variants - 各尺寸版本
 router.get('/api/images/:id/variants', (ctx) => {
   const v = service.variants(Number(ctx.params.id));
-  if (v === null) { ctx.status = 404; ctx.body = { message: '图片不存在' }; return; }
+  if (v === null) {
+    ctx.status = 404;
+    ctx.body = { message: '图片不存在' };
+    return;
+  }
   ctx.body = v;
 });
 

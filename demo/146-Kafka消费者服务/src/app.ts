@@ -59,7 +59,10 @@ class GroupRepository {
 }
 // ---- Service 层 ----
 class KafkaService {
-  constructor(private topics: TopicRepository, private groups: GroupRepository) {}
+  constructor(
+    private topics: TopicRepository,
+    private groups: GroupRepository,
+  ) {}
   createGroup(name: string, topic: string, members: string[]) {
     if (!topic || !members || !members.length) throw new Error('参数缺失: topic, members');
     const t = this.topics.find(topic);
@@ -90,7 +93,10 @@ class KafkaService {
       group: g.name,
       topic: g.topic,
       version: g.version,
-      assignment: Array.from(g.assignment.entries()).map(([m, ps]) => ({ member: m, partitions: ps })),
+      assignment: Array.from(g.assignment.entries()).map(([m, ps]) => ({
+        member: m,
+        partitions: ps,
+      })),
     };
   }
   assignments(name: string) {
@@ -100,7 +106,10 @@ class KafkaService {
       group: g.name,
       topic: g.topic,
       version: g.version,
-      assignment: Array.from(g.assignment.entries()).map(([m, ps]) => ({ member: m, partitions: ps })),
+      assignment: Array.from(g.assignment.entries()).map(([m, ps]) => ({
+        member: m,
+        partitions: ps,
+      })),
     };
   }
   // 按分配方案消费，返回各 member 的消息

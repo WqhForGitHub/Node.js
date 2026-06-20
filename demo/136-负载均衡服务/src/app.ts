@@ -101,7 +101,10 @@ class LbService {
     if (pool.strategy === 'random') {
       chosen = available[Math.floor(Math.random() * available.length)];
     } else if (pool.strategy === 'least-conn') {
-      chosen = available.reduce((min, s) => (s.activeConn < min.activeConn ? s : min), available[0]);
+      chosen = available.reduce(
+        (min, s) => (s.activeConn < min.activeConn ? s : min),
+        available[0],
+      );
     } else {
       // round-robin
       chosen = available[pool.rrIndex % available.length];
@@ -110,7 +113,9 @@ class LbService {
     chosen.calls++;
     chosen.activeConn++;
     // 模拟连接释放
-    setTimeout(() => { chosen.activeConn = Math.max(0, chosen.activeConn - 1); }, 100);
+    setTimeout(() => {
+      chosen.activeConn = Math.max(0, chosen.activeConn - 1);
+    }, 100);
     return chosen;
   }
 
@@ -143,7 +148,7 @@ const service = new LbService(new PoolRepository());
 router.post('/api/pools', (ctx) => {
   try {
     ctx.status = 201;
-    ctx.body = service.create(ctx.request.body as any || {});
+    ctx.body = service.create((ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };
@@ -154,7 +159,7 @@ router.post('/api/pools', (ctx) => {
 router.post('/api/pools/:id/servers', (ctx) => {
   try {
     ctx.status = 201;
-    ctx.body = service.addServer(ctx.params.id, ctx.request.body as any || {});
+    ctx.body = service.addServer(ctx.params.id, (ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };

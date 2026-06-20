@@ -34,7 +34,10 @@ class MemoryCache {
   get(key: string): any {
     this.clean(key);
     const entry = this.store.get(key);
-    if (!entry) { this.misses++; return null; }
+    if (!entry) {
+      this.misses++;
+      return null;
+    }
     this.hits++;
     return entry.value;
   }
@@ -82,7 +85,9 @@ class MemoryCache {
     });
     if (!pattern) return allKeys;
     // 转换 glob 到正则
-    const regex = new RegExp('^' + pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
+    const regex = new RegExp(
+      '^' + pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$',
+    );
     return allKeys.filter((k) => regex.test(k));
   }
 
@@ -153,7 +158,7 @@ router.get('/api/cache/keys', (ctx) => {
 // POST /api/cache - 设置键值（带 ttl）
 router.post('/api/cache', (ctx) => {
   try {
-    service.set(ctx.request.body as any || {});
+    service.set((ctx.request.body as any) || {});
     ctx.body = { ok: true };
   } catch (e: any) {
     ctx.status = e.status || 500;
@@ -179,7 +184,11 @@ router.post('/api/cache/:key/incr', (ctx) => {
 // GET /api/cache/:key - 取值
 router.get('/api/cache/:key', (ctx) => {
   const value = service.get(ctx.params.key);
-  if (value === null) { ctx.status = 404; ctx.body = { message: 'key not found' }; return; }
+  if (value === null) {
+    ctx.status = 404;
+    ctx.body = { message: 'key not found' };
+    return;
+  }
   ctx.body = { key: ctx.params.key, value };
 });
 

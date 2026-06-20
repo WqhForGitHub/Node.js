@@ -15,8 +15,13 @@ function serializeLabels(labels: Record<string, string> = {}) {
 // ---- 指标类 ----
 class Counter {
   private values: Record<string, number> = {};
-  constructor(public name: string, public help: string) {}
-  private key(labels: Record<string, string>) { return JSON.stringify(labels); }
+  constructor(
+    public name: string,
+    public help: string,
+  ) {}
+  private key(labels: Record<string, string>) {
+    return JSON.stringify(labels);
+  }
   incr(labels: Record<string, string> = {}, by = 1) {
     const k = this.key(labels);
     this.values[k] = (this.values[k] || 0) + by;
@@ -32,8 +37,13 @@ class Counter {
 }
 class Gauge {
   private values: Record<string, number> = {};
-  constructor(public name: string, public help: string) {}
-  private key(labels: Record<string, string>) { return JSON.stringify(labels); }
+  constructor(
+    public name: string,
+    public help: string,
+  ) {}
+  private key(labels: Record<string, string>) {
+    return JSON.stringify(labels);
+  }
   set(labels: Record<string, string> = {}, value: number) {
     this.values[this.key(labels)] = value;
   }
@@ -49,7 +59,10 @@ class Gauge {
 class Histogram {
   private buckets = [0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10];
   private observations: { labels: Record<string, string>; value: number }[] = [];
-  constructor(public name: string, public help: string) {}
+  constructor(
+    public name: string,
+    public help: string,
+  ) {}
   observe(labels: Record<string, string> = {}, value: number) {
     this.observations.push({ labels, value });
   }
@@ -67,10 +80,16 @@ class Histogram {
       const sorted = g.values.slice().sort((a, b) => a - b);
       for (const bound of this.buckets) {
         const count = sorted.filter((v) => v <= bound).length;
-        lines.push(`${this.name}_bucket${serializeLabels({ ...g.labels, le: String(bound) })} ${count}`);
+        lines.push(
+          `${this.name}_bucket${serializeLabels({ ...g.labels, le: String(bound) })} ${count}`,
+        );
       }
-      lines.push(`${this.name}_bucket${serializeLabels({ ...g.labels, le: '+Inf' })} ${sorted.length}`);
-      lines.push(`${this.name}_sum${serializeLabels(g.labels)} ${sorted.reduce((a, b) => a + b, 0)}`);
+      lines.push(
+        `${this.name}_bucket${serializeLabels({ ...g.labels, le: '+Inf' })} ${sorted.length}`,
+      );
+      lines.push(
+        `${this.name}_sum${serializeLabels(g.labels)} ${sorted.reduce((a, b) => a + b, 0)}`,
+      );
       lines.push(`${this.name}_count${serializeLabels(g.labels)} ${sorted.length}`);
     }
     return lines.join('\n');
@@ -122,18 +141,33 @@ router.get('/metrics', (ctx) => {
 });
 // 计数器递增
 router.post('/api/metrics/incr', (ctx) => {
-  try { ctx.status = 201; ctx.body = registry.incr((ctx.request.body as any)?.name, ctx.request.body); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = registry.incr((ctx.request.body as any)?.name, ctx.request.body);
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // 设置 gauge
 router.post('/api/metrics/gauge', (ctx) => {
-  try { ctx.status = 201; ctx.body = registry.gauge((ctx.request.body as any)?.name, ctx.request.body); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = registry.gauge((ctx.request.body as any)?.name, ctx.request.body);
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // histogram 观测
 router.post('/api/metrics/observe', (ctx) => {
-  try { ctx.status = 201; ctx.body = registry.observe((ctx.request.body as any)?.name, ctx.request.body); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = registry.observe((ctx.request.body as any)?.name, ctx.request.body);
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 
 app.use(router.routes()).use(router.allowedMethods());

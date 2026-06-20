@@ -72,7 +72,10 @@ class DeliveryRepository {
 }
 // ---- Service 层 ----
 class WebhookService {
-  constructor(private webhooks: WebhookRepository, private deliveries: DeliveryRepository) {}
+  constructor(
+    private webhooks: WebhookRepository,
+    private deliveries: DeliveryRepository,
+  ) {}
   register(url: string, events: string[]) {
     if (!url || !events || !events.length) throw new Error('参数缺失: url, events');
     return this.webhooks.create(url, events);

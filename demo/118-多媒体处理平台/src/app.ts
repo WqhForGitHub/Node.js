@@ -46,7 +46,9 @@ class MediaRepository {
     this.medias.push(m);
     return m;
   }
-  findMedia(id: number) { return this.medias.find((m) => m.id === id); }
+  findMedia(id: number) {
+    return this.medias.find((m) => m.id === id);
+  }
   createTask(media: Media, targetFormat: string): TranscodeTask {
     const t: TranscodeTask = {
       id: ++this.tSeq,
@@ -70,7 +72,9 @@ class MediaRepository {
     }, 800);
     return t;
   }
-  findTask(id: number) { return this.tasks.find((t) => t.id === id); }
+  findTask(id: number) {
+    return this.tasks.find((t) => t.id === id);
+  }
 }
 
 // 服务层
@@ -83,15 +87,22 @@ class MediaService {
     if (data.type !== 'video' && data.type !== 'audio') throw new Error('type 必须为 video/audio');
     return this.repo.createMedia(data);
   }
-  get(id: number) { return this.repo.findMedia(id); }
+  get(id: number) {
+    return this.repo.findMedia(id);
+  }
   transcode(id: number, targetFormat: string) {
     const m = this.repo.findMedia(id);
     if (!m) return null;
     if (!targetFormat) throw new Error('targetFormat 必填');
     return this.repo.createTask(m, targetFormat);
   }
-  task(taskId: number) { return this.repo.findTask(taskId); }
-  outputs(id: number) { const m = this.repo.findMedia(id); return m ? m.outputs : null; }
+  task(taskId: number) {
+    return this.repo.findTask(taskId);
+  }
+  outputs(id: number) {
+    const m = this.repo.findMedia(id);
+    return m ? m.outputs : null;
+  }
 }
 
 const repo = new MediaRepository();
@@ -99,27 +110,48 @@ const service = new MediaService(repo);
 
 // POST /api/media - 上传媒体元数据
 router.post('/api/media', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.create(ctx.request.body || {}); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.create(ctx.request.body || {});
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // POST /api/media/:id/transcode - 创建转码任务
 router.post('/api/media/:id/transcode', (ctx) => {
   try {
     const t = service.transcode(Number(ctx.params.id), (ctx.request.body as any).targetFormat);
-    if (!t) { ctx.status = 404; ctx.body = { message: '媒体不存在' }; return; }
-    ctx.status = 201; ctx.body = { taskId: t.id, status: t.status, targetFormat: t.targetFormat };
-  } catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+    if (!t) {
+      ctx.status = 404;
+      ctx.body = { message: '媒体不存在' };
+      return;
+    }
+    ctx.status = 201;
+    ctx.body = { taskId: t.id, status: t.status, targetFormat: t.targetFormat };
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // GET /api/transcode/:taskId - 转码任务状态 + 进度
 router.get('/api/transcode/:taskId', (ctx) => {
   const t = service.task(Number(ctx.params.taskId));
-  if (!t) { ctx.status = 404; ctx.body = { message: '任务不存在' }; return; }
+  if (!t) {
+    ctx.status = 404;
+    ctx.body = { message: '任务不存在' };
+    return;
+  }
   ctx.body = t;
 });
 // GET /api/media/:id/outputs - 转码输出列表
 router.get('/api/media/:id/outputs', (ctx) => {
   const o = service.outputs(Number(ctx.params.id));
-  if (o === null) { ctx.status = 404; ctx.body = { message: '媒体不存在' }; return; }
+  if (o === null) {
+    ctx.status = 404;
+    ctx.body = { message: '媒体不存在' };
+    return;
+  }
   ctx.body = o;
 });
 

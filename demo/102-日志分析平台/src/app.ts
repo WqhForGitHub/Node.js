@@ -6,12 +6,20 @@ import bodyParser from 'koa-bodyparser';
  * 日志分析平台
  * 日志接入、检索、聚合
  */
-interface LogEntry { id: number; level: string; service: string; message: string; timestamp: number; }
+interface LogEntry {
+  id: number;
+  level: string;
+  service: string;
+  message: string;
+  timestamp: number;
+}
 
 // ---- Repository 层 ----
 class LogRepository {
   private logs: LogEntry[] = [];
-  add(log: LogEntry) { this.logs.push(log); }
+  add(log: LogEntry) {
+    this.logs.push(log);
+  }
   search(q: { level?: string; service?: string; keyword?: string; page: number; size: number }) {
     let list = this.logs;
     if (q.level) list = list.filter((l) => l.level === q.level);
@@ -36,12 +44,22 @@ class LogService {
   constructor(private repo: LogRepository) {}
   ingest(level: string, service: string, message: string, timestamp?: number) {
     if (!level || !service || !message) throw new Error('参数缺失: level/service/message');
-    const log: LogEntry = { id: Date.now() + Math.floor(Math.random() * 1000), level, service, message, timestamp: timestamp || Date.now() };
+    const log: LogEntry = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      level,
+      service,
+      message,
+      timestamp: timestamp || Date.now(),
+    };
     this.repo.add(log);
     return log;
   }
-  search(q: any) { return this.repo.search(q); }
-  aggregate() { return this.repo.aggregate(); }
+  search(q: any) {
+    return this.repo.search(q);
+  }
+  aggregate() {
+    return this.repo.aggregate();
+  }
 }
 // ---- 装配与路由 ----
 const app = new Koa();
@@ -54,12 +72,23 @@ router.post('/api/logs', (ctx) => {
     const { level, service: svc, message, timestamp } = (ctx.request.body || {}) as any;
     ctx.status = 201;
     ctx.body = service.ingest(level, svc, message, timestamp);
-  } catch (e) { ctx.status = 400; ctx.body = { message: (e as Error).message }; }
+  } catch (e) {
+    ctx.status = 400;
+    ctx.body = { message: (e as Error).message };
+  }
 });
-router.get('/api/logs/aggregate', (ctx) => { ctx.body = service.aggregate(); });
+router.get('/api/logs/aggregate', (ctx) => {
+  ctx.body = service.aggregate();
+});
 router.get('/api/logs', (ctx) => {
   const { level, service: svc, keyword, page = '1', size = '10' } = ctx.query as any;
-  ctx.body = service.search({ level, service: svc, keyword, page: Number(page), size: Number(size) });
+  ctx.body = service.search({
+    level,
+    service: svc,
+    keyword,
+    page: Number(page),
+    size: Number(size),
+  });
 });
 
 app.use(router.routes()).use(router.allowedMethods());

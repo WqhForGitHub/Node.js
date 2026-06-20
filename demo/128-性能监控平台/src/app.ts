@@ -27,16 +27,24 @@ class MetricRepository {
   private seqM = 1;
   private seqA = 1;
   add(name: string, value: number, tags: Record<string, string>, timestamp: number) {
-    const m: Metric = { id: this.seqM++, name, value, tags: tags || {}, timestamp: timestamp || Date.now() };
+    const m: Metric = {
+      id: this.seqM++,
+      name,
+      value,
+      tags: tags || {},
+      timestamp: timestamp || Date.now(),
+    };
     this.metrics.push(m);
     return m;
   }
   query(name?: string, tags?: Record<string, string>, from?: number, to?: number) {
-    return this.metrics.filter((m) =>
-      (!name || m.name === name) &&
-      (!from || m.timestamp >= from!) &&
-      (!to || m.timestamp <= to!) &&
-      (!tags || Object.entries(tags).every(([k, v]) => m.tags[k] === v)));
+    return this.metrics.filter(
+      (m) =>
+        (!name || m.name === name) &&
+        (!from || m.timestamp >= from!) &&
+        (!to || m.timestamp <= to!) &&
+        (!tags || Object.entries(tags).every(([k, v]) => m.tags[k] === v)),
+    );
   }
   aggregate(name: string, interval: number, from?: number, to?: number) {
     const list = this.query(name, undefined, from, to);
@@ -69,24 +77,42 @@ class MetricRepository {
 class MetricService {
   constructor(private repo: MetricRepository) {}
   report(body: any) {
-    if (!body || !body.name || typeof body.value !== 'number') throw new Error('参数缺失: name/value');
+    if (!body || !body.name || typeof body.value !== 'number')
+      throw new Error('参数缺失: name/value');
     return this.repo.add(body.name, body.value, body.tags || {}, body.timestamp);
   }
   query(q: any) {
     let tags: Record<string, string> | undefined;
     if (q.tags) {
-      try { tags = typeof q.tags === 'string' ? JSON.parse(q.tags) : q.tags; } catch { tags = undefined; }
+      try {
+        tags = typeof q.tags === 'string' ? JSON.parse(q.tags) : q.tags;
+      } catch {
+        tags = undefined;
+      }
     }
-    return this.repo.query(q.name, tags, q.from ? Number(q.from) : undefined, q.to ? Number(q.to) : undefined);
+    return this.repo.query(
+      q.name,
+      tags,
+      q.from ? Number(q.from) : undefined,
+      q.to ? Number(q.to) : undefined,
+    );
   }
   aggregate(q: any) {
     if (!q.name) throw new Error('参数缺失: name');
     const interval = Number(q.interval) || 60000;
-    return this.repo.aggregate(q.name, interval, q.from ? Number(q.from) : undefined, q.to ? Number(q.to) : undefined);
+    return this.repo.aggregate(
+      q.name,
+      interval,
+      q.from ? Number(q.from) : undefined,
+      q.to ? Number(q.to) : undefined,
+    );
   }
-  names() { return this.repo.names(); }
+  names() {
+    return this.repo.names();
+  }
   addAlert(body: any) {
-    if (!body || !body.name || !body.metric || typeof body.threshold !== 'number') throw new Error('参数缺失: name/metric/threshold');
+    if (!body || !body.name || !body.metric || typeof body.threshold !== 'number')
+      throw new Error('参数缺失: name/metric/threshold');
     return this.repo.addAlert(body.name, body.metric, body.threshold);
   }
 }
@@ -98,8 +124,13 @@ const service = new MetricService(new MetricRepository());
 
 // 上报指标
 router.post('/api/metrics', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.report(ctx.request.body); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.report(ctx.request.body);
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // 时序查询
 router.get('/api/metrics', (ctx) => {
@@ -107,8 +138,12 @@ router.get('/api/metrics', (ctx) => {
 });
 // 时间窗口聚合
 router.get('/api/metrics/aggregate', (ctx) => {
-  try { ctx.body = service.aggregate(ctx.query); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.body = service.aggregate(ctx.query);
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // 指标名列表
 router.get('/api/metrics/names', (ctx) => {
@@ -116,8 +151,13 @@ router.get('/api/metrics/names', (ctx) => {
 });
 // 告警规则
 router.post('/api/alerts', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.addAlert(ctx.request.body); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.addAlert(ctx.request.body);
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 
 app.use(router.routes()).use(router.allowedMethods());

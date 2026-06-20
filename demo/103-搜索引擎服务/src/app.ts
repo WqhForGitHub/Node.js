@@ -6,8 +6,14 @@ import bodyParser from 'koa-bodyparser';
  * 搜索引擎服务
  * 索引管理、搜索
  */
-interface Doc { id: number; [key: string]: any; }
-interface Index { name: string; docs: Doc[]; }
+interface Doc {
+  id: number;
+  [key: string]: any;
+}
+interface Index {
+  name: string;
+  docs: Doc[];
+}
 
 // ---- Repository 层 ----
 class SearchRepository {
@@ -28,19 +34,21 @@ class SearchRepository {
     const idx = this.indexes.get(name);
     if (!idx) throw new Error('索引不存在');
     const lower = q.toLowerCase();
-    const hits = idx.docs.map((d) => {
-      const highlight: Record<string, string> = {};
-      let matched = false;
-      Object.keys(d).forEach((k) => {
-        if (k === 'id') return;
-        const v = String(d[k]);
-        if (v.toLowerCase().includes(lower)) {
-          matched = true;
-          highlight[k] = v.replace(new RegExp(q, 'gi'), (m) => `<em>${m}</em>`);
-        }
-      });
-      return matched ? { doc: d, highlight } : null;
-    }).filter(Boolean) as { doc: Doc; highlight: Record<string, string> }[];
+    const hits = idx.docs
+      .map((d) => {
+        const highlight: Record<string, string> = {};
+        let matched = false;
+        Object.keys(d).forEach((k) => {
+          if (k === 'id') return;
+          const v = String(d[k]);
+          if (v.toLowerCase().includes(lower)) {
+            matched = true;
+            highlight[k] = v.replace(new RegExp(q, 'gi'), (m) => `<em>${m}</em>`);
+          }
+        });
+        return matched ? { doc: d, highlight } : null;
+      })
+      .filter(Boolean) as { doc: Doc; highlight: Record<string, string> }[];
     return { total: hits.length, hits };
   }
 }
@@ -71,19 +79,30 @@ router.post('/api/index', (ctx) => {
     const { name, docs } = (ctx.request.body || {}) as any;
     ctx.status = 201;
     ctx.body = service.create(name, docs);
-  } catch (e) { ctx.status = 400; ctx.body = { message: (e as Error).message }; }
+  } catch (e) {
+    ctx.status = 400;
+    ctx.body = { message: (e as Error).message };
+  }
 });
 router.post('/api/index/:name/docs', (ctx) => {
   try {
     const { docs } = (ctx.request.body || {}) as any;
     ctx.body = service.addDocs(ctx.params.name, docs);
-  } catch (e) { const m = (e as Error).message; ctx.status = m === '索引不存在' ? 404 : 400; ctx.body = { message: m }; }
+  } catch (e) {
+    const m = (e as Error).message;
+    ctx.status = m === '索引不存在' ? 404 : 400;
+    ctx.body = { message: m };
+  }
 });
 router.get('/api/search', (ctx) => {
   try {
     const { index, q } = ctx.query as any;
     ctx.body = service.search(index, q);
-  } catch (e) { const m = (e as Error).message; ctx.status = m === '索引不存在' ? 404 : 400; ctx.body = { message: m }; }
+  } catch (e) {
+    const m = (e as Error).message;
+    ctx.status = m === '索引不存在' ? 404 : 400;
+    ctx.body = { message: m };
+  }
 });
 
 app.use(router.routes()).use(router.allowedMethods());

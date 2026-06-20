@@ -93,7 +93,9 @@ class ExceptionService {
         (e) =>
           e.message.toLowerCase().includes(q) ||
           (e.stack || '').toLowerCase().includes(q) ||
-          JSON.stringify(e.context || {}).toLowerCase().includes(q),
+          JSON.stringify(e.context || {})
+            .toLowerCase()
+            .includes(q),
       );
     }
     list.sort((a, b) => b.createdAt - a.createdAt);
@@ -102,7 +104,10 @@ class ExceptionService {
 
   // 按 service+message 分组 count，找高频异常
   grouped(): any[] {
-    const groups = new Map<string, { service: string; message: string; count: number; lastSeen: number; level: string }>();
+    const groups = new Map<
+      string,
+      { service: string; message: string; count: number; lastSeen: number; level: string }
+    >();
     for (const e of this.repo.findAll()) {
       const key = e.service + '::' + e.message;
       const g = groups.get(key);
@@ -110,7 +115,13 @@ class ExceptionService {
         g.count++;
         if (e.createdAt > g.lastSeen) g.lastSeen = e.createdAt;
       } else {
-        groups.set(key, { service: e.service, message: e.message, count: 1, lastSeen: e.createdAt, level: e.level });
+        groups.set(key, {
+          service: e.service,
+          message: e.message,
+          count: 1,
+          lastSeen: e.createdAt,
+          level: e.level,
+        });
       }
     }
     return Array.from(groups.values()).sort((a, b) => b.count - a.count);
@@ -141,7 +152,12 @@ class ExceptionService {
         return true;
       });
       if (recent.length > rule.threshold) {
-        triggered.push({ ruleId: rule.id, service: rule.service, count: recent.length, threshold: rule.threshold });
+        triggered.push({
+          ruleId: rule.id,
+          service: rule.service,
+          count: recent.length,
+          threshold: rule.threshold,
+        });
       }
     }
     return triggered;
@@ -158,7 +174,7 @@ const service = new ExceptionService(new ExceptionRepository());
 router.post('/api/exceptions', (ctx) => {
   try {
     ctx.status = 201;
-    ctx.body = service.ingest(ctx.request.body as any || {});
+    ctx.body = service.ingest((ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };
@@ -190,7 +206,7 @@ router.get('/api/exceptions/:id', (ctx) => {
 router.post('/api/alerts/rules', (ctx) => {
   try {
     ctx.status = 201;
-    ctx.body = service.createRule(ctx.request.body as any || {});
+    ctx.body = service.createRule((ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };

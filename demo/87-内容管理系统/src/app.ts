@@ -19,8 +19,22 @@ interface Article {
 // ---- Repository 层 ----
 class ArticleRepository {
   private articles: Article[] = [
-    { id: 1, title: '欢迎来到 CMS', content: '这是一篇示例文章。', author: 'admin', status: 'published', createdAt: '2024-01-01' },
-    { id: 2, title: '草稿示例', content: '草稿内容。', author: 'admin', status: 'draft', createdAt: '2024-02-01' },
+    {
+      id: 1,
+      title: '欢迎来到 CMS',
+      content: '这是一篇示例文章。',
+      author: 'admin',
+      status: 'published',
+      createdAt: '2024-01-01',
+    },
+    {
+      id: 2,
+      title: '草稿示例',
+      content: '草稿内容。',
+      author: 'admin',
+      status: 'draft',
+      createdAt: '2024-02-01',
+    },
   ];
   findAll() {
     return this.articles;

@@ -121,7 +121,11 @@ router.get('/api/deploys', (ctx) => {
 // 任务详情
 router.get('/api/deploys/:id', (ctx) => {
   const t = service.get(Number(ctx.params.id));
-  if (!t) { ctx.status = 404; ctx.body = { message: 'not found' }; return; }
+  if (!t) {
+    ctx.status = 404;
+    ctx.body = { message: 'not found' };
+    return;
+  }
   ctx.body = t;
 });
 // 启动任务
@@ -147,7 +151,11 @@ router.post('/api/deploys/:id/rollback', (ctx) => {
 // 部署日志
 router.get('/api/deploys/:id/logs', (ctx) => {
   const logs = service.logs(Number(ctx.params.id));
-  if (!logs) { ctx.status = 404; ctx.body = { message: 'not found' }; return; }
+  if (!logs) {
+    ctx.status = 404;
+    ctx.body = { message: 'not found' };
+    return;
+  }
   ctx.body = { logs };
 });
 

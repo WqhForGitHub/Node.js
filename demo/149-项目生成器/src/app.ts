@@ -24,8 +24,15 @@ const builtinTemplates: TemplateDef[] = [
     description: 'Koa 基础模板',
     variables: ['name', 'author'],
     files: [
-      { path: '{{name}}/package.json', content: '{\n  "name": "{{name}}",\n  "author": "{{author}}",\n  "version": "1.0.0"\n}' },
-      { path: '{{name}}/src/app.ts', content: 'import Koa from "koa";\n// author: {{author}}\nconst app = new Koa();\napp.listen(3000);\n' },
+      {
+        path: '{{name}}/package.json',
+        content: '{\n  "name": "{{name}}",\n  "author": "{{author}}",\n  "version": "1.0.0"\n}',
+      },
+      {
+        path: '{{name}}/src/app.ts',
+        content:
+          'import Koa from "koa";\n// author: {{author}}\nconst app = new Koa();\napp.listen(3000);\n',
+      },
       { path: '{{name}}/README.md', content: '# {{name}}\n\nby {{author}}\n' },
     ],
   },
@@ -34,8 +41,16 @@ const builtinTemplates: TemplateDef[] = [
     description: 'Koa API 模板',
     variables: ['name', 'author', 'version'],
     files: [
-      { path: '{{name}}/package.json', content: '{\n  "name": "{{name}}",\n  "author": "{{author}}",\n  "version": "{{version}}"\n}' },
-      { path: '{{name}}/src/app.ts', content: 'import Koa from "koa";\nimport Router from "koa-router";\nconst app = new Koa();\nconst router = new Router();\napp.use(router.routes());\napp.listen(3000);\n' },
+      {
+        path: '{{name}}/package.json',
+        content:
+          '{\n  "name": "{{name}}",\n  "author": "{{author}}",\n  "version": "{{version}}"\n}',
+      },
+      {
+        path: '{{name}}/src/app.ts',
+        content:
+          'import Koa from "koa";\nimport Router from "koa-router";\nconst app = new Koa();\nconst router = new Router();\napp.use(router.routes());\napp.listen(3000);\n',
+      },
       { path: '{{name}}/src/routes/index.ts', content: '// {{name}} routes\nexport default {};\n' },
     ],
   },
@@ -44,8 +59,14 @@ const builtinTemplates: TemplateDef[] = [
     description: 'Koa MVC 模板',
     variables: ['name', 'author'],
     files: [
-      { path: '{{name}}/package.json', content: '{\n  "name": "{{name}}",\n  "author": "{{author}}"\n}' },
-      { path: '{{name}}/src/controllers/HomeController.ts', content: 'export class HomeController {}\n' },
+      {
+        path: '{{name}}/package.json',
+        content: '{\n  "name": "{{name}}",\n  "author": "{{author}}"\n}',
+      },
+      {
+        path: '{{name}}/src/controllers/HomeController.ts',
+        content: 'export class HomeController {}\n',
+      },
       { path: '{{name}}/src/models/User.ts', content: 'export class User {}\n' },
       { path: '{{name}}/src/views/index.html', content: '<h1>{{name}}</h1>\n' },
     ],
@@ -74,7 +95,12 @@ class GeneratorService {
     if (!def.name) throw new Error('参数缺失: name');
     if (this.templates.has(def.name)) throw new Error('template 已存在');
     this.templates.set(def.name, def);
-    return { name: def.name, description: def.description, variables: def.variables, fileCount: def.files.length };
+    return {
+      name: def.name,
+      description: def.description,
+      variables: def.variables,
+      fileCount: def.files.length,
+    };
   }
   // 渲染模板生成完整项目结构
   generate(templateName: string, variables: Record<string, string>) {

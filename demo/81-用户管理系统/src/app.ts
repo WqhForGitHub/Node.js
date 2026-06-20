@@ -19,8 +19,22 @@ interface User {
 // ---- Repository 层 ----
 class UserRepository {
   private users: User[] = [
-    { id: 1, username: 'admin', email: 'admin@demo.com', phone: '13800000000', status: 'active', createdAt: '2024-01-01' },
-    { id: 2, username: 'tester', email: 'test@demo.com', phone: '13900000000', status: 'active', createdAt: '2024-02-01' },
+    {
+      id: 1,
+      username: 'admin',
+      email: 'admin@demo.com',
+      phone: '13800000000',
+      status: 'active',
+      createdAt: '2024-01-01',
+    },
+    {
+      id: 2,
+      username: 'tester',
+      email: 'test@demo.com',
+      phone: '13900000000',
+      status: 'active',
+      createdAt: '2024-02-01',
+    },
   ];
   findAll(keyword?: string) {
     if (!keyword) return this.users;
@@ -29,7 +43,7 @@ class UserRepository {
       (u) =>
         u.username.toLowerCase().includes(k) ||
         u.email.toLowerCase().includes(k) ||
-        u.phone.includes(k)
+        u.phone.includes(k),
     );
   }
   findById(id: number) {

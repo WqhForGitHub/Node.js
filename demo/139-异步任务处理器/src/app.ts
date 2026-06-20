@@ -128,14 +128,18 @@ const service = new TaskService(new TaskRepository());
 
 // 后台 setInterval 模拟任务处理（每 200ms 检查一次）
 setInterval(() => {
-  try { service.processOne(); } catch (e) { /* 忽略 */ }
+  try {
+    service.processOne();
+  } catch (e) {
+    /* 忽略 */
+  }
 }, 200);
 
 // POST /api/tasks - 提交任务
 router.post('/api/tasks', (ctx) => {
   try {
     ctx.status = 201;
-    ctx.body = service.submit(ctx.request.body as any || {});
+    ctx.body = service.submit((ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };

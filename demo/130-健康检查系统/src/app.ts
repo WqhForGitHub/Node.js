@@ -20,14 +20,23 @@ class HealthRepository {
     { name: 'cache', status: 'up', detail: '缓存连接正常', lastChangedAt: Date.now() },
     { name: 'queue', status: 'up', detail: '消息队列连接正常', lastChangedAt: Date.now() },
   ];
-  list() { return this.components.slice(); }
-  find(name: string) { return this.components.find((c) => c.name === name); }
+  list() {
+    return this.components.slice();
+  }
+  find(name: string) {
+    return this.components.find((c) => c.name === name);
+  }
   toggle(name: string) {
     const c = this.find(name);
     if (!c) return undefined;
     // up -> down -> degraded -> up 循环
     c.status = c.status === 'up' ? 'down' : c.status === 'down' ? 'degraded' : 'up';
-    c.detail = c.status === 'up' ? '组件已恢复' : c.status === 'down' ? '组件故障（手动模拟）' : '组件降级（手动模拟）';
+    c.detail =
+      c.status === 'up'
+        ? '组件已恢复'
+        : c.status === 'down'
+          ? '组件故障（手动模拟）'
+          : '组件降级（手动模拟）';
     c.lastChangedAt = Date.now();
     return c;
   }
@@ -82,8 +91,12 @@ router.get('/api/health/components', (ctx) => {
 });
 // 切换组件状态（故障/恢复）
 router.post('/api/health/components/:name/toggle', (ctx) => {
-  try { ctx.body = service.toggle(ctx.params.name); }
-  catch (e: any) { ctx.status = 404; ctx.body = { message: e.message }; }
+  try {
+    ctx.body = service.toggle(ctx.params.name);
+  } catch (e: any) {
+    ctx.status = 404;
+    ctx.body = { message: e.message };
+  }
 });
 
 app.use(router.routes()).use(router.allowedMethods());

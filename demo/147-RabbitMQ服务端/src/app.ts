@@ -71,7 +71,10 @@ class QueueRepository {
 }
 // ---- Service 层 ----
 class AMQPService {
-  constructor(private exchanges: ExchangeRepository, private queues: QueueRepository) {}
+  constructor(
+    private exchanges: ExchangeRepository,
+    private queues: QueueRepository,
+  ) {}
   createExchange(name: string, type: ExchangeType) {
     return this.exchanges.create(name, type);
   }

@@ -91,7 +91,7 @@ const service = new ProxyService(new UpstreamRepository());
 apiRouter.post('/api/upstreams', (ctx) => {
   try {
     ctx.status = 201;
-    ctx.body = service.register(ctx.request.body as any || {});
+    ctx.body = service.register((ctx.request.body as any) || {});
   } catch (e: any) {
     ctx.status = e.status || 500;
     ctx.body = { message: e.message };

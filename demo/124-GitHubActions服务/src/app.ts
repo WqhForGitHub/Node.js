@@ -51,7 +51,11 @@ class WorkflowRepository {
       startedAt: Date.now(),
     };
     // mock 执行
-    r.jobs.forEach((j) => { j.status = 'success'; j.startedAt = Date.now(); j.finishedAt = Date.now(); });
+    r.jobs.forEach((j) => {
+      j.status = 'success';
+      j.startedAt = Date.now();
+      j.finishedAt = Date.now();
+    });
     r.status = 'success';
     r.finishedAt = Date.now();
     this.runs.push(r);
@@ -116,28 +120,49 @@ const service = new WorkflowService(new WorkflowRepository());
 
 // 注册 workflow
 router.post('/api/workflows', (ctx) => {
-  try { ctx.status = 201; ctx.body = service.register(ctx.request.body); }
-  catch (e: any) { ctx.status = 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.status = 201;
+    ctx.body = service.register(ctx.request.body);
+  } catch (e: any) {
+    ctx.status = 400;
+    ctx.body = { message: e.message };
+  }
 });
 // 手动触发
 router.post('/api/workflows/:id/dispatch', (ctx) => {
-  try { ctx.body = service.dispatch(Number(ctx.params.id)); }
-  catch (e: any) { ctx.status = e.message === 'not found' ? 404 : 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.body = service.dispatch(Number(ctx.params.id));
+  } catch (e: any) {
+    ctx.status = e.message === 'not found' ? 404 : 400;
+    ctx.body = { message: e.message };
+  }
 });
 // 运行列表
 router.get('/api/workflows/:id/runs', (ctx) => {
-  try { ctx.body = service.runs(Number(ctx.params.id)); }
-  catch (e: any) { ctx.status = 404; ctx.body = { message: e.message }; }
+  try {
+    ctx.body = service.runs(Number(ctx.params.id));
+  } catch (e: any) {
+    ctx.status = 404;
+    ctx.body = { message: e.message };
+  }
 });
 // job 列表
 router.get('/api/runs/:runId/jobs', (ctx) => {
-  try { ctx.body = service.jobs(Number(ctx.params.runId)); }
-  catch (e: any) { ctx.status = e.message === 'not found' ? 404 : 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.body = service.jobs(Number(ctx.params.runId));
+  } catch (e: any) {
+    ctx.status = e.message === 'not found' ? 404 : 400;
+    ctx.body = { message: e.message };
+  }
 });
 // 重新运行失败 job
 router.post('/api/runs/:runId/rerun', (ctx) => {
-  try { ctx.body = service.rerun(Number(ctx.params.runId)); }
-  catch (e: any) { ctx.status = e.message === 'not found' ? 404 : 400; ctx.body = { message: e.message }; }
+  try {
+    ctx.body = service.rerun(Number(ctx.params.runId));
+  } catch (e: any) {
+    ctx.status = e.message === 'not found' ? 404 : 400;
+    ctx.body = { message: e.message };
+  }
 });
 
 app.use(router.routes()).use(router.allowedMethods());
