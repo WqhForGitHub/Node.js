@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"],
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2020"],
+    "typeRoots": ["E:/Code/Node.js/Koa/stock-analysis-system-server/node_modules/@types"],
+    "baseUrl": "./",
+    "paths": {}
+  },
+  "include": [
+    "101. 大文件分片复制与MD5校验/**/*.ts",
+    "102. 多文件二进制打包器（类 ZIP）/**/*.ts",
+    "103. 实时日志监听（tail -f 实现）/**/*.ts",
+    "104. Transform Stream 实时加密写入/**/*.ts",
+    "105. HTTP 静态服务器（支持缓存与 Range 断点续传）/**/*.ts",
+    "106. HTTP 反向代理服务器/**/*.ts",
+    "107. TCP 广播聊天室/**/*.ts",
+    "108. UDP 心跳检测服务器/**/*.ts",
+    "109. Worker Threads 并行计算/**/*.ts",
+    "110. Cluster 多进程 HTTP 服务器/**/*.ts",
+    "111. 进程守护与自动重启机制/**/*.ts",
+    "112. VM 沙箱执行 JavaScript 代码/**/*.ts",
+    "113. AES 加密与 HMAC 签名验证/**/*.ts",
+    "114. 基于 fs.watch 的文件完整性监控/**/*.ts",
+    "115. LRU Cache 实现（Map + 链表）/**/*.ts",
+    "116. 布隆过滤器（Bloom Filter）实现/**/*.ts",
+    "117. 带并发控制的异步任务队列/**/*.ts",
+    "118. HTTP 客户端断点续传下载器/**/*.ts",
+    "119. 简易内存数据库（KV + WAL 预写日志）/**/*.ts",
+    "120. DNS 解析缓存服务器（UDP）/**/*.ts"
+  ]
+}
