@@ -4,16 +4,16 @@
     "type": "split",
     "children": [
       {
-        "id": "20847aa792b2d79e",
+        "id": "b7959b9ec1d6e7ff",
         "type": "tabs",
         "children": [
           {
-            "id": "20490149a9c7f2ae",
+            "id": "a096b56be5389c4d",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "第01章：欢迎进入 Node.js 的世界/README.md",
+                "file": "第02章：Node 编程基础/README.md",
                 "mode": "source",
                 "source": false
               },
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "第01章：欢迎进入 Node.js 的世界/README.md",
+                "file": "第02章：Node 编程基础/README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -189,10 +189,12 @@
       "bases:新建数据库": false
     }
   },
-  "active": "20490149a9c7f2ae",
+  "active": "a096b56be5389c4d",
   "lastOpenFiles": [
-    "未命名.md",
     "第01章：欢迎进入 Node.js 的世界/README.md",
+    "第02章：Node 编程基础/README.md",
+    "第02章：Node 编程基础",
+    "未命名.md",
     "第01章：欢迎进入 Node.js 的世界"
   ]
 }

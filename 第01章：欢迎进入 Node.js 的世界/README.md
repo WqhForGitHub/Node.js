@@ -241,6 +241,60 @@ app.listen(3000, () => {
 ```
 现在输入 npm start，启动这个监听端口 3000 的 Node Web 服务器。这浏览器中打开 [[http://localhost:3000]]，就能看到 res.send 那行代码发回的文本。
 在前端开发中的世界里，Node 也在发挥着重要作用，因为它是进行语言转译的主要工具，比如从 TypeScript 到 JavaScript。转译器将一种高级语言编译成另外一种高级语言，传统的编译器则将一种高级语言编译成一种低级语言。第 4 章将会专门介绍前端构建系统，到时候你会看到 npm 脚本、Gulp 和 Webpack 的用法。
+并不是所有的 Web 开发都会涉及 Web 应用的构建。有时候，在重建一个网站时，你需要把数据从老网站上扒出来、我们专门加了个附录 B 来讲网页抓取，以便展示如何用 Node 的 JavaScript 运行平台处理文档对象模型（DOM），同时也展示了如何在 Express Web 应用这个舒适区之外使用 Node。如果你只是想快速地构建一个简单的 Web 应用，第 3 章为我们提供了一个完整的 Node Web 应用程序搭建教程。
+## 1.5.2 命令行工具和后台程序
+
+Node 可以用来编写命令行工具，比如 JavaScript 开发人员所用的进程管理器和 JavaScript 转译器。它也可以作为一种方便的方式来编写其他操作的命令行工具，比如图片转换、控制媒体文件播放的脚本等。
+你可以试一下下面这个例子。创建一个名为 cli.js 的新文件，添加如下代码：
+```javascript
+const { nodePath, scriptPath, name } = process.argv;
+console.log('Hello', name);
+```
+用 node cli.js yourName 运行这个脚本，你会看到 Hello yourName。这用到了 ES2015 的解构，它会从 process.argv 中拉取第三个参数。所有 Node 程序都可以访问 process 对象，这是用户向程序中传递参数的基础。
+Node 命令行程序还可以做其他事情。如果在程序开头的地方加上 #!，并赋予其执行许可（chmod +x cli.js），shell 就可以在调用程序时使用 Node。也就是说可以像运行其他 shell 脚本那样运行 Node 程序。在类 Unix 系统中用下面这样的代码：
+```shell
+#!usr/bin/env node
+```
+这样你就可以用 Node 替代 shell 脚本。也就是说 Node 可以跟其他任何命令行工具配合，包括后台程序。Node 程序可以由 cron 调用，也可以作为后台程序运行。
+如果你觉得这一切都很陌生，不用担心。第 11 章将会介绍如何编写命令行工具，展示 Node 在这种程序上的实力。比如说，大量使用流作为通用 API 的命令行工具，而流处理是 Node 最强大的功能之一。
+## 1.5.3 桌面程序
+
+如果你用过 Atom 或 Visual Studio Code 文本编辑器，那就用过 Node。Electron 框架用 Node 做后台，所以只要需要访问硬盘或网络，Electron 就会用到 Node，Electron 还用 Node 来管理依赖项，也就是说你可以用 npm 往 Electron 项目里添加包。
+如果你现在就想试一下，可以复制 Electron 的存储库并启动给你一个应用程序：
+```shell
+git clone https://github.com/electron/electron-quick-start
+cd electron-quick-start
+npm install && npm start
+curl localhost:8081
+```
+如果你想要了解如何用 Electron 写程序们，可以翻到第 12 章看一下。
+## 1.5.4 适合 Node 的应用程序
+
+我们已经看过一些能用 Node 搭建的应用程序了，但 Node 擅长的领域不止于此。Node 一般用来创建实时的 Web 应用，这几乎无所不包，从直接面对用户的聊天服务器到采集分析数据的后台程序都属于此类。在 JavaScript 中，函数是一等对象，Node 又有内建的事件模型，所以用它来写异步实时程序比用其他脚本语言更自然。
+如果你要搭建传统的模型-视图-控制器（MVC）Web 应用，用 Node 也很适合。Ghost 等一些流行的博客引擎就是用 Node 搭建的。在搭建这几种类型的 Web 应用程序方面，Node 是一个经过实践校验的平台。虽然开发风格跟用 PHP 的 WordPress 不同，但 Ghost 支持的功能是类似的，包括模板和多用户管理区，
+Node 还能做一些用其他语言很难做到的事情。它是基于 JavaScript 的，所以在 Node 中能浏览器中的 JavaScript。复杂的客户端应用可以经过改造在 Node 服务器上运行，让服务器进行预渲染，从而加快页面在浏览器中国的渲染速度，也有利于搜素引擎进行索引。
+最后，如果你想要搭建一个桌面端或移动端应用，建议试一下 Electron，它也是由 Node 支撑起来的。现在 Web 用户界面的体验跟桌面端应用一样丰富，所以你可以在 Windows、Linux 和 macOS 上 重用这些代码。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
