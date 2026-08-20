@@ -62,7 +62,57 @@ console.log(currency.USToCanadian(30));
 const currency = require('./lib/currency');
 ```
 组装模块中的 exports 对象是在单独的文件中组织可重用代码的一种简便方法。
+# 2.3 用 module.exports 微调模块的创建
 
+尽管用函数和变量组装 exports 对象能满足大多数的模块创建需要，但有时你可能需要用不同的模型创建该模块。
+比如说，前面创建的那个货币转换器模块可以改成只返回一个 Currency 构造函数，而不是包含两个函数的对象。一个面向对象的实现看起来可能像下面这样：
+```javascript
+const Currency = require('./currency');
+const canadianDollar = 0.91;
+const currency = new Currency(canadianDollar);
+console.log(currency.canadianToUS(50));
+```
+如果只需要从模块中得到一个函数，那从 require 中返回一个函数的代码要比返回一个对象的代码更优雅。
+要创建只返回一个变量或函数的模块，你可能会以为只要把 exports 设定成你想返回的东西就行。但这样是不行的，因为 Node 觉得不能用任何其他对象、函数或变量给 exports 赋值。下面这个代码清单中的模块代码试图将一个函数赋值给 exports。
+## 代码清单 2-3 这个模块不能用
+```javascript
+class Currency {
+	constructor(canadianDollar) {
+		this.canadianDollar = canadianDollar
+	}
+	
+	roundTwoDecimals(amount) {
+		return Math.round(amount * 100) / 100;
+	}
+	
+	canadianToUS(canadian) {
+		return this.roundTwoDecimals(canadian * this.canadianDollar);
+	}
+	
+	USToCanadian(us) {
+		return this.roundTwoDecimals(us / this.canadianDollar);
+	}
+}
+
+exports.Currency; // 错误，Node 不允许重写 exports
+```
+为了让前面那个模块的代码能用，需要把 exports 换成 module.exports。用 module.exports 可以对外提供单个变量、函数或者对象。如果你创建了一个既有 exports 又有 module.exports 的模块，那它会返回 module.exports，而 exports 会被忽。
+>导出的究竟是什么
+>
+>最终在程序里导出的是 module.exports。exports 只是对 module.exports 的一个全局引用，最初被定义为一个可以添加属性的空对象。exports.myFunc 只是 module.exports.myFunc 的简写。
+>所以，如果把 exports 设定为别的，就打破了 module.exports 和 exports 之间的**引用关系**。可是因为真正导出的是 module.exports，那样 exports 就不能用了，因为它不再指向 module.exports 了。如果你想保留那个链接，可以像下面这样让 module.exports 再次引用 exports。
+>```
+>module.exports = exports = Currency;
+>```
+>根据需要使用 exports 或 module.exports 可以将功能组织成模块，规避掉程序脚本一直增长所产生的弊端。
+
+# 2.4 用 node_modules 重用模块
+
+要求模块在文件系统中使用相对路径存放，对于组织程序特定的代码很有帮助，但对于想要在程序间共享或跟其他人共享代码却用处不大。Node 中有一个独特的模块引入机制，可以不必知道模块在文件系统中的具体位置。这个机制就是使用 node_modules 目录。
+前面那个模块的例子中引入的是 ./currency。如果省略 ./，只写 currency，Node 会遵循几个规则搜寻这个模块，如图 2-5 所示。
+![查找模块的步骤](https://backend-1257950569.cos.ap-guangzhou.myqcloud.com/Node.js%E5%AE%9E%E6%88%98%EF%BC%88%E7%AC%AC%E4%BA%8C%E7%89%88%EF%BC%89/%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9ANode%20%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/%E6%9F%A5%E6%89%BE%E6%A8%A1%E5%9D%97%E7%9A%84%E6%AD%A5%E9%AA%A4.png)
+图 2-5 查找模块的步骤
+用环境变量 NODE_PATH 可以改变 Node 模块的默认路径。如果用了它，在 Windows 中 NODE_PATH 应该设置为用分号分隔的目录列表，在其他操作系统中调用冒号分隔。
 
 
 
