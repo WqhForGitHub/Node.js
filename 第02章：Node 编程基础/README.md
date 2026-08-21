@@ -113,6 +113,49 @@ exports.Currency; // 错误，Node 不允许重写 exports
 ![查找模块的步骤](https://backend-1257950569.cos.ap-guangzhou.myqcloud.com/Node.js%E5%AE%9E%E6%88%98%EF%BC%88%E7%AC%AC%E4%BA%8C%E7%89%88%EF%BC%89/%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9ANode%20%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/%E6%9F%A5%E6%89%BE%E6%A8%A1%E5%9D%97%E7%9A%84%E6%AD%A5%E9%AA%A4.png)
 图 2-5 查找模块的步骤
 用环境变量 NODE_PATH 可以改变 Node 模块的默认路径。如果用了它，在 Windows 中 NODE_PATH 应该设置为用分号分隔的目录列表，在其他操作系统中调用冒号分隔。
+# 2.5 注意事项
+
+尽管 Node 模块系统的本质简单直接，但还是有两点需要注意一下。
+第一，如果模块是目录，在模块目录中定义模块的文件必须被命名为 inde.js，除非你在这个目录下一个叫 package.json 的文件里特别指明。要指定一个取代 index.js 文件，package.json 文件里必须有一个用 JavaScript 对象表示法（JSON）数据定义的对象，其中有一个名为 main 的键，指明模块目录内主文件的路径。图 2-6 中的流程图对这些规则做了汇总。
+![当模块目录下有package.json文件时](https://backend-1257950569.cos.ap-guangzhou.myqcloud.com/Node.js%E5%AE%9E%E6%88%98%EF%BC%88%E7%AC%AC%E4%BA%8C%E7%89%88%EF%BC%89/%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9ANode%20%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/%E5%BD%93%E6%A8%A1%E5%9D%97%E7%9B%AE%E5%BD%95%E4%B8%8B%E6%9C%89package.json%E6%96%87%E4%BB%B6%E6%97%B6.png)
+图 2-6 当模块目录下有 package.json 文件时，你可以用 index.js 之外的其他文件定义自己的模块
+下面是一个 package.json 文件的例子，它指定 currency.js 为主文件：
+```json
+{
+	"main": "currency.js"
+}
+```
+第二，Node 能把模块作为对象缓存起来。如果程序中的两个文件引入了相同的模块，第一个 require 会把模块返回的数据存到内存中，这样第二个 require 就不用再去访问和计算模块的源文件了。也就是说，在同一个进程中用 require 加载一个模块得到的是相同的对象。假设你搭建了一个 MVC Web 应用程序，它有一个主对象 app。你可以设置好那个 app 对象，导出它，然后在项目中的任何地方 require 它。如果你在这个 app 对象中放了一些配置信息，那你就可以在其他文件中访问这些配置信息的值，假定目录结构如下所示：
+```
+project
+	app.js
+	models
+		post.js
+```
+图 2-7 展示了它的工作原理。
+![在Web程序中共享app对象](https://backend-1257950569.cos.ap-guangzhou.myqcloud.com/Node.js%E5%AE%9E%E6%88%98%EF%BC%88%E7%AC%AC%E4%BA%8C%E7%89%88%EF%BC%89/%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9ANode%20%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/%E5%9C%A8Web%E7%A8%8B%E5%BA%8F%E4%B8%AD%E5%85%B1%E4%BA%ABapp%E5%AF%B9%E8%B1%A1.png)
+图 2-7 在 Web 程序中共享 app 对象
+熟悉 Node 模块系统最好的办法是自己动手试一试，亲自验证一下本节所描述的 Node 的行为。在对模块的工作机制有了基本的认识后，接下来学习异步编程技术。
+# 2.6 使用异步编程技术
+
+如果你做过 Web 前端程序，并且遇到过界面事件（比如鼠标点击）触发的逻辑，那你就做过异步程序。服务端异步编程也一样：事件发生会触发响应逻辑。在 Node 的世界里流行两种功响应逻辑管理方式：回调和事件监听。
+回调通常用来定义一次性响应的逻辑。比如对于数据库查询，可以指定一个回调函数来确定如何处理查询结果。这个回调函数可能会显示数据库查询结果，根绝这些结果做些计算，或者以查询结果为参数执行另一个回调函数。
+事件监听器本质上也是一个回调，不同的是，它跟一个概念实体（事件）相关联，例如，当有人在浏览器中国点击鼠标时，鼠标点击就是一个需要处理的事件。在 Node 中，当有 HTTP 请求过来时，HTTP 服务器会发出一个 request 事件。你可以监听那个 request 事件，并添加一些响应逻辑。在下面这个例子中，因为用 EventEmitter.prototype.on 方法在服务器上绑定了一个监听器，所以每当有 request 事件发出时，服务器就会调用 handleRequest 函数：
+```javascript
+server.on('request', handleRequest);
+```
+一个 Node HTTP 服务器实例就是一个事件发射器，一个可以继承、能够添加事件发射及处理能力的类（EventEmitter）。Node 的很多核心功能都继承自 EventEmitter，你也能创建自己的事件发射器。
+Node 有两种常用的响应逻辑组织方式，我们刚才用了其中一种，接下来要了解一下它的工作机制：
+- 如何用回调处理一次性事件
+- 如何用事件监听器响应重复性事件
+- 异步编程的几个难点
+
+
+
+
+
+
+
 
 
 
