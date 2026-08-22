@@ -149,6 +149,243 @@ Node 有两种常用的响应逻辑组织方式，我们刚才用了其中一种
 - 如何用回调处理一次性事件
 - 如何用事件监听器响应重复性事件
 - 异步编程的几个难点
+先来看这个最常用的异步代码编写方式：使用回调。
+# 2.7 用回调处理一次性事件
+
+回调是一个函数，它被当作参数传给异步函数，用来描述异步操作完成之后要做什么。回调在 Node 开发中用得很怕频繁，比事件发射器用得多，并且用起来也很简单。
+为了演示回调的用法，我们来做一个简单的 HTTP 服务器，让它实现如下功能：
+- 异步获取存放在 JSON 文件中的文章的标题
+- 异步获取简单的 HTML 模板
+- 把那些标题组装到 HTML 页面里
+- 把 HTML 页面发送给用户
+最终结果如图 2-8 所示。
+![来自 Web 服务器的 HTML 响应](https://backend-1257950569.cos.ap-guangzhou.myqcloud.com/Node.js%E5%AE%9E%E6%88%98%EF%BC%88%E7%AC%AC%E4%BA%8C%E7%89%88%EF%BC%89/%E7%AC%AC%E4%BA%8C%E7%AB%A0%EF%BC%9ANode%20%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/%E6%9D%A5%E8%87%AAWeb%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84HTML%E5%93%8D%E5%BA%94.png)
+图 2-8 来自 Web 服务器的 HTML 响应，从 JSON 文件中获取标题并返回一个 Web 页面
+JSON 文件（titles.json）会被格式化成一个包含文章标题的字符串数组没，内容如下所示。
+## 代码清单 2-4 一个包含文章标题的列表
+```json
+[
+	"Kazakhstan is a huge country... what goes on there?",
+	"This weather is making me craaazy",
+	"My neighbor sort of howls at night"
+]
+```
+HTML 模板文件（template.html） 如下所示，结构很简单，可以插入博客文章的标题。
+## 代码清单 2-5 用来渲染博客标题的 HTML 模板
+```html
+<!doctype html>
+<html>
+	<head></head>
+	<body>
+		<h1>Latest Posts</h1>
+		<ul><li>%</li></ul>
+	</body>
+</html>
+```
+获取 JSON 文件中的标题并渲染 Web 页面的代码如下所示（blog_recent.js）。
+## 代码清单 2-6 在简单的程序中使用回调的例子
+```javascript
+const http = require('http');
+const fs = require('fs');
+// 创建 HTTP 服务器并用回调定义响应逻辑
+http.createServer((req, res) => {
+	if (req.url == '/') {
+			// 读取 JSON 文件并用回调定义如何处理其中的内容
+			fs.readFile('./titles.json', (err, data) => {
+			// 如果出错，输出错误日志，并将客户端返回 "Server Error"
+			if (err) {
+				console.error(err)
+				res.end('Server Error');
+			} else {
+				// 从 JSON 文本中解析数据
+				const titles = JSON.parse(data.toString());
+				// 读取 HTML 模板，并在加载完成后使用回调
+				fs.readFile('./template.html', (err, data) => {
+					if (err) {
+						console.error(err);
+						res.end('Server Error');
+					} else {
+						const tmpl = data.toString();
+						// 组装 HTML 页面以显示博客标题
+						const html = tmpl.replace('%', titles.join('</li><li>'));
+						res.writeHead(200, { 'Content-Type': 'text/html' });
+						// 将 HTML 页面发送给用户
+						res.end(html);
+					}
+				})
+			}
+		})
+	}
+}).listen(8000, '127.0.0.1');
+```
+这个例子中的回调嵌套了三层：
+```javascript
+http.createServer((req, res)> { ...
+	fs.readFile('./titles.json', (err, data) => { ...
+		fs.readFile('./template.html', (err, data) => { ...
+```
+三层还算可以，但回调层数越多，代码看起来越乱，重构和测试起来也越困难，所以最好限制一下回调的嵌套层级。如果把每一层回调嵌套的处理做成命名函数，虽然表示相同逻辑所用的代码变多了，但维护、测试和重构起来会更容易。下面的代码功能跟代码清单 2-6 中的一样。
+## 代码清单 2-7 创建中间函数以减少嵌套的例子
+```javascript
+const http = require('http');
+const fs = require('fs');
+// 客户端请求一开始会进到这里
+http.createServer((req, res) => {
+	// 控制权转交给了 getTitles
+	getTitles(res);
+}).listen(8000, '127.0.0.1');
+
+// 获取标题，并将控制权转交给 getTemplate
+function getTitles(res) {
+	fs.readFile('./titles.json', (err, data) => {
+		if (err) {
+			headError(err. res)'
+		} else {
+			getTemplate(JSON.parse(data.toString()), res);
+		}
+	});
+}
+
+// getTemplate 读取模板文件，并将控制权转交给 formatHtml
+function getTemplate(titles, res) {
+	fs.readFile('./template.html', (err, data) => {
+		if (err) {
+			hadError(err, res);
+		} else {
+			formatHtml(titles, data.toString(), res);
+		}
+	});
+}
+
+// formatHtml 得到标题和模板，渲染一个响应给客户端
+function formatHtml(titles, tmpl, res) {
+	const html = tmpl.replace('%', titles.join('</li><li>'));
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.end(html);
+}
+
+// 如果这个过程中出现了错误，hadError 会将错误输出到控制台，并给客户端返回 “Server Error”
+function hadError(err, res) {
+	console.error(err);
+	res.end('Server Error');
+}
+```
+你还可以用 Node 开发中的另一种惯用法来减少由 if/else 引起的嵌套：尽早从函数中返回。下面的代码清单功能跟前面一样，但通过尽早返回的做法避免了进一步的嵌套。它还明确表示出了函数不应该继续执行的意思。
+## 代码清单 2-8 通过尽早返回减少嵌套的例子
+```javascript
+const http = require('http');
+const fs = require('fs');
+http.createServer((req, res) => {
+	getTitles(res);
+}).listen(8000, '127.0.0.1');
+
+function getTitles(res) {
+	// 在这里不再创建一个 else 分支，而是直接 return，因为如果出错的话，也没必要继续执行这个函数了
+	fs.readFile('./titles.json', (err, data) => {
+		if (err) return hadError(err, res);
+		getTemplate(JSON.parse(data.toStrinng()), res);
+	});
+}
+
+function getTemplate(titles, res) {
+	fs.readFile('./template.html', (err, data) => {
+		if (err) return hadError(err, res);
+		formatHtml(titles, data.toString(), res);
+	})
+}
+
+function formatHtml(titles, tmpl, res) {
+	const html = tmpl.replace('%', titles.join('</li><li>'));
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.end(html);
+}
+
+function hadError(err, res) {
+	console.error(err);
+	res.send('Server Error');
+}
+```
+你已经学过如何用回调为一次性任务定义响应了，比如上例中的读取文件和响应 Web 服务器请求，接下来我们学一学如何用事件发射器组织事件。
+>Node 的异步回调惯例
+>
+>Node 中的大多数内置模块在使用回调时都会带两个参数：第一个用来放可能会发生的错误，第二个用来放结果。错误参数经常缩写为 err。
+>下面这个是常用的函数签名的典型示例：
+>```javascript
+>const fs = require('fs');
+>fs.readFile('./titles.json', (err, data) => {
+>	if (err) throw err;
+>	// 如果没有错误发生，则对数据进行处理
+>});
+>```
+
+# 2.8 用事件发射器处理重复事件
+
+事件发射器会触发事件，并且在那些事件被触发时能处理它们。一些重要的 Node API 组件，比如 HTTP 服务器、TCP 服务器和流，都被做成了事件发射器。你也可以创建自己的事件发射器。
+我们之前说过，事件是通过监听器进行处理的，监听器是跟事件相关联的、当有事件出现时就会被触发的回调函数。比如 Node 中的 TCP socket，它有一个 data 事件，每当 socket 中有新数据时就会触发：
+```javascript
+socket.on('data', handleData);
+```
+我们看一下用 data 事件创建的 echo 服务器。
+## 2.8.1 事件发射器示例
+
+echo 服务器就是一个处理重复性事件的简单例子，当你给它发送数据时，它会把数据发回来。如图 2-9 所示。
+下面的代码清单实现了一个 echo 服务器。当有客户端连接上来时，它就会创建一个 socket。socket 是一个事件发射器，可以用 on 方法添加jian'*t*监听器响应 data 事件。只要 socket 上有新数据过来，就会发出这些 data 事件。
+### 代码清单 2-9 用 on 方法响应事件
+```javascript
+const net = require('net');
+const server = net.createServer(socket => {
+	// 当读取到新数据时处理的 data 事件
+	socket.on('data', data => {
+		// 数据被写回到客户端
+		socket.write(data);
+	});
+});
+server.listen(8888);
+```
+用下面这条命令可以运行 echo 服务器：
+```shell
+node echo_server.js
+```
+echo 服务器运行起来之后，你可以用下面这条命令连上去：
+```shell
+telnet 127.0.0.1 8888
+```
+每次通过 telnet 会话把数据发送给服务器，数据就会传回到 telnet 会话中。
+## 2.8.2 响应只应该发生一次的事件
+
+监听器可以被定义成持续不断地响应事件，如前面例子都是，也能被定义成只响应一次。下面的代码用了 once 方法，对前面那个 echo 服务器做了修改，让它会回应第一次发生过来的数据。
+### 代码清单 2-10 用 once 方法响应单次事件
+```javascript
+const net = require('net');
+const server = net.createServer(socket => {
+	// data 事件只被处理一次
+	socket.once('data', data => {
+		socket.write(data);
+	});
+});
+server.listen(8888); 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
