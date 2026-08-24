@@ -365,6 +365,218 @@ const server = net.createServer(socket => {
 });
 server.listen(8888); 
 ```
+## 2.8.3 创建事件发射器：一个 PUB/SUB的例子
+
+前面的例子用了一个带事件发射器的 Node 内置 API。然而你可以用 Node 内置的事件模块创建自己的事件发射器。
+下面的代码定义了一个 channel 事件发射器，带有一个监听器，可以向加入频道的人做出响应。注意这里用 on（或者用比较长的 addListener）方法给事件发射器添加了监听器：
+```javascript
+const EventEmitter = require('events').EventEmitter;
+const channel = new EventEmitter();
+channel.on('join', () => {
+	console.log('Welcome!');
+});
+```
+然而这个 join 回调永远都不会被调用，因为你还没有发射任何事件。所以还要在上面的代码中加上一行，用 emit 函数发射这个事件：
+```javascript
+channel.emit('join');
+```
+>事件名称
+>事件是可以具有任意字符串值的键：data、join 或某些长的让人发疯的事件名就行。只有一个事件是特殊的，那就是 error，我们马上就会看到它。
+
+接下来看看如何用 EventEmitter  实现自己的发布/预订逻辑，做一个通信通道。如果运行代码清单 2-11 中的脚本，你就会得到一个简单的聊天服务器。聊天服务器的频道做成了事件发射器，能对客户端发出的 join 事件做出响应。当有客户端加入聊天室事件时，join 监听器逻辑会将一个针对改客户端的监听器附加到频道上，用来处理会将所有广播信息写入该客户端 socket 的 broadvase 事件。事件类型的名称，比如 join 和 broadcast，完全是随意取的。你也可以按自己的喜好给它们换个名字。
+### 代码清单 2-11 用事件发射器实现的简单的的发布/预订系统
+```javascript
+const events = require('events');
+const net = require('net');
+const channel =new events.EventEmitter();;
+channel.clients = {};
+channel.subscriptions = {};
+channel.on('join', function (id, client) {
+	this.clients[id] = client;
+	// 添加 join 事件的监听器，保存用户的 client 对象，以便程序可以将数据发送给用户
+	this.subscriptions[id] = (senderId, message) => {
+		// 忽略发出这一广播数据的用户
+		if (id != senderId) {
+			this.clients[id].write(message);
+		}
+	};
+	// 添加一个专门针对当前用户的 broadcast 事件监听器
+	this.on('broadcast', this.subscriptions[id]);
+});
+
+const server = net.createServer(client => {
+	const id = `${client.remoteAddress}:${client.remotePort}`;
+	// 当有用户连到服务器上时发出一个 join 事件，指明哦尼姑
+	channel.emit('join', data => {
+		data = data.toString();
+		channel.emit('broadcast', id, data);
+	});
+});
+server.listen(8888);
+```
+把聊天服务器跑起来后，打开一个新的命令行窗口，并在其中输入下面的命令进入聊天程序：
+```shell
+telnet 127.0.0.1 8888
+```
+如果你打开几个命令窗口，在其中任何一个窗口中输入的内容都将会被发送到其他所有窗口中。
+这个聊天服务器还有一个问题，在用户关闭连接离开聊天室后，原来那个监听器还在，仍会尝试向已经断开的连接写数据。这样自然就会出错。为了解决这个问题，还要按照下面的代码清单把监听器添加到频道事件发射器上，并且向服务器的 close 事件监听器中添加发射频道的 leave 事件的处理逻辑。leave 事件本质上就是要移除原来给用户端添加的 broadcast 监听器。
+### 代码清单 2-12 创建一个在用户断开连接时能“打扫战场”的监听
+```javascript
+// 创建 leave 事件的监听器
+channel.on('leave', function(id) {
+	channel.removeListener('broadcast', this.subscriptions[id]);
+	// 移除指定客户端的 broadcast 监听器
+	channel.emit('broadcast', id, `${id} has left this chatroom.\n`);
+});
+
+const server = net.createServer(client => {
+	// 在用户断开连接时发出 leave 事件
+	client.on('close', () => {
+		channel.emit('leave', id);
+	});
+});
+
+server.listen(8888);
+```
+如果出于某种原因你想停止聊天服务，但又不想关掉服务器，可以用 removeAllListeners 事件发射器方法去掉给定类型的全部监听器。下面是在我们的聊天服务器上使用这一方法的示例：
+```javascript
+channel.on('shutdown', () => {
+	channel.emit('broadcase', '', 'The server hash shut down.\n');
+	channel.removeAllListeners('broadcast');
+});
+```
+然后你可以添加一个停止服务的聊天命令。为此需要将 data 事件的监听器改成下面这样：
+```javascript
+client.on('data', data => {
+	data = data.toString();
+	if (data === 'shutdown\r\n') {
+		channel.emit('shutdown');
+	}
+	channel.emit('broadcast'm, id, data);
+})
+```
+## 2.8.4 扩展事件监听器：文件监听器
+
+如果你想在事件发射器的基础上构建程序，可以创建一个新的 JavaScript 类继承事件发射器。比如创建一个 Watcher 类来处理放在某个目录下的文件。然后可以用这个类创建一个工具，该工具可以监视目录（将放到里面的文件名都改成小写的，并将文件复制到一个单独目录中）。
+设置好 Watcher 对象后，还需要加两个新方法扩展继承自 EventEmitter 的方法，代码如下所示。
+### 代码清单 2-13 扩展事件发射器的功能
+```javascript
+const fs = require('fs');
+const events = require('events');
+
+// 扩展 EventEmitter，添加处理文件的方法
+class Watcher extends events.EventEmitter {
+	constructor(watchDir, processedDir) {
+		super();
+		this.watchDir = watchDir;
+		this.proceseDir = processDir;
+	}
+	
+	watch() {
+		// 处理 watch 目录中的所有文件
+		fs.readdir(this.watchDir, (err, files) => {
+			if (err) throw err;
+			for (var index in files) {
+				this.emit('process', files[index]);
+			}
+		});
+	}
+	
+	start() {
+		// 添加开始监控的方法
+		fs.watchFile(this.watchDir, () => {
+			this.watch();
+		})
+	}
+}
+
+module.exports = Watcher;
+```
+watch 方法循环遍历目录，处理其中的所有文件。start 方法启动对目录的监控。监控用到了 Node 的 fs.watchFile 函数，所以当被监控的目录中有事情发生时，watch 方法会被触发，缓存遍历收监控的目录，并针对其中的每一个文件发出 process 事件。
+定义好了 Watcher 类，可以用下面的代码创建一个 Watcher 对象：
+```javascript
+const watcher = new Watcher(watchDir, processedDir);
+```
+有了新创建的 Watcher 对象，你可以用继承事件发射器类的 on 方法设定每个文件的处理逻辑，如下所示：
+```javascript
+watch.on('process', (file) => {
+	const watchFile = `${watchDir}/${file}`;
+	const processedFile = `${processedDir}/${file.toLowerCase()}`;
+	fs.rename(watchFile, processedFile, err => {
+		if (err) throw err;
+	});
+});
+```
+现在所有必要逻辑都已经就位了，可以用下面这行代码启动对目录的监控：
+```javascript
+watcher.start();
+```
+把 Watcher 代码放到脚本中，创建 watch 和 done 目录，你应该能用 Node 运行这个脚本，把文件丢到 watch 目录中，然后看着文件出现在 done 目录下，文件名被改成小写。这就是用事件发射器创建新类的例子。
+通过学习如何使用回调定义一次性异步逻辑，以及如何用事件发射器重复派发异步逻辑，你离掌控 Node 程序的行为又近了一步。然而你可能还想在单个回调或事件发射器的监听器中添加新的异步任务。如果这些任务的执行顺序很重要，你就会面对新的问题：如何准确控制一系列异步任务里的每个任务。
+在我们学习如何控制任务的执行之前（2.10 节），先来看一看在编写异步代码时可能会碰到哪些难。
+# 2.9 异步开发的难题
+
+在创建异步程序时模，你必须密切关注程序的执行流程，并瞪大眼睛盯着程序的状态：事件轮询的条件、程序变量，以及其他随着程序逻辑执行而发生变化的资源。
+比如说，Node 的事件轮询会跟踪着还没有完成的异步逻辑。只要有异步逻辑未完成，Node 进程就不会退出。一个持续运行的 Node 进程对 Web 服务器之类的应用来说很有必要，但对于命令行工具这种经过一段时间后就应该结束的应用却意义不大。事件轮询会跟踪所有数据库连接，直到它们关闭，以防止 Node 退出。
+如果你不小心，程序的变量也可能会出现意想不到的变化。代码清单 2-14 是一段可能因为执行顺序而导致混乱的异步代码。如果例子中的代码能够同步执行，你可能肯定输出应该是 "The color is blue"。可这个例子是异步的，在 console.log 执行之前 color 的值还在变化，所以输出似乎 "The color is green"。
+## 代码清单 2-14 作用域是如何导致 bug 出现的
+```javascript
+function asyncFunction(callback) {
+	setTimeout(callback, 200);
+}
+let color = 'blue';
+asyncFunction(() => {
+	// 这个最后执行（200ms 之后）
+	console.log(`The color is ${color}`);
+});
+
+color = 'green';
+```
+用 JavaScript 闭包可以“冻结” color 的值。在代码清单 2-15 中，对 asyncFunction 的调用被封装到了一个以 color 为参数的匿名函数里。这样你就可以马上执行这个匿名函数，把当前的 color 的值传递给它。而 color 变成了匿名函数的参数，也就是这个匿名函数内部的本地变量，当匿名函数外面的 color 值发生变化时，本地版的 color 不会受影响。
+## 代码清单 2-15 用匿名函数保留全局变量的值
+```javascript
+function asyncFunction(callback) {
+	setTimeout(callback, 200);
+}
+
+let color = 'blue';
+
+(color => {
+	asyncFunction(() => {
+		console.log('The color is', color);
+	});
+})(color);
+
+color = 'green';
+```
+现在你知道怎么用闭包控制程序状态了，接下来我们看看怎么让异步逻辑顺序执行，好让你可以掌控程序的流程。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
