@@ -1,0 +1,33 @@
+{
+    "name":  "demo-4-极简API服务",
+    "version":  "0.0.1",
+    "description":  "极简API服务 - Nest.js demo (4/200)",
+    "private":  true,
+    "scripts":  {
+                    "build":  "nest build",
+                    "start":  "nest start",
+                    "start:dev":  "nest start --watch",
+                    "start:prod":  "node dist/main",
+                    "format":  "prettier --write .",
+                    "format:check":  "prettier --check .",
+                    "lint":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue --fix",
+                    "lint:check":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue"
+                },
+    "dependencies":  {
+                         "@nestjs/common":  "^10.3.7",
+                         "@nestjs/core":  "^10.3.7",
+                         "@nestjs/platform-express":  "^10.3.7",
+                         "reflect-metadata":  "^0.2.2",
+                         "rxjs":  "^7.8.1"
+                     },
+    "devDependencies":  {
+                            "@types/node":  "^20.11.30",
+                            "typescript":  "^5.4.3",
+                            "eslint":  "^8.57.1",
+                            "prettier":  "^3.3.3",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-prettier":  "^5.2.1",
+                            "@typescript-eslint/parser":  "^7.18.0",
+                            "@typescript-eslint/eslint-plugin":  "^7.18.0"
+                        }
+}
