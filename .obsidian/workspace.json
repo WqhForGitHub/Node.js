@@ -4,16 +4,16 @@
     "type": "split",
     "children": [
       {
-        "id": "b7959b9ec1d6e7ff",
+        "id": "fe0227988b354af1",
         "type": "tabs",
         "children": [
           {
-            "id": "a096b56be5389c4d",
+            "id": "b29700848904d348",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "第02章：Node 编程基础/README.md",
+                "file": "第03章：Node Web 程序是什么/README.md",
                 "mode": "source",
                 "source": false
               },
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "第02章：Node 编程基础/README.md",
+                "file": "第03章：Node Web 程序是什么/README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -189,10 +189,13 @@
       "bases:新建数据库": false
     }
   },
-  "active": "a096b56be5389c4d",
+  "active": "b29700848904d348",
   "lastOpenFiles": [
-    "第01章：欢迎进入 Node.js 的世界/README.md",
     "第02章：Node 编程基础/README.md",
+    "第01章：欢迎进入 Node.js 的世界/README.md",
+    "第03章：Node Web 程序是什么/README.md",
+    "第03章：Node Web 程序是什么",
+    "nodejs-interview-01-basics-eventloop.md",
     "第02章：Node 编程基础/titles.json",
     "第02章：Node 编程基础/blog_recent.js",
     "第02章：Node 编程基础/title.json",
@@ -202,7 +205,6 @@
     "第02章：Node 编程基础/a.js",
     "第02章：Node 编程基础/a",
     "第02章：Node 编程基础",
-    "未命名.md",
-    "第01章：欢迎进入 Node.js 的世界"
+    "未命名.md"
   ]
 }
