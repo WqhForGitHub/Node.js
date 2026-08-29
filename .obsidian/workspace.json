@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "第06章：深入了解 Connect 和 Express/README.md",
+                "file": "第04章：前端构建系统/README.md",
                 "mode": "source",
                 "source": false
               },
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "第06章：深入了解 Connect 和 Express/README.md",
+                "file": "第04章：前端构建系统/README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -191,10 +191,12 @@
   },
   "active": "08c231968b507832",
   "lastOpenFiles": [
-    "第03章：Node Web 程序是什么/README.md",
-    "第06章：深入了解 Connect 和 Express/README.md",
-    "第06章：深入了解 Connect 和 Express",
     "未命名.md",
+    "第04章：前端构建系统/README.md",
+    "第06章：深入了解 Connect 和 Express/README.md",
+    "第04章：前端构建系统",
+    "第03章：Node Web 程序是什么/README.md",
+    "第06章：深入了解 Connect 和 Express",
     "第02章：Node 编程基础/README.md",
     "第01章：欢迎进入 Node.js 的世界/README.md",
     "第03章：Node Web 程序是什么",
@@ -205,7 +207,6 @@
     "第02章：Node 编程基础/template.html",
     "第02章：Node 编程基础/新建 文本文档.txt",
     "第02章：Node 编程基础/a.json",
-    "第02章：Node 编程基础/a.js",
-    "第02章：Node 编程基础/a"
+    "第02章：Node 编程基础/a.js"
   ]
 }
