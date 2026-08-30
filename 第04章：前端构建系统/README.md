@@ -71,6 +71,17 @@ npm i --save-dev uglify-es
 "build": "npm run babel && npm run uglify"
 ```
 运行 npm run build 会执行那两个脚本。用这个简单的命令可以组合多个前端打包工具。这是因为 Babel 和 UglifyJS 都可以作为命令行脚本执行，并且都接受命令行参数，所有很容易放到一行里添加到 package.json 中。Babel 支持配置文件，我们可以在 .babelrc 文件中实现更复杂的行为，你应该在之前的命令中见过这个文件了。
+## 4.2.2 配置前端构建工具
+
+在使用 npm 脚本时，通常有三种配置前端构建工具的方法。
+- 指定命令行参数。比如 `./node_modules/.bin/ uglity --source-map`
+- 针对项目创建配置文件，将参数放在这个文件中。Babel 和 ESLint 经常这么干
+- 将配置参数添加到 package.json 中。Babel 也支持这种方式
+如果构建过程复杂，要做文件的复制、合并和转移等很多事情怎么办？可以创建
+一个 shell 脚本，然后用 npm 脚本调用它。但如果你用 JavaScript，还有巧妙的办法。很多构建系统都提供了 JavaScript API，以实现自动化构建。下一节会全面介绍一个这样的方案：Gulp。
+
+
+
 
 
 

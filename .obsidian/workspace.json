@@ -14,7 +14,7 @@
               "type": "markdown",
               "state": {
                 "file": "第04章：前端构建系统/README.md",
-                "mode": "source",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
@@ -191,13 +191,13 @@
   },
   "active": "08c231968b507832",
   "lastOpenFiles": [
-    "未命名.md",
+    "第02章：Node 编程基础/README.md",
     "第04章：前端构建系统/README.md",
+    "未命名.md",
     "第06章：深入了解 Connect 和 Express/README.md",
     "第04章：前端构建系统",
     "第03章：Node Web 程序是什么/README.md",
     "第06章：深入了解 Connect 和 Express",
-    "第02章：Node 编程基础/README.md",
     "第01章：欢迎进入 Node.js 的世界/README.md",
     "第03章：Node Web 程序是什么",
     "nodejs-interview-01-basics-eventloop.md",
