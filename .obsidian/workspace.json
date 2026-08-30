@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "fe0227988b354af1",
+        "id": "709ac2679bba89b8",
         "type": "tabs",
         "children": [
           {
-            "id": "08c231968b507832",
+            "id": "9aa2c7a2688877c0",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "第04章：前端构建系统/README.md",
-                "mode": "preview",
+                "file": "第06章：深入了解 Connect 和 Express/README.md",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "第04章：前端构建系统/README.md",
+                "file": "第06章：深入了解 Connect 和 Express/README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -189,12 +189,12 @@
       "bases:新建数据库": false
     }
   },
-  "active": "08c231968b507832",
+  "active": "9aa2c7a2688877c0",
   "lastOpenFiles": [
-    "第02章：Node 编程基础/README.md",
-    "第04章：前端构建系统/README.md",
-    "未命名.md",
     "第06章：深入了解 Connect 和 Express/README.md",
+    "第04章：前端构建系统/README.md",
+    "第02章：Node 编程基础/README.md",
+    "未命名.md",
     "第04章：前端构建系统",
     "第03章：Node Web 程序是什么/README.md",
     "第06章：深入了解 Connect 和 Express",

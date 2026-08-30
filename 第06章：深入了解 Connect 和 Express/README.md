@@ -179,6 +179,136 @@ connect()
 	.use(router(require('./routes/admin'))) // 跳过
 ```
 基于中间件的执行顺序短路某些功能是组织 Express 程序的基本概念。对 Connect 有了基本的了解后，该去看看 Express。
+# 6.2 Express
+
+Express 是非常流行的 Web 框架，以前是在 Connect 的基础上搭建的。尽管提供了一些基本的功能，比如静态文件服务、URL 路由和程序配置等，但它依然是极简的 Web 框架。Express 提供的结构足以让我们把可重用的代码组装起来，但又不会限制开发实践。
+接下来，我们要用 Express 框架程序生成器创建一个新的 Express 程序。后续几节内容会比第 3 章更细致地介绍整个过程，所以看完本章内容后，你应该可以用自己掌握的知识创建 Express Web 程序和 RESTful API 了。随着内容向前推进，程序的功能也会慢慢增加，到最后变成一个完整的程序。
+## 6.2.1 生成程序框架
+
+Express 对程序结构不作要求，路由可以放在多个文件中，公共资源文件也可以放到任何目录下。最简单的 Express 程序可能像下面这样，但它仍然是一个完整的 HTTP 服务器。
+### 代码清单 6-5 极简的 Express 程序
+```javascript
+const express = require('express');
+const app = express();
+
+// 响应对的请求
+app.get('/', (req, res) => {
+	// 发送 "Hello" 作为响应文本
+	res.send('Hello');
+});
+
+// 监听端口 3000
+app.listen(3000);
+```
+express-generator 包里面有创建程序框架的命令行工具 express(1)。如果你刚开始接触 Express，可以用它生成的程序作为起点。这个生成的程序中有模板、公共资源文件、配置等很多东西。
+express(1) 生成的程序框架中只有几个目录和一些文件，如图 6-4 所示。设计成这样的结构，是为了让开发者能在几秒钟之内把 Express 跑起来，但你完全可以决定用什么样的程序结构。
+```
+├─bin
+├─public
+│  ├─images
+│  ├─javascripts
+│  └─stylesheets
+├─routes
+└─views
+```
+图 6-4 使用 EJS 模板的默认程序框架结构
+本章示例中所用的模板是 EJS，其结构跟 HTML 很像。EJS 在 HTML 文档中嵌入服务器端 JavaScript，并在发送到客户端之前执行，所以说它跟 PHP、JSP（在 Java 中用）和 ERB（在 Ruby 中用）类似。第 7 章会详细介绍 EJS。
+本节会带你完成如下任务：
+- 用 npm 全局安装 Express
+- 生成程序
+- 探索生成的程序，安装依赖项
+下面开始吧。
+### 6.2.1.1 安装 Express 的可执行程序
+
+首先要用 npm 全局安装 express-generator：
+```shell
+npm install -g express-generator
+```
+装好之后，可以用 --help 选项看看可用的选项，如图 6-5 所示。
+![Express 帮助](https://backend-1257950569.cos.ap-guangzhou.myqcloud.com/Node.js%E5%AE%9E%E6%88%98%EF%BC%88%E7%AC%AC%E4%BA%8C%E7%89%88%EF%BC%89/%E7%AC%AC%E5%85%AD%E7%AB%A0%EF%BC%9A%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%20Connect%20%E5%92%8C%20Express/Express%E5%B8%AE%E5%8A%A9.png)
+图 6-5 Express 帮助
+其中一些选项用来生成程序中的某些部分。比如说，你可以指定模板引擎，让它生成选定模板引擎的空文件。同样，如果用 --css 指定了 CSS 预处理器，它会生成该 CSS 预处理器的虚拟模板文件。
+可执行程序装好了，接下来我们要生成最终会变成在线留言板的程序框架。
+### 6.2.1.2 生成程序
+
+用 -e（或 --ejs）指定要使用的模板引擎是 EJS，执行 express -e shoutbox。如果你想跟我们在 Github 库上的代码保持一致，那就执行 express -e listing6_6。
+一个功能完备的程序会出现在 shoutbox 目录中。其中会有描述目录和依赖项的 package.json 文件、程序主文件、public 目录，以及一个放路由处理器的目录。
+### 6.2.1.3 探索程序
+
+仔细看一下它生成了什么，在编辑器中打开 package.json 文件，看看程序的依赖项，如图 6-6 所示。Express 猜不出你要用依赖项的哪个版本，所以你最好给出模块的主要、次要及修订版本号，以免引起意想不到的 bug。比如明确给出 "express": "~4.13.1"，那么 npm 每次都会安装相同的代码。
+![生成的 package.json](https://backend-1257950569.cos.ap-guangzhou.myqcloud.com/Node.js%E5%AE%9E%E6%88%98%EF%BC%88%E7%AC%AC%E4%BA%8C%E7%89%88%EF%BC%89/%E7%AC%AC%E5%85%AD%E7%AB%A0%EF%BC%9A%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%20Connect%20%E5%92%8C%20Express/%E7%94%9F%E6%88%90%E7%9A%84%20package.json.png)
+现在看一下 express(1) 生成的程序主文件，如下面的代码清单所示。暂时先不要动它。其中有前面介绍过的中间件，但默认的中间件配置什么样还是值得一看。
+#### 代码清单 6-6 生成的 Express 程序框架
+```javascript
+var express = require('express');
+var path = require('path');
+// 提供默认的 favicon
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var routes = require('./routes/index');
+var users = require('./routes/users');
+var app = express();
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+// 输出有颜色区分的日志，以便于开发调试
+app.use(logger('dev'));
+// 解析请求主体
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+// 提供 ./public 下的静态文件
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 指定程序路由
+app.use('/', routes);
+app.use('/users', users);
+
+app.use(function(req, res, next) {
+	let err = new Error('Not Found');
+	err.status = 404;
+	next(err);
+});
+
+// 在开发时显示格式化的 HTML 错误页面
+if (app.get('env') === 'development') {
+	app.use(function (err, req, res, next) {
+		res.status(err.status || 500);
+		res.render('error', {
+			message: err.message,
+			error: err
+		});
+	});
+}
+
+app.use(function(err, req, res, next) {
+	res.status(err.status || 500);
+	res.render('error', {
+		message: err.message,
+		error: {}
+	})
+})
+
+module.exports = app;
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
