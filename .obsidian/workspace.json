@@ -13,8 +13,8 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "第06章：深入了解 Connect 和 Express/README.md",
-                "mode": "source",
+                "file": "第04章：前端构建系统/README.md",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "第06章：深入了解 Connect 和 Express/README.md",
+                "file": "第04章：前端构建系统/README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
