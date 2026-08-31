@@ -1,127 +1,126 @@
-const http = require("http");
-const url = require("url");
-const crypto = require("crypto");
+const http = require('http');
+const url = require('url');
+const crypto = require('crypto');
 
 const PORT = 3000;
 
 // ==================== 数据存储 ====================
 
-let posts = [
+const posts = [
   {
-    id: "1",
-    title: "Node.js 入门指南",
+    id: '1',
+    title: 'Node.js 入门指南',
     content:
-      "Node.js 是一个基于 Chrome V8 引擎的 JavaScript 运行时，让你能够在服务器端运行 JavaScript。",
-    summary: "快速了解 Node.js 基础知识",
-    category: "1",
-    tags: ["Node.js", "JavaScript", "后端"],
-    author: "admin",
-    status: "published",
+      'Node.js 是一个基于 Chrome V8 引擎的 JavaScript 运行时，让你能够在服务器端运行 JavaScript。',
+    summary: '快速了解 Node.js 基础知识',
+    category: '1',
+    tags: ['Node.js', 'JavaScript', '后端'],
+    author: 'admin',
+    status: 'published',
     viewCount: 128,
-    createdAt: "2025-01-15T08:00:00.000Z",
-    updatedAt: "2025-01-15T08:00:00.000Z",
+    createdAt: '2025-01-15T08:00:00.000Z',
+    updatedAt: '2025-01-15T08:00:00.000Z',
   },
   {
-    id: "2",
-    title: "RESTful API 设计最佳实践",
+    id: '2',
+    title: 'RESTful API 设计最佳实践',
     content:
-      "RESTful API 是一种基于 HTTP 协议的架构风格，遵循 REST 原则设计 Web 接口。本文介绍如何设计清晰、一致的 API。",
-    summary: "学习 RESTful API 的设计原则与规范",
-    category: "2",
-    tags: ["API", "REST", "架构"],
-    author: "admin",
-    status: "published",
+      'RESTful API 是一种基于 HTTP 协议的架构风格，遵循 REST 原则设计 Web 接口。本文介绍如何设计清晰、一致的 API。',
+    summary: '学习 RESTful API 的设计原则与规范',
+    category: '2',
+    tags: ['API', 'REST', '架构'],
+    author: 'admin',
+    status: 'published',
     viewCount: 256,
-    createdAt: "2025-02-10T10:30:00.000Z",
-    updatedAt: "2025-02-12T09:00:00.000Z",
+    createdAt: '2025-02-10T10:30:00.000Z',
+    updatedAt: '2025-02-12T09:00:00.000Z',
   },
   {
-    id: "3",
-    title: "用纯 Node.js 构建 Web 服务器",
-    content:
-      "不依赖任何框架，仅使用 Node.js 内置的 http 模块，从零构建一个功能完整的 Web 服务器。",
-    summary: "深入理解 Node.js http 模块",
-    category: "1",
-    tags: ["Node.js", "HTTP", "后端"],
-    author: "editor",
-    status: "draft",
+    id: '3',
+    title: '用纯 Node.js 构建 Web 服务器',
+    content: '不依赖任何框架，仅使用 Node.js 内置的 http 模块，从零构建一个功能完整的 Web 服务器。',
+    summary: '深入理解 Node.js http 模块',
+    category: '1',
+    tags: ['Node.js', 'HTTP', '后端'],
+    author: 'editor',
+    status: 'draft',
     viewCount: 0,
-    createdAt: "2025-03-05T14:00:00.000Z",
-    updatedAt: "2025-03-05T14:00:00.000Z",
+    createdAt: '2025-03-05T14:00:00.000Z',
+    updatedAt: '2025-03-05T14:00:00.000Z',
   },
 ];
 
-let categories = [
+const categories = [
   {
-    id: "1",
-    name: "技术教程",
-    description: "编程技术学习教程",
-    createdAt: "2025-01-01T00:00:00.000Z",
+    id: '1',
+    name: '技术教程',
+    description: '编程技术学习教程',
+    createdAt: '2025-01-01T00:00:00.000Z',
   },
   {
-    id: "2",
-    name: "架构设计",
-    description: "软件架构与设计模式",
-    createdAt: "2025-01-01T00:00:00.000Z",
+    id: '2',
+    name: '架构设计',
+    description: '软件架构与设计模式',
+    createdAt: '2025-01-01T00:00:00.000Z',
   },
   {
-    id: "3",
-    name: "项目实战",
-    description: "实际项目开发经验分享",
-    createdAt: "2025-01-01T00:00:00.000Z",
+    id: '3',
+    name: '项目实战',
+    description: '实际项目开发经验分享',
+    createdAt: '2025-01-01T00:00:00.000Z',
   },
 ];
 
 let comments = [
   {
-    id: "1",
-    postId: "1",
-    author: "读者A",
-    content: "写得很清晰，对我入门很有帮助！",
-    createdAt: "2025-01-16T10:00:00.000Z",
+    id: '1',
+    postId: '1',
+    author: '读者A',
+    content: '写得很清晰，对我入门很有帮助！',
+    createdAt: '2025-01-16T10:00:00.000Z',
   },
   {
-    id: "2",
-    postId: "1",
-    author: "读者B",
-    content: "期待更多 Node.js 相关的内容。",
-    createdAt: "2025-01-17T15:30:00.000Z",
+    id: '2',
+    postId: '1',
+    author: '读者B',
+    content: '期待更多 Node.js 相关的内容。',
+    createdAt: '2025-01-17T15:30:00.000Z',
   },
   {
-    id: "3",
-    postId: "2",
-    author: "开发者C",
-    content: "REST 规范总结得很到位，收藏了。",
-    createdAt: "2025-02-11T08:00:00.000Z",
+    id: '3',
+    postId: '2',
+    author: '开发者C',
+    content: 'REST 规范总结得很到位，收藏了。',
+    createdAt: '2025-02-11T08:00:00.000Z',
   },
 ];
 
 // 简易 Token 存储（演示用）
-const tokens = { admin_token: "admin", editor_token: "editor" };
+const tokens = { admin_token: 'admin', editor_token: 'editor' };
 
 // ==================== 工具函数 ====================
 
 function parseBody(req) {
   return new Promise((resolve, reject) => {
-    let body = "";
-    req.on("data", (chunk) => {
+    let body = '';
+    req.on('data', (chunk) => {
       body += chunk;
     });
-    req.on("end", () => {
+    req.on('end', () => {
       if (!body) return resolve({});
       try {
         resolve(JSON.parse(body));
       } catch (err) {
-        reject(new Error("Invalid JSON"));
+        reject(new Error('Invalid JSON'));
       }
     });
-    req.on("error", reject);
+    req.on('error', reject);
   });
 }
 
 function send(res, statusCode, data) {
   res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
+    'Content-Type': 'application/json; charset=utf-8',
   });
   res.end(JSON.stringify(data));
 }
@@ -136,12 +135,12 @@ function now() {
 
 // 解析路径参数：匹配 /posts/:id 等模式
 function matchRoute(pathname, pattern) {
-  const patternParts = pattern.split("/");
-  const pathParts = pathname.split("/");
+  const patternParts = pattern.split('/');
+  const pathParts = pathname.split('/');
   if (patternParts.length !== pathParts.length) return null;
   const params = {};
   for (let i = 0; i < patternParts.length; i++) {
-    if (patternParts[i].startsWith(":")) {
+    if (patternParts[i].startsWith(':')) {
       params[patternParts[i].slice(1)] = pathParts[i];
     } else if (patternParts[i] !== pathParts[i]) {
       return null;
@@ -152,8 +151,8 @@ function matchRoute(pathname, pattern) {
 
 // 简易认证中间件
 function authenticate(req) {
-  const auth = req.headers["authorization"];
-  if (!auth || !auth.startsWith("Bearer ")) return null;
+  const auth = req.headers['authorization'];
+  if (!auth || !auth.startsWith('Bearer ')) return null;
   const token = auth.slice(7);
   return tokens[token] || null;
 }
@@ -162,15 +161,7 @@ function authenticate(req) {
 
 // GET /posts - 文章列表（分页、搜索、分类筛选、标签筛选、状态筛选）
 function getPosts(req, res, query) {
-  const {
-    page = "1",
-    pageSize = "10",
-    search,
-    category,
-    tag,
-    status,
-    author,
-  } = query;
+  const { page = '1', pageSize = '10', search, category, tag, status, author } = query;
 
   let result = [...posts];
 
@@ -201,7 +192,7 @@ function getPosts(req, res, query) {
       (p) =>
         p.title.toLowerCase().includes(keyword) ||
         p.content.toLowerCase().includes(keyword) ||
-        p.summary.toLowerCase().includes(keyword),
+        p.summary.toLowerCase().includes(keyword)
     );
   }
 
@@ -234,7 +225,7 @@ function getPosts(req, res, query) {
 function getPostById(req, res, id) {
   const post = posts.find((p) => p.id === id);
   if (!post) {
-    return send(res, 404, { success: false, error: "文章不存在" });
+    return send(res, 404, { success: false, error: '文章不存在' });
   }
 
   // 增加浏览量
@@ -242,8 +233,7 @@ function getPostById(req, res, id) {
 
   // 附加分类名称和评论列表
   const postComments = comments.filter((c) => c.postId === id);
-  const categoryName =
-    categories.find((c) => c.id === post.category)?.name || null;
+  const categoryName = categories.find((c) => c.id === post.category)?.name || null;
 
   send(res, 200, {
     success: true,
@@ -256,16 +246,16 @@ async function createPost(req, res, username) {
   const body = await parseBody(req);
   const { title, content, summary, category, tags, status } = body;
 
-  if (!title || typeof title !== "string" || !title.trim()) {
-    return send(res, 400, { success: false, error: "标题为必填项" });
+  if (!title || typeof title !== 'string' || !title.trim()) {
+    return send(res, 400, { success: false, error: '标题为必填项' });
   }
-  if (!content || typeof content !== "string" || !content.trim()) {
-    return send(res, 400, { success: false, error: "内容为必填项" });
+  if (!content || typeof content !== 'string' || !content.trim()) {
+    return send(res, 400, { success: false, error: '内容为必填项' });
   }
 
   // 校验分类是否存在
   if (category && !categories.find((c) => c.id === category)) {
-    return send(res, 400, { success: false, error: "分类不存在" });
+    return send(res, 400, { success: false, error: '分类不存在' });
   }
 
   const timestamp = now();
@@ -277,7 +267,7 @@ async function createPost(req, res, username) {
     category: category || null,
     tags: Array.isArray(tags) ? tags : [],
     author: username,
-    status: status === "published" ? "published" : "draft",
+    status: status === 'published' ? 'published' : 'draft',
     viewCount: 0,
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -291,19 +281,19 @@ async function createPost(req, res, username) {
 async function updatePost(req, res, id, username) {
   const index = posts.findIndex((p) => p.id === id);
   if (index === -1) {
-    return send(res, 404, { success: false, error: "文章不存在" });
+    return send(res, 404, { success: false, error: '文章不存在' });
   }
 
   const body = await parseBody(req);
   const { title, content, summary, category, tags, status } = body;
 
   if (category && !categories.find((c) => c.id === category)) {
-    return send(res, 400, { success: false, error: "分类不存在" });
+    return send(res, 400, { success: false, error: '分类不存在' });
   }
-  if (status && !["published", "draft"].includes(status)) {
+  if (status && !['published', 'draft'].includes(status)) {
     return send(res, 400, {
       success: false,
-      error: "状态只支持 published 或 draft",
+      error: '状态只支持 published 或 draft',
     });
   }
 
@@ -324,7 +314,7 @@ async function updatePost(req, res, id, username) {
 function deletePost(req, res, id) {
   const index = posts.findIndex((p) => p.id === id);
   if (index === -1) {
-    return send(res, 404, { success: false, error: "文章不存在" });
+    return send(res, 404, { success: false, error: '文章不存在' });
   }
 
   const deleted = posts.splice(index, 1)[0];
@@ -350,18 +340,18 @@ async function createCategory(req, res) {
   const body = await parseBody(req);
   const { name, description } = body;
 
-  if (!name || typeof name !== "string" || !name.trim()) {
-    return send(res, 400, { success: false, error: "分类名称为必填项" });
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return send(res, 400, { success: false, error: '分类名称为必填项' });
   }
 
   if (categories.find((c) => c.name === name.trim())) {
-    return send(res, 409, { success: false, error: "分类名称已存在" });
+    return send(res, 409, { success: false, error: '分类名称已存在' });
   }
 
   const category = {
     id: generateId(),
     name: name.trim(),
-    description: description ? description.trim() : "",
+    description: description ? description.trim() : '',
     createdAt: now(),
   };
 
@@ -373,14 +363,14 @@ async function createCategory(req, res) {
 async function updateCategory(req, res, id) {
   const index = categories.findIndex((c) => c.id === id);
   if (index === -1) {
-    return send(res, 404, { success: false, error: "分类不存在" });
+    return send(res, 404, { success: false, error: '分类不存在' });
   }
 
   const body = await parseBody(req);
   const { name, description } = body;
 
   if (name && categories.find((c) => c.name === name.trim() && c.id !== id)) {
-    return send(res, 409, { success: false, error: "分类名称已存在" });
+    return send(res, 409, { success: false, error: '分类名称已存在' });
   }
 
   const category = { ...categories[index] };
@@ -395,7 +385,7 @@ async function updateCategory(req, res, id) {
 function deleteCategory(req, res, id) {
   const index = categories.findIndex((c) => c.id === id);
   if (index === -1) {
-    return send(res, 404, { success: false, error: "分类不存在" });
+    return send(res, 404, { success: false, error: '分类不存在' });
   }
 
   // 检查是否有文章使用此分类
@@ -417,7 +407,7 @@ function deleteCategory(req, res, id) {
 function getComments(req, res, postId) {
   const post = posts.find((p) => p.id === postId);
   if (!post) {
-    return send(res, 404, { success: false, error: "文章不存在" });
+    return send(res, 404, { success: false, error: '文章不存在' });
   }
 
   const postComments = comments.filter((c) => c.postId === postId);
@@ -432,20 +422,20 @@ function getComments(req, res, postId) {
 async function createComment(req, res, postId) {
   const post = posts.find((p) => p.id === postId);
   if (!post) {
-    return send(res, 404, { success: false, error: "文章不存在" });
+    return send(res, 404, { success: false, error: '文章不存在' });
   }
-  if (post.status !== "published") {
-    return send(res, 400, { success: false, error: "无法对未发布的文章评论" });
+  if (post.status !== 'published') {
+    return send(res, 400, { success: false, error: '无法对未发布的文章评论' });
   }
 
   const body = await parseBody(req);
   const { author, content } = body;
 
-  if (!author || typeof author !== "string" || !author.trim()) {
-    return send(res, 400, { success: false, error: "评论者昵称为必填项" });
+  if (!author || typeof author !== 'string' || !author.trim()) {
+    return send(res, 400, { success: false, error: '评论者昵称为必填项' });
   }
-  if (!content || typeof content !== "string" || !content.trim()) {
-    return send(res, 400, { success: false, error: "评论内容为必填项" });
+  if (!content || typeof content !== 'string' || !content.trim()) {
+    return send(res, 400, { success: false, error: '评论内容为必填项' });
   }
 
   const comment = {
@@ -464,7 +454,7 @@ async function createComment(req, res, postId) {
 function deleteComment(req, res, id) {
   const index = comments.findIndex((c) => c.id === id);
   if (index === -1) {
-    return send(res, 404, { success: false, error: "评论不存在" });
+    return send(res, 404, { success: false, error: '评论不存在' });
   }
 
   const deleted = comments.splice(index, 1)[0];
@@ -491,7 +481,7 @@ function getTags(req, res) {
 
 // GET /stats - 博客统计
 function getStats(req, res) {
-  const publishedPosts = posts.filter((p) => p.status === "published");
+  const publishedPosts = posts.filter((p) => p.status === 'published');
   const totalViews = publishedPosts.reduce((sum, p) => sum + p.viewCount, 0);
 
   send(res, 200, {
@@ -516,14 +506,11 @@ async function handler(req, res) {
   const query = parsedUrl.query;
 
   // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  if (method === "OPTIONS") {
+  if (method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
   }
@@ -532,47 +519,47 @@ async function handler(req, res) {
     // ---------- 文章路由 ----------
 
     // GET /posts
-    if (method === "GET" && pathname === "/posts") {
+    if (method === 'GET' && pathname === '/posts') {
       return getPosts(req, res, query);
     }
 
     // POST /posts
-    if (method === "POST" && pathname === "/posts") {
+    if (method === 'POST' && pathname === '/posts') {
       const user = authenticate(req);
       if (!user)
         return send(res, 401, {
           success: false,
-          error: "未授权，请提供有效 Token",
+          error: '未授权，请提供有效 Token',
         });
       return await createPost(req, res, user);
     }
 
     // GET /posts/:id/comments
-    let params = matchRoute(pathname, "/posts/:id/comments");
+    let params = matchRoute(pathname, '/posts/:id/comments');
     if (params) {
-      if (method === "GET") return getComments(req, res, params.id);
-      if (method === "POST") return await createComment(req, res, params.id);
+      if (method === 'GET') return getComments(req, res, params.id);
+      if (method === 'POST') return await createComment(req, res, params.id);
     }
 
     // GET /posts/:id
-    params = matchRoute(pathname, "/posts/:id");
-    if (params && !pathname.includes("/comments")) {
-      if (method === "GET") return getPostById(req, res, params.id);
-      if (method === "PUT") {
+    params = matchRoute(pathname, '/posts/:id');
+    if (params && !pathname.includes('/comments')) {
+      if (method === 'GET') return getPostById(req, res, params.id);
+      if (method === 'PUT') {
         const user = authenticate(req);
         if (!user)
           return send(res, 401, {
             success: false,
-            error: "未授权，请提供有效 Token",
+            error: '未授权，请提供有效 Token',
           });
         return await updatePost(req, res, params.id, user);
       }
-      if (method === "DELETE") {
+      if (method === 'DELETE') {
         const user = authenticate(req);
         if (!user)
           return send(res, 401, {
             success: false,
-            error: "未授权，请提供有效 Token",
+            error: '未授权，请提供有效 Token',
           });
         return deletePost(req, res, params.id);
       }
@@ -581,39 +568,39 @@ async function handler(req, res) {
     // ---------- 分类路由 ----------
 
     // GET /categories
-    if (method === "GET" && pathname === "/categories") {
+    if (method === 'GET' && pathname === '/categories') {
       return getCategories(req, res);
     }
 
     // POST /categories
-    if (method === "POST" && pathname === "/categories") {
+    if (method === 'POST' && pathname === '/categories') {
       const user = authenticate(req);
       if (!user)
         return send(res, 401, {
           success: false,
-          error: "未授权，请提供有效 Token",
+          error: '未授权，请提供有效 Token',
         });
       return await createCategory(req, res);
     }
 
     // PUT /categories/:id
-    params = matchRoute(pathname, "/categories/:id");
+    params = matchRoute(pathname, '/categories/:id');
     if (params) {
-      if (method === "PUT") {
+      if (method === 'PUT') {
         const user = authenticate(req);
         if (!user)
           return send(res, 401, {
             success: false,
-            error: "未授权，请提供有效 Token",
+            error: '未授权，请提供有效 Token',
           });
         return await updateCategory(req, res, params.id);
       }
-      if (method === "DELETE") {
+      if (method === 'DELETE') {
         const user = authenticate(req);
         if (!user)
           return send(res, 401, {
             success: false,
-            error: "未授权，请提供有效 Token",
+            error: '未授权，请提供有效 Token',
           });
         return deleteCategory(req, res, params.id);
       }
@@ -622,13 +609,13 @@ async function handler(req, res) {
     // ---------- 评论路由 ----------
 
     // DELETE /comments/:id
-    params = matchRoute(pathname, "/comments/:id");
-    if (params && method === "DELETE") {
+    params = matchRoute(pathname, '/comments/:id');
+    if (params && method === 'DELETE') {
       const user = authenticate(req);
       if (!user)
         return send(res, 401, {
           success: false,
-          error: "未授权，请提供有效 Token",
+          error: '未授权，请提供有效 Token',
         });
       return deleteComment(req, res, params.id);
     }
@@ -636,25 +623,25 @@ async function handler(req, res) {
     // ---------- 标签路由 ----------
 
     // GET /tags
-    if (method === "GET" && pathname === "/tags") {
+    if (method === 'GET' && pathname === '/tags') {
       return getTags(req, res);
     }
 
     // ---------- 统计路由 ----------
 
     // GET /stats
-    if (method === "GET" && pathname === "/stats") {
+    if (method === 'GET' && pathname === '/stats') {
       return getStats(req, res);
     }
 
     // 404
-    send(res, 404, { success: false, error: "接口不存在" });
+    send(res, 404, { success: false, error: '接口不存在' });
   } catch (err) {
-    if (err.message === "Invalid JSON") {
-      send(res, 400, { success: false, error: "请求体 JSON 格式无效" });
+    if (err.message === 'Invalid JSON') {
+      send(res, 400, { success: false, error: '请求体 JSON 格式无效' });
     } else {
-      console.error("服务器错误:", err);
-      send(res, 500, { success: false, error: "服务器内部错误" });
+      console.error('服务器错误:', err);
+      send(res, 500, { success: false, error: '服务器内部错误' });
     }
   }
 }
@@ -667,7 +654,7 @@ server.listen(PORT, () => {
   console.log(`\n  博客后端 API 服务器已启动: http://localhost:${PORT}\n`);
   console.log(`  文章接口:`);
   console.log(
-    `    GET    /posts                    - 文章列表（?page=&pageSize=&search=&category=&tag=&status=&author=）`,
+    `    GET    /posts                    - 文章列表（?page=&pageSize=&search=&category=&tag=&status=&author=）`
   );
   console.log(`    GET    /posts/:id                - 文章详情`);
   console.log(`    POST   /posts                    - 创建文章 [需认证]`);

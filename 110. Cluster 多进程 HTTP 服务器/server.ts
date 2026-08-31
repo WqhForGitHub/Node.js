@@ -32,7 +32,7 @@ if (cluster.isPrimary) {
           pid: process.pid,
           url: req.url,
           time: new Date().toISOString(),
-        }),
+        })
       );
     })
     .listen(port, () => {

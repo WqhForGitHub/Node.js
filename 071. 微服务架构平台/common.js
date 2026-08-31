@@ -8,7 +8,7 @@
  * - 简易日志
  */
 
-const http = require("http");
+const http = require('http');
 
 // ============================================================
 // 服务注册 & 心跳
@@ -29,10 +29,10 @@ const http = require("http");
  */
 function registerAndHeartbeat({
   name,
-  host = "127.0.0.1",
+  host = '127.0.0.1',
   port,
   metadata = {},
-  registryHost = process.env.REGISTRY_HOST || "127.0.0.1",
+  registryHost = process.env.REGISTRY_HOST || '127.0.0.1',
   registryPort = process.env.REGISTRY_PORT || 4000,
   heartbeatInterval = 5000,
 }) {
@@ -41,8 +41,8 @@ function registerAndHeartbeat({
       await registryRequest({
         hostname: registryHost,
         port: registryPort,
-        path: "/heartbeat",
-        method: "POST",
+        path: '/heartbeat',
+        method: 'POST',
         body: { name, host, port },
         timeout: 3000,
       });
@@ -55,8 +55,8 @@ function registerAndHeartbeat({
   return registryRequest({
     hostname: registryHost,
     port: registryPort,
-    path: "/register",
-    method: "POST",
+    path: '/register',
+    method: 'POST',
     body: { name, host, port, metadata },
     timeout: 3000,
   })
@@ -74,8 +74,8 @@ function registerAndHeartbeat({
             await registryRequest({
               hostname: registryHost,
               port: registryPort,
-              path: "/deregister",
-              method: "POST",
+              path: '/deregister',
+              method: 'POST',
               body: { name, host, port },
               timeout: 3000,
             });
@@ -95,17 +95,14 @@ function registerAndHeartbeat({
             const result = await registryRequest({
               hostname: registryHost,
               port: registryPort,
-              path: "/register",
-              method: "POST",
+              path: '/register',
+              method: 'POST',
               body: { name, host, port, metadata },
               timeout: 3000,
             });
             clearInterval(retryTimer);
             console.log(`[Common] 服务注册成功(重试): ${name}@${host}:${port}`);
-            const heartbeatTimer = setInterval(
-              sendHeartbeat,
-              heartbeatInterval,
-            );
+            const heartbeatTimer = setInterval(sendHeartbeat, heartbeatInterval);
             resolve({
               result,
               timer: heartbeatTimer,
@@ -115,8 +112,8 @@ function registerAndHeartbeat({
                   await registryRequest({
                     hostname: registryHost,
                     port: registryPort,
-                    path: "/deregister",
-                    method: "POST",
+                    path: '/deregister',
+                    method: 'POST',
                     body: { name, host, port },
                     timeout: 3000,
                   });
@@ -156,20 +153,20 @@ function registerAndHeartbeat({
 async function callService({
   serviceName,
   path,
-  method = "GET",
+  method = 'GET',
   body = null,
   headers = {},
   timeout = 8000,
-  registryHost = process.env.REGISTRY_HOST || "127.0.0.1",
+  registryHost = process.env.REGISTRY_HOST || '127.0.0.1',
   registryPort = process.env.REGISTRY_PORT || 4000,
-  strategy = "round-robin",
+  strategy = 'round-robin',
 }) {
   // 1. 服务发现
   const discovery = await registryRequest({
     hostname: registryHost,
     port: registryPort,
     path: `/load-balance/${serviceName}?strategy=${strategy}`,
-    method: "GET",
+    method: 'GET',
     timeout: 3000,
   });
 
@@ -187,17 +184,17 @@ async function callService({
       path,
       method,
       headers: {
-        "Content-Type": "application/json",
-        "x-caller-service": serviceName,
+        'Content-Type': 'application/json',
+        'x-caller-service': serviceName,
         ...headers,
       },
       timeout,
     };
 
     const req = http.request(options, (res) => {
-      let data = "";
-      res.on("data", (chunk) => (data += chunk));
-      res.on("end", () => {
+      let data = '';
+      res.on('data', (chunk) => (data += chunk));
+      res.on('end', () => {
         let parsed = data;
         try {
           parsed = JSON.parse(data);
@@ -212,8 +209,8 @@ async function callService({
       });
     });
 
-    req.on("error", (err) => reject(err));
-    req.on("timeout", () => {
+    req.on('error', (err) => reject(err));
+    req.on('timeout', () => {
       req.destroy();
       reject(new Error(`调用 ${serviceName} 超时`));
     });
@@ -229,40 +226,33 @@ async function callService({
 // 注册中心 HTTP 请求工具
 // ============================================================
 
-function registryRequest({
-  hostname,
-  port,
-  path,
-  method,
-  body = null,
-  timeout = 3000,
-}) {
+function registryRequest({ hostname, port, path, method, body = null, timeout = 3000 }) {
   return new Promise((resolve, reject) => {
     const options = {
       hostname,
       port,
       path,
       method,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
       timeout,
     };
 
     const req = http.request(options, (res) => {
-      let data = "";
-      res.on("data", (chunk) => (data += chunk));
-      res.on("end", () => {
+      let data = '';
+      res.on('data', (chunk) => (data += chunk));
+      res.on('end', () => {
         try {
           resolve(JSON.parse(data));
         } catch {
-          reject(new Error("解析注册中心响应失败"));
+          reject(new Error('解析注册中心响应失败'));
         }
       });
     });
 
-    req.on("error", (err) => reject(err));
-    req.on("timeout", () => {
+    req.on('error', (err) => reject(err));
+    req.on('timeout', () => {
       req.destroy();
-      reject(new Error("注册中心请求超时"));
+      reject(new Error('注册中心请求超时'));
     });
 
     if (body) {
@@ -277,7 +267,7 @@ function registryRequest({
 // ============================================================
 
 function jsonResponse(res, code, data) {
-  res.writeHead(code, { "Content-Type": "application/json; charset=utf-8" });
+  res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(data));
 }
 
@@ -295,9 +285,9 @@ function errorResponse(res, message, code = 400) {
 
 function readBody(req) {
   return new Promise((resolve) => {
-    let body = "";
-    req.on("data", (chunk) => (body += chunk));
-    req.on("end", () => {
+    let body = '';
+    req.on('data', (chunk) => (body += chunk));
+    req.on('end', () => {
       try {
         resolve(body ? JSON.parse(body) : {});
       } catch {
@@ -327,16 +317,16 @@ class Router {
   }
 
   get(pattern, handler) {
-    this.add("GET", pattern, handler);
+    this.add('GET', pattern, handler);
   }
   post(pattern, handler) {
-    this.add("POST", pattern, handler);
+    this.add('POST', pattern, handler);
   }
   put(pattern, handler) {
-    this.add("PUT", pattern, handler);
+    this.add('PUT', pattern, handler);
   }
   delete(pattern, handler) {
-    this.add("DELETE", pattern, handler);
+    this.add('DELETE', pattern, handler);
   }
 
   /**
@@ -357,7 +347,7 @@ class Router {
           await route.handler(req, res, params);
         } catch (err) {
           console.error(`[Router] 处理异常: ${err.message}`);
-          errorResponse(res, "服务器内部错误", 500);
+          errorResponse(res, '服务器内部错误', 500);
         }
         return true;
       }
@@ -378,14 +368,14 @@ class Router {
       return params;
     }
 
-    const patternParts = pattern.split("/").filter(Boolean);
-    const pathParts = pathname.split("/").filter(Boolean);
+    const patternParts = pattern.split('/').filter(Boolean);
+    const pathParts = pathname.split('/').filter(Boolean);
 
     if (patternParts.length !== pathParts.length) return null;
 
     const params = {};
     for (let i = 0; i < patternParts.length; i++) {
-      if (patternParts[i].startsWith(":")) {
+      if (patternParts[i].startsWith(':')) {
         params[patternParts[i].slice(1)] = decodeURIComponent(pathParts[i]);
       } else if (patternParts[i] !== pathParts[i]) {
         return null;

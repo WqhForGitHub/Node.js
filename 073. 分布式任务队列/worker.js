@@ -8,20 +8,20 @@ const WORKER_ID = `worker-${process.pid}`;
 const handlers = {
   'send-email': async (payload) => {
     console.log(`  [邮件] 发送至 ${payload.to}: ${payload.subject}`);
-    await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+    await new Promise((r) => setTimeout(r, 500 + Math.random() * 500));
     return { sent: true, time: Date.now() };
   },
   'image-resize': async (payload) => {
     console.log(`  [图片] 缩放 ${payload.url} -> ${payload.size}`);
-    await new Promise(r => setTimeout(r, 800 + Math.random() * 400));
+    await new Promise((r) => setTimeout(r, 800 + Math.random() * 400));
     if (Math.random() < 0.2) throw new Error('网络错误');
     return { resized: true, output: `cdn/${payload.url}-${payload.size}.jpg` };
   },
   'data-export': async (payload) => {
     console.log(`  [导出] 用户 ${payload.userId} ${payload.format} 文件`);
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 1000));
     return { downloadUrl: `/exports/${payload.userId}.${payload.format}` };
-  }
+  },
 };
 
 const client = new net.Socket();
@@ -41,7 +41,11 @@ client.on('data', (data) => {
     buffer = buffer.slice(idx + 1);
     const cb = callbacks.shift();
     if (cb && line.trim()) {
-      try { cb(JSON.parse(line)); } catch (e) { cb({ ok: false, error: e.message }); }
+      try {
+        cb(JSON.parse(line));
+      } catch (e) {
+        cb({ ok: false, error: e.message });
+      }
     }
   }
 });
@@ -62,7 +66,7 @@ async function poll() {
   while (true) {
     const res = await send({ op: 'reserve', queue: 'default', workerId: WORKER_ID });
     if (!res.ok || !res.task) {
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
       continue;
     }
     const task = res.task;

@@ -11,7 +11,11 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
 
-async function copyWithMd5(src: string, dst: string, chunkSize = 1024 * 1024): Promise<{ srcMd5: string; dstMd5: string; ok: boolean }> {
+async function copyWithMd5(
+  src: string,
+  dst: string,
+  chunkSize = 1024 * 1024
+): Promise<{ srcMd5: string; dstMd5: string; ok: boolean }> {
   const stat = fs.statSync(src);
   if (!stat.isFile()) throw new Error(`${src} 不是文件`);
 

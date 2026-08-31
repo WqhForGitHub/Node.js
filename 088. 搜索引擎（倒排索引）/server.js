@@ -8,14 +8,42 @@ const idx = new InvertedIndex();
 
 // 预加载示例文档
 const samples = [
-  { id: 1, title: 'Node.js 入门', body: 'Node.js 是基于 V8 的 JavaScript 运行时，适合构建高性能网络应用。' },
-  { id: 2, title: 'Inverted Index', body: 'An inverted index is the core data structure used by search engines to map terms to documents.' },
-  { id: 3, title: 'BM25 算法', body: 'BM25 是一种基于概率检索模型的相关性评分函数，常用于全文搜索。' },
+  {
+    id: 1,
+    title: 'Node.js 入门',
+    body: 'Node.js 是基于 V8 的 JavaScript 运行时，适合构建高性能网络应用。',
+  },
+  {
+    id: 2,
+    title: 'Inverted Index',
+    body: 'An inverted index is the core data structure used by search engines to map terms to documents.',
+  },
+  {
+    id: 3,
+    title: 'BM25 算法',
+    body: 'BM25 是一种基于概率检索模型的相关性评分函数，常用于全文搜索。',
+  },
   { id: 4, title: 'TF-IDF', body: 'TF-IDF 衡量词语对文档的重要性，由词频和逆文档频率两部分组成。' },
-  { id: 5, title: '分布式系统', body: 'Distributed systems involve multiple machines cooperating to provide a service.' },
-  { id: 6, title: 'JavaScript 性能优化', body: 'JavaScript performance optimization techniques include caching, lazy loading, code splitting and avoiding memory leaks.' },
-  { id: 7, title: 'HTTP 协议详解', body: 'HTTP 是无状态的应用层协议，建立在 TCP 之上，用于客户端与服务器之间的通信。' },
-  { id: 8, title: '搜索引擎原理', body: '现代搜索引擎包含爬虫、索引、排序、查询解析等多个核心模块。倒排索引是其中最关键的数据结构。' }
+  {
+    id: 5,
+    title: '分布式系统',
+    body: 'Distributed systems involve multiple machines cooperating to provide a service.',
+  },
+  {
+    id: 6,
+    title: 'JavaScript 性能优化',
+    body: 'JavaScript performance optimization techniques include caching, lazy loading, code splitting and avoiding memory leaks.',
+  },
+  {
+    id: 7,
+    title: 'HTTP 协议详解',
+    body: 'HTTP 是无状态的应用层协议，建立在 TCP 之上，用于客户端与服务器之间的通信。',
+  },
+  {
+    id: 8,
+    title: '搜索引擎原理',
+    body: '现代搜索引擎包含爬虫、索引、排序、查询解析等多个核心模块。倒排索引是其中最关键的数据结构。',
+  },
 ];
 for (const s of samples) idx.addDocument(s);
 console.log(`已索引 ${samples.length} 篇示例文档`);
@@ -26,12 +54,12 @@ const server = http.createServer((req, res) => {
 
   if (req.method === 'POST' && u.pathname === '/index') {
     let body = '';
-    req.on('data', d => body += d);
+    req.on('data', (d) => (body += d));
     req.on('end', () => {
       try {
         const data = JSON.parse(body);
         const docs = Array.isArray(data) ? data : [data];
-        const ids = docs.map(d => idx.addDocument(d));
+        const ids = docs.map((d) => idx.addDocument(d));
         res.end(JSON.stringify({ ok: true, ids }));
       } catch (e) {
         res.statusCode = 400;
@@ -89,4 +117,7 @@ loadStats();
 });
 
 server.listen(PORT, () => console.log(`搜索引擎: http://127.0.0.1:${PORT}`));
-process.on('SIGINT', () => { server.close(); process.exit(0); });
+process.on('SIGINT', () => {
+  server.close();
+  process.exit(0);
+});

@@ -1,7 +1,9 @@
 // APM Tracer：调用链追踪
 const { randomBytes } = require('crypto');
 
-function genId(n = 8) { return randomBytes(n).toString('hex'); }
+function genId(n = 8) {
+  return randomBytes(n).toString('hex');
+}
 
 class Span {
   constructor(name, traceId, parentId) {
@@ -17,8 +19,14 @@ class Span {
     this.logs = [];
     this.status = 'ok';
   }
-  setTag(k, v) { this.tags[k] = v; return this; }
-  log(event, data) { this.logs.push({ ts: Date.now(), event, data }); return this; }
+  setTag(k, v) {
+    this.tags[k] = v;
+    return this;
+  }
+  log(event, data) {
+    this.logs.push({ ts: Date.now(), event, data });
+    return this;
+  }
   setError(err) {
     this.status = 'error';
     this.tags.error = true;

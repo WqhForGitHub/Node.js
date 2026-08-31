@@ -39,7 +39,7 @@ function addSpan(span) {
 
 function buildTree(traceId) {
   const spans = traces.get(traceId) || [];
-  const map = new Map(spans.map(s => [s.spanId, { ...s, children: [] }]));
+  const map = new Map(spans.map((s) => [s.spanId, { ...s, children: [] }]));
   let root = null;
   for (const s of map.values()) {
     if (s.parentId && map.has(s.parentId)) {
@@ -63,7 +63,7 @@ const server = http.createServer((req, res) => {
 
   if (req.method === 'POST' && u.pathname === '/spans') {
     let body = '';
-    req.on('data', d => body += d);
+    req.on('data', (d) => (body += d));
     req.on('end', () => {
       try {
         const data = JSON.parse(body);
@@ -79,20 +79,23 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'GET' && u.pathname === '/traces') {
-    const list = traceOrder.slice(-50).reverse().map(tid => {
-      const spans = traces.get(tid) || [];
-      const root = spans.find(s => !s.parentId) || spans[0];
-      const hasError = spans.some(s => s.status === 'error');
-      return {
-        traceId: tid,
-        service: root && root.service,
-        operation: root && root.name,
-        duration: root && root.duration,
-        spans: spans.length,
-        error: hasError,
-        startTime: root && root.startTime
-      };
-    });
+    const list = traceOrder
+      .slice(-50)
+      .reverse()
+      .map((tid) => {
+        const spans = traces.get(tid) || [];
+        const root = spans.find((s) => !s.parentId) || spans[0];
+        const hasError = spans.some((s) => s.status === 'error');
+        return {
+          traceId: tid,
+          service: root && root.service,
+          operation: root && root.name,
+          duration: root && root.duration,
+          spans: spans.length,
+          error: hasError,
+          startTime: root && root.startTime,
+        };
+      });
     res.end(JSON.stringify(list));
     return;
   }
@@ -100,7 +103,11 @@ const server = http.createServer((req, res) => {
   const m = u.pathname.match(/^\/traces\/([^/]+)$/);
   if (req.method === 'GET' && m) {
     const tree = buildTree(m[1]);
-    if (!tree) { res.statusCode = 404; res.end('{"error":"not found"}'); return; }
+    if (!tree) {
+      res.statusCode = 404;
+      res.end('{"error":"not found"}');
+      return;
+    }
     res.end(JSON.stringify(tree));
     return;
   }
@@ -109,11 +116,13 @@ const server = http.createServer((req, res) => {
     const out = [];
     for (const [name, s] of serviceStats) {
       out.push({
-        name, requests: s.count, errors: s.errors,
+        name,
+        requests: s.count,
+        errors: s.errors,
         errorRate: s.count ? s.errors / s.count : 0,
         avgDuration: s.count ? s.totalDuration / s.count : 0,
         p95: percentile(s.durations, 95),
-        p99: percentile(s.durations, 99)
+        p99: percentile(s.durations, 99),
       });
     }
     res.end(JSON.stringify(out));
@@ -146,4 +155,7 @@ refresh();setInterval(refresh,3000);
 });
 
 server.listen(PORT, () => console.log(`APM 平台: http://127.0.0.1:${PORT}`));
-process.on('SIGINT', () => { server.close(); process.exit(0); });
+process.on('SIGINT', () => {
+  server.close();
+  process.exit(0);
+});

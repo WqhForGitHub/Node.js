@@ -75,12 +75,7 @@
   "viewer": {
     "name": "viewer",
     "description": "查看者，只读权限",
-    "permissions": [
-      "article:read",
-      "user:read",
-      "role:read",
-      "permission:read"
-    ],
+    "permissions": ["article:read", "user:read", "role:read", "permission:read"],
     "inherits": [],
     "dataScope": "self",
     "isSystem": false,

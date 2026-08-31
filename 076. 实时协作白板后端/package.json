@@ -1,7 +1,19 @@
 {
-  "name": "realtime-whiteboard",
-  "version": "1.0.0",
-  "description": "纯 Node.js 实时协作白板后端",
-  "scripts": { "start": "node server.js" },
-  "license": "MIT"
+    "name":  "realtime-whiteboard",
+    "version":  "1.0.0",
+    "description":  "纯 Node.js 实时协作白板后端",
+    "scripts":  {
+                    "start":  "node server.js",
+                    "format":  "prettier --write .",
+                    "format:check":  "prettier --check .",
+                    "lint":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue --fix",
+                    "lint:check":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue"
+                },
+    "license":  "MIT",
+    "devDependencies":  {
+                            "eslint":  "^8.57.1",
+                            "prettier":  "^3.3.3",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-prettier":  "^5.2.1"
+                        }
 }

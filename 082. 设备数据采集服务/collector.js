@@ -39,7 +39,7 @@ class Collector {
     }
     for (const [date, points] of groups) {
       const file = path.join(this.dir, `${date}.ndjson`);
-      const lines = points.map(p => JSON.stringify(p)).join('\n') + '\n';
+      const lines = points.map((p) => JSON.stringify(p)).join('\n') + '\n';
       try {
         fs.appendFileSync(file, lines);
         this.stats.flushed += points.length;

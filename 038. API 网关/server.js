@@ -14,17 +14,17 @@
  *   - CORS 处理
  */
 
-const http = require("http");
-const url = require("url");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
-const net = require("net");
+const http = require('http');
+const url = require('url');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const net = require('net');
 
 // ==================== 配置 ====================
 
 const PORT = 3800;
-const DATA_DIR = path.join(__dirname, "data");
+const DATA_DIR = path.join(__dirname, 'data');
 const HEALTH_CHECK_INTERVAL = 30000; // 健康检查间隔: 30秒
 const HEALTH_CHECK_TIMEOUT = 5000; // 健康检查超时: 5秒
 const CIRCUIT_BREAKER_THRESHOLD = 5; // 熔断器失败阈值
@@ -40,18 +40,18 @@ function ensureDir(dir) {
 
 function readJson(file) {
   ensureDir(path.dirname(file));
-  if (!fs.existsSync(file)) fs.writeFileSync(file, "[]", "utf-8");
-  return JSON.parse(fs.readFileSync(file, "utf-8"));
+  if (!fs.existsSync(file)) fs.writeFileSync(file, '[]', 'utf-8');
+  return JSON.parse(fs.readFileSync(file, 'utf-8'));
 }
 
 function writeJson(file, data) {
   ensureDir(path.dirname(file));
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf-8");
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-const routesFile = path.join(DATA_DIR, "routes.json");
-const apiKeysFile = path.join(DATA_DIR, "api_keys.json");
-const logsFile = path.join(DATA_DIR, "access_logs.json");
+const routesFile = path.join(DATA_DIR, 'routes.json');
+const apiKeysFile = path.join(DATA_DIR, 'api_keys.json');
+const logsFile = path.join(DATA_DIR, 'access_logs.json');
 
 function loadRoutes() {
   return readJson(routesFile);
@@ -75,27 +75,27 @@ function saveLogs(data) {
 // ==================== 工具函数 ====================
 
 function generateId() {
-  return Date.now().toString(36) + crypto.randomBytes(4).toString("hex");
+  return Date.now().toString(36) + crypto.randomBytes(4).toString('hex');
 }
 
 function parseBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on("data", (c) => chunks.push(c));
-    req.on("end", () => {
+    req.on('data', (c) => chunks.push(c));
+    req.on('end', () => {
       try {
-        const body = Buffer.concat(chunks).toString("utf-8");
+        const body = Buffer.concat(chunks).toString('utf-8');
         resolve(body ? JSON.parse(body) : {});
       } catch {
-        reject(new Error("无效的 JSON"));
+        reject(new Error('无效的 JSON'));
       }
     });
-    req.on("error", reject);
+    req.on('error', reject);
   });
 }
 
 function sendJson(res, status, data) {
-  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(data));
 }
 
@@ -109,22 +109,22 @@ function sendError(res, status, error) {
 
 function parsePath(requestUrl) {
   const parsed = url.parse(requestUrl, true);
-  return parsed.pathname.replace(/^\/+|\/+$/g, "").split("/");
+  return parsed.pathname.replace(/^\/+|\/+$/g, '').split('/');
 }
 
 // ==================== CORS 处理 ====================
 
 function corsHeaders() {
   return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-API-Key",
-    "Access-Control-Max-Age": "86400",
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+    'Access-Control-Max-Age': '86400',
   };
 }
 
 function handleCors(req, res) {
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     res.writeHead(204, corsHeaders());
     res.end();
     return true;
@@ -165,7 +165,7 @@ const circuitBreakerStore = new Map();
 function getCircuitBreaker(serviceId) {
   if (!circuitBreakerStore.has(serviceId)) {
     circuitBreakerStore.set(serviceId, {
-      state: "closed", // closed | open | half-open
+      state: 'closed', // closed | open | half-open
       failures: 0,
       lastFailure: null,
       openedAt: null,
@@ -177,7 +177,7 @@ function getCircuitBreaker(serviceId) {
 function recordSuccess(serviceId) {
   const cb = getCircuitBreaker(serviceId);
   cb.failures = 0;
-  cb.state = "closed";
+  cb.state = 'closed';
 }
 
 function recordFailure(serviceId) {
@@ -186,18 +186,18 @@ function recordFailure(serviceId) {
   cb.lastFailure = new Date().toISOString();
 
   if (cb.failures >= CIRCUIT_BREAKER_THRESHOLD) {
-    cb.state = "open";
+    cb.state = 'open';
     cb.openedAt = Date.now();
   }
 }
 
 function isCircuitOpen(serviceId) {
   const cb = getCircuitBreaker(serviceId);
-  if (cb.state === "closed") return false;
-  if (cb.state === "open") {
+  if (cb.state === 'closed') return false;
+  if (cb.state === 'open') {
     // 检查是否可以进入 half-open
     if (Date.now() - cb.openedAt > CIRCUIT_BREAKER_RESET_TIME) {
-      cb.state = "half-open";
+      cb.state = 'half-open';
       return false;
     }
     return true;
@@ -214,10 +214,10 @@ function selectTarget(serviceId, targets, strategy) {
   if (!targets || targets.length === 0) return null;
 
   switch (strategy) {
-    case "random": {
+    case 'random': {
       return targets[Math.floor(Math.random() * targets.length)];
     }
-    case "least-connections": {
+    case 'least-connections': {
       // 选择连接数最少的
       let minConn = Infinity;
       let selected = targets[0];
@@ -230,7 +230,7 @@ function selectTarget(serviceId, targets, strategy) {
       }
       return selected;
     }
-    case "round-robin":
+    case 'round-robin':
     default: {
       const idx = (roundRobinCounters.get(serviceId) || 0) % targets.length;
       roundRobinCounters.set(serviceId, idx + 1);
@@ -254,19 +254,19 @@ function proxyRequest(target, req, requestBody) {
       headers: {
         ...req.headers,
         host: parsedTarget.host,
-        "x-forwarded-for": req.socket.remoteAddress,
-        "x-forwarded-proto": "http",
-        "x-forwarded-host": req.headers.host || "",
+        'x-forwarded-for': req.socket.remoteAddress,
+        'x-forwarded-proto': 'http',
+        'x-forwarded-host': req.headers.host || '',
       },
     };
 
     // 删除可能导致问题的头
-    delete options.headers["content-length"];
+    delete options.headers['content-length'];
 
     const proxyReq = http.request(options, (proxyRes) => {
       const chunks = [];
-      proxyRes.on("data", (chunk) => chunks.push(chunk));
-      proxyRes.on("end", () => {
+      proxyRes.on('data', (chunk) => chunks.push(chunk));
+      proxyRes.on('end', () => {
         resolve({
           statusCode: proxyRes.statusCode,
           headers: proxyRes.headers,
@@ -275,13 +275,13 @@ function proxyRequest(target, req, requestBody) {
       });
     });
 
-    proxyReq.on("error", (err) => {
+    proxyReq.on('error', (err) => {
       reject(err);
     });
 
     proxyReq.setTimeout(30000, () => {
       proxyReq.destroy();
-      reject(new Error("上游请求超时"));
+      reject(new Error('上游请求超时'));
     });
 
     if (requestBody) {
@@ -299,8 +299,8 @@ async function checkTargetHealth(target) {
     const options = {
       hostname: parsedTarget.hostname,
       port: parsedTarget.port,
-      path: "/health",
-      method: "GET",
+      path: '/health',
+      method: 'GET',
       timeout: HEALTH_CHECK_TIMEOUT,
     };
 
@@ -308,8 +308,8 @@ async function checkTargetHealth(target) {
       resolve(healthRes.statusCode === 200);
     });
 
-    healthReq.on("error", () => resolve(false));
-    healthReq.on("timeout", () => {
+    healthReq.on('error', () => resolve(false));
+    healthReq.on('timeout', () => {
       healthReq.destroy();
       resolve(false);
     });
@@ -358,26 +358,23 @@ function validateApiKey(key) {
   const apiKeys = loadApiKeys();
   const now = new Date().toISOString();
   return (
-    apiKeys.find(
-      (k) => k.key === key && k.active && (!k.expiresAt || k.expiresAt > now),
-    ) || null
+    apiKeys.find((k) => k.key === key && k.active && (!k.expiresAt || k.expiresAt > now)) || null
   );
 }
 
 function authenticateRequest(req) {
   // 1. 检查 X-API-Key 头
-  const apiKey = req.headers["x-api-key"];
+  const apiKey = req.headers['x-api-key'];
   if (apiKey) {
     const keyData = validateApiKey(apiKey);
-    if (keyData)
-      return { authenticated: true, method: "api_key", key: keyData };
+    if (keyData) return { authenticated: true, method: 'api_key', key: keyData };
   }
 
   // 2. 检查 Bearer Token
-  const authHeader = req.headers["authorization"] || "";
-  if (authHeader.startsWith("Bearer ")) {
+  const authHeader = req.headers['authorization'] || '';
+  if (authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
-    if (token) return { authenticated: true, method: "bearer", token };
+    if (token) return { authenticated: true, method: 'bearer', token };
   }
 
   return { authenticated: false };
@@ -392,8 +389,8 @@ function matchRoute(pathname) {
   for (const route of sorted) {
     if (
       pathname === route.path ||
-      pathname.startsWith(route.path + "/") ||
-      pathname.startsWith(route.path + "?")
+      pathname.startsWith(route.path + '/') ||
+      pathname.startsWith(route.path + '?')
     ) {
       return route;
     }
@@ -418,7 +415,7 @@ async function handleGatewayRequest(req, res) {
   if (route.authRequired) {
     const auth = authenticateRequest(req);
     if (!auth.authenticated) {
-      return sendError(res, 401, "需要认证 (API Key 或 Bearer Token)");
+      return sendError(res, 401, '需要认证 (API Key 或 Bearer Token)');
     }
   }
 
@@ -427,11 +424,11 @@ async function handleGatewayRequest(req, res) {
     const clientIp = req.socket.remoteAddress;
     const limitKey = `${route.id}:${clientIp}`;
     const rlResult = checkRateLimit(limitKey, route.rateLimit, 60000);
-    res.setHeader("X-RateLimit-Limit", route.rateLimit);
-    res.setHeader("X-RateLimit-Remaining", rlResult.remaining);
-    res.setHeader("X-RateLimit-Reset", rlResult.resetAt);
+    res.setHeader('X-RateLimit-Limit', route.rateLimit);
+    res.setHeader('X-RateLimit-Remaining', rlResult.remaining);
+    res.setHeader('X-RateLimit-Reset', rlResult.resetAt);
     if (!rlResult.allowed) {
-      return sendError(res, 429, "请求过于频繁");
+      return sendError(res, 429, '请求过于频繁');
     }
   }
 
@@ -447,23 +444,19 @@ async function handleGatewayRequest(req, res) {
   }
 
   // 负载均衡选择目标
-  const target = selectTarget(
-    route.id,
-    healthyTargets,
-    route.loadBalance || "round-robin",
-  );
+  const target = selectTarget(route.id, healthyTargets, route.loadBalance || 'round-robin');
   if (!target) {
-    return sendError(res, 503, "没有可用的后端服务");
+    return sendError(res, 503, '没有可用的后端服务');
   }
 
   // 读取请求体
   let requestBody = null;
-  if (req.method !== "GET" && req.method !== "HEAD") {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
     requestBody = await new Promise((resolve, reject) => {
       const chunks = [];
-      req.on("data", (c) => chunks.push(c));
-      req.on("end", () => resolve(Buffer.concat(chunks)));
-      req.on("error", reject);
+      req.on('data', (c) => chunks.push(c));
+      req.on('end', () => resolve(Buffer.concat(chunks)));
+      req.on('error', reject);
     });
   }
 
@@ -481,16 +474,13 @@ async function handleGatewayRequest(req, res) {
       lastError = err;
       recordFailure(route.id);
       console.log(
-        `  [代理失败] ${attemptTarget.url} - ${err.message} (尝试 ${attempt + 1}/${RETRY_COUNT + 1})`,
+        `  [代理失败] ${attemptTarget.url} - ${err.message} (尝试 ${attempt + 1}/${RETRY_COUNT + 1})`
       );
       if (attempt < RETRY_COUNT) {
         // 选择另一个目标重试
-        const otherTargets = healthyTargets.filter(
-          (t) => t.url !== attemptTarget.url,
-        );
+        const otherTargets = healthyTargets.filter((t) => t.url !== attemptTarget.url);
         if (otherTargets.length > 0) {
-          attemptTarget =
-            otherTargets[Math.floor(Math.random() * otherTargets.length)];
+          attemptTarget = otherTargets[Math.floor(Math.random() * otherTargets.length)];
         }
         await new Promise((r) => setTimeout(r, RETRY_DELAY));
       }
@@ -498,27 +488,17 @@ async function handleGatewayRequest(req, res) {
   }
 
   const duration = Date.now() - startTime;
-  logAccess(
-    route.id,
-    attemptTarget,
-    req,
-    proxyResult ? proxyResult.statusCode : 502,
-    duration,
-  );
+  logAccess(route.id, attemptTarget, req, proxyResult ? proxyResult.statusCode : 502, duration);
 
   if (!proxyResult) {
-    return sendError(
-      res,
-      502,
-      `上游服务错误: ${lastError ? lastError.message : "未知错误"}`,
-    );
+    return sendError(res, 502, `上游服务错误: ${lastError ? lastError.message : '未知错误'}`);
   }
 
   // 返回代理响应
   const responseHeaders = { ...proxyResult.headers };
-  delete responseHeaders["transfer-encoding"];
-  responseHeaders["x-proxy-duration"] = `${duration}ms`;
-  responseHeaders["x-proxy-target"] = attemptTarget.url;
+  delete responseHeaders['transfer-encoding'];
+  responseHeaders['x-proxy-duration'] = `${duration}ms`;
+  responseHeaders['x-proxy-target'] = attemptTarget.url;
 
   res.writeHead(proxyResult.statusCode, responseHeaders);
   res.end(proxyResult.body);
@@ -530,24 +510,17 @@ async function handleGatewayRequest(req, res) {
 
 async function createRoute(req, res) {
   const body = await parseBody(req);
-  const {
-    name,
-    path: routePath,
-    targets,
-    authRequired,
-    rateLimit,
-    loadBalance,
-  } = body;
+  const { name, path: routePath, targets, authRequired, rateLimit, loadBalance } = body;
 
-  if (!name || !routePath) return sendError(res, 400, "路由名称和路径不能为空");
+  if (!name || !routePath) return sendError(res, 400, '路由名称和路径不能为空');
   if (!targets || !Array.isArray(targets) || targets.length === 0) {
-    return sendError(res, 400, "至少需要一个后端目标");
+    return sendError(res, 400, '至少需要一个后端目标');
   }
 
   const route = {
     id: generateId(),
     name,
-    path: routePath.startsWith("/") ? routePath : "/" + routePath,
+    path: routePath.startsWith('/') ? routePath : '/' + routePath,
     targets: targets.map((t) => ({
       url: t.url,
       healthy: true,
@@ -555,7 +528,7 @@ async function createRoute(req, res) {
     })),
     authRequired: authRequired || false,
     rateLimit: rateLimit || 0,
-    loadBalance: loadBalance || "round-robin",
+    loadBalance: loadBalance || 'round-robin',
     createdAt: new Date().toISOString(),
   };
 
@@ -574,21 +547,20 @@ function listRoutes(req, res) {
 function getRoute(req, res, routeId) {
   const routes = loadRoutes();
   const route = routes.find((r) => r.id === routeId);
-  if (!route) return sendError(res, 404, "路由不存在");
+  if (!route) return sendError(res, 404, '路由不存在');
   sendSuccess(res, route);
 }
 
 async function updateRoute(req, res, routeId) {
   const routes = loadRoutes();
   const idx = routes.findIndex((r) => r.id === routeId);
-  if (idx === -1) return sendError(res, 404, "路由不存在");
+  if (idx === -1) return sendError(res, 404, '路由不存在');
 
   const body = await parseBody(req);
   const route = routes[idx];
 
   if (body.name !== undefined) route.name = body.name;
-  if (body.path !== undefined)
-    route.path = body.path.startsWith("/") ? body.path : "/" + body.path;
+  if (body.path !== undefined) route.path = body.path.startsWith('/') ? body.path : '/' + body.path;
   if (body.authRequired !== undefined) route.authRequired = body.authRequired;
   if (body.rateLimit !== undefined) route.rateLimit = body.rateLimit;
   if (body.loadBalance !== undefined) route.loadBalance = body.loadBalance;
@@ -608,11 +580,11 @@ async function updateRoute(req, res, routeId) {
 function deleteRoute(req, res, routeId) {
   const routes = loadRoutes();
   const idx = routes.findIndex((r) => r.id === routeId);
-  if (idx === -1) return sendError(res, 404, "路由不存在");
+  if (idx === -1) return sendError(res, 404, '路由不存在');
 
   routes.splice(idx, 1);
   saveRoutes(routes);
-  sendSuccess(res, { message: "路由已删除" });
+  sendSuccess(res, { message: '路由已删除' });
 }
 
 // --- API Key 管理 ---
@@ -621,12 +593,12 @@ async function createApiKey(req, res) {
   const body = await parseBody(req);
   const { name, expiresAt } = body;
 
-  if (!name) return sendError(res, 400, "API Key 名称不能为空");
+  if (!name) return sendError(res, 400, 'API Key 名称不能为空');
 
   const apiKey = {
     id: generateId(),
     name,
-    key: `gw_${crypto.randomBytes(24).toString("hex")}`,
+    key: `gw_${crypto.randomBytes(24).toString('hex')}`,
     active: true,
     expiresAt: expiresAt || null,
     createdAt: new Date().toISOString(),
@@ -654,11 +626,11 @@ function listApiKeys(req, res) {
 function revokeApiKey(req, res, keyId) {
   const keys = loadApiKeys();
   const idx = keys.findIndex((k) => k.id === keyId);
-  if (idx === -1) return sendError(res, 404, "API Key 不存在");
+  if (idx === -1) return sendError(res, 404, 'API Key 不存在');
 
   keys[idx].active = false;
   saveApiKeys(keys);
-  sendSuccess(res, { message: "API Key 已撤销" });
+  sendSuccess(res, { message: 'API Key 已撤销' });
 }
 
 // --- 访问日志 ---
@@ -706,12 +678,12 @@ function healthCheck(req, res) {
   const totalTargets = routes.reduce((sum, r) => sum + r.targets.length, 0);
   const healthyTargets = routes.reduce(
     (sum, r) => sum + r.targets.filter((t) => t.healthy !== false).length,
-    0,
+    0
   );
 
   sendSuccess(res, {
-    service: "API 网关",
-    status: "healthy",
+    service: 'API 网关',
+    status: 'healthy',
     uptime: process.uptime(),
     routes: routes.length,
     targets: { total: totalTargets, healthy: healthyTargets },
@@ -732,55 +704,51 @@ async function handleRequest(req, res) {
 
   try {
     // 健康检查
-    if (segments.length === 1 && segments[0] === "health" && method === "GET") {
+    if (segments.length === 1 && segments[0] === 'health' && method === 'GET') {
       return healthCheck(req, res);
     }
 
     // 管理接口前缀 /gateway/
-    if (segments[0] === "gateway") {
+    if (segments[0] === 'gateway') {
       // 路由管理
-      if (segments[1] === "routes") {
-        if (method === "GET" && !segments[2]) return listRoutes(req, res);
-        if (method === "GET" && segments[2])
-          return getRoute(req, res, segments[2]);
-        if (method === "POST") return await createRoute(req, res);
-        if (method === "PUT" && segments[2])
-          return await updateRoute(req, res, segments[2]);
-        if (method === "DELETE" && segments[2])
-          return deleteRoute(req, res, segments[2]);
+      if (segments[1] === 'routes') {
+        if (method === 'GET' && !segments[2]) return listRoutes(req, res);
+        if (method === 'GET' && segments[2]) return getRoute(req, res, segments[2]);
+        if (method === 'POST') return await createRoute(req, res);
+        if (method === 'PUT' && segments[2]) return await updateRoute(req, res, segments[2]);
+        if (method === 'DELETE' && segments[2]) return deleteRoute(req, res, segments[2]);
       }
 
       // API Key 管理
-      if (segments[1] === "keys") {
-        if (method === "GET") return listApiKeys(req, res);
-        if (method === "POST") return await createApiKey(req, res);
-        if (method === "DELETE" && segments[2])
-          return revokeApiKey(req, res, segments[2]);
+      if (segments[1] === 'keys') {
+        if (method === 'GET') return listApiKeys(req, res);
+        if (method === 'POST') return await createApiKey(req, res);
+        if (method === 'DELETE' && segments[2]) return revokeApiKey(req, res, segments[2]);
       }
 
       // 访问日志
-      if (segments[1] === "logs" && method === "GET") {
+      if (segments[1] === 'logs' && method === 'GET') {
         return getAccessLogs(req, res);
       }
 
       // 熔断器状态
-      if (segments[1] === "circuit-breakers" && method === "GET") {
+      if (segments[1] === 'circuit-breakers' && method === 'GET') {
         return getCircuitBreakerStatus(req, res);
       }
 
       // 限流状态
-      if (segments[1] === "rate-limits" && method === "GET") {
+      if (segments[1] === 'rate-limits' && method === 'GET') {
         return getRateLimitStatus(req, res);
       }
 
-      return sendError(res, 404, "管理接口不存在");
+      return sendError(res, 404, '管理接口不存在');
     }
 
     // 所有其他请求走网关代理
     return await handleGatewayRequest(req, res);
   } catch (err) {
-    console.error("网关错误:", err);
-    sendError(res, 500, "网关内部错误");
+    console.error('网关错误:', err);
+    sendError(res, 500, '网关内部错误');
   }
 }
 
@@ -792,53 +760,49 @@ function initDefaultData() {
     const defaultRoutes = [
       {
         id: generateId(),
-        name: "用户服务",
-        path: "/api/users",
+        name: '用户服务',
+        path: '/api/users',
         targets: [
-          { url: "http://localhost:3001", healthy: true, activeConnections: 0 },
-          { url: "http://localhost:3002", healthy: true, activeConnections: 0 },
+          { url: 'http://localhost:3001', healthy: true, activeConnections: 0 },
+          { url: 'http://localhost:3002', healthy: true, activeConnections: 0 },
         ],
         authRequired: true,
         rateLimit: 100,
-        loadBalance: "round-robin",
+        loadBalance: 'round-robin',
         createdAt: new Date().toISOString(),
       },
       {
         id: generateId(),
-        name: "订单服务",
-        path: "/api/orders",
-        targets: [
-          { url: "http://localhost:4001", healthy: true, activeConnections: 0 },
-        ],
+        name: '订单服务',
+        path: '/api/orders',
+        targets: [{ url: 'http://localhost:4001', healthy: true, activeConnections: 0 }],
         authRequired: true,
         rateLimit: 50,
-        loadBalance: "round-robin",
+        loadBalance: 'round-robin',
         createdAt: new Date().toISOString(),
       },
       {
         id: generateId(),
-        name: "商品服务",
-        path: "/api/products",
+        name: '商品服务',
+        path: '/api/products',
         targets: [
-          { url: "http://localhost:5001", healthy: true, activeConnections: 0 },
-          { url: "http://localhost:5002", healthy: true, activeConnections: 0 },
-          { url: "http://localhost:5003", healthy: true, activeConnections: 0 },
+          { url: 'http://localhost:5001', healthy: true, activeConnections: 0 },
+          { url: 'http://localhost:5002', healthy: true, activeConnections: 0 },
+          { url: 'http://localhost:5003', healthy: true, activeConnections: 0 },
         ],
         authRequired: false,
         rateLimit: 200,
-        loadBalance: "least-connections",
+        loadBalance: 'least-connections',
         createdAt: new Date().toISOString(),
       },
       {
         id: generateId(),
-        name: "公共 API",
-        path: "/api/public",
-        targets: [
-          { url: "http://localhost:6001", healthy: true, activeConnections: 0 },
-        ],
+        name: '公共 API',
+        path: '/api/public',
+        targets: [{ url: 'http://localhost:6001', healthy: true, activeConnections: 0 }],
         authRequired: false,
         rateLimit: 0,
-        loadBalance: "round-robin",
+        loadBalance: 'round-robin',
         createdAt: new Date().toISOString(),
       },
     ];
@@ -850,8 +814,8 @@ function initDefaultData() {
     const defaultKeys = [
       {
         id: generateId(),
-        name: "测试 API Key",
-        key: `gw_${crypto.randomBytes(24).toString("hex")}`,
+        name: '测试 API Key',
+        key: `gw_${crypto.randomBytes(24).toString('hex')}`,
         active: true,
         expiresAt: null,
         createdAt: new Date().toISOString(),
@@ -871,46 +835,46 @@ const server = http.createServer(handleRequest);
 const healthCheckTimer = setInterval(runHealthChecks, HEALTH_CHECK_INTERVAL);
 
 server.listen(PORT, () => {
-  console.log("╔══════════════════════════════════════════════╗");
-  console.log("║            API 网关已启动                    ║");
-  console.log("╚══════════════════════════════════════════════╝");
+  console.log('╔══════════════════════════════════════════════╗');
+  console.log('║            API 网关已启动                    ║');
+  console.log('╚══════════════════════════════════════════════╝');
   console.log(`  地址: http://localhost:${PORT}`);
-  console.log("");
-  console.log("  管理接口:");
-  console.log("  ├─ GET    /gateway/routes              路由列表");
-  console.log("  ├─ POST   /gateway/routes              创建路由");
-  console.log("  ├─ GET    /gateway/routes/:id          路由详情");
-  console.log("  ├─ PUT    /gateway/routes/:id          更新路由");
-  console.log("  ├─ DELETE /gateway/routes/:id          删除路由");
-  console.log("  ├─ GET    /gateway/keys                API Key 列表");
-  console.log("  ├─ POST   /gateway/keys                创建 API Key");
-  console.log("  ├─ DELETE /gateway/keys/:id            撤销 API Key");
-  console.log("  ├─ GET    /gateway/logs                访问日志");
-  console.log("  ├─ GET    /gateway/circuit-breakers    熔断器状态");
-  console.log("  └─ GET    /gateway/rate-limits         限流状态");
-  console.log("");
-  console.log("  网关代理:");
-  console.log("  └─ *      匹配已配置路由的请求将被代理转发");
-  console.log("");
-  console.log("  负载均衡策略: round-robin | random | least-connections");
-  console.log("  认证方式: X-API-Key | Authorization: Bearer");
-  console.log("");
-  console.log("  默认路由:");
-  console.log("  ├─ /api/users    → 用户服务 (需认证, 限流100/min)");
-  console.log("  ├─ /api/orders   → 订单服务 (需认证, 限流50/min)");
-  console.log("  ├─ /api/products → 商品服务 (不限认证, 限流200/min)");
-  console.log("  └─ /api/public   → 公共 API (无限制)");
-  console.log("");
-  console.log("  健康检查: http://localhost:" + PORT + "/health");
-  console.log("");
+  console.log('');
+  console.log('  管理接口:');
+  console.log('  ├─ GET    /gateway/routes              路由列表');
+  console.log('  ├─ POST   /gateway/routes              创建路由');
+  console.log('  ├─ GET    /gateway/routes/:id          路由详情');
+  console.log('  ├─ PUT    /gateway/routes/:id          更新路由');
+  console.log('  ├─ DELETE /gateway/routes/:id          删除路由');
+  console.log('  ├─ GET    /gateway/keys                API Key 列表');
+  console.log('  ├─ POST   /gateway/keys                创建 API Key');
+  console.log('  ├─ DELETE /gateway/keys/:id            撤销 API Key');
+  console.log('  ├─ GET    /gateway/logs                访问日志');
+  console.log('  ├─ GET    /gateway/circuit-breakers    熔断器状态');
+  console.log('  └─ GET    /gateway/rate-limits         限流状态');
+  console.log('');
+  console.log('  网关代理:');
+  console.log('  └─ *      匹配已配置路由的请求将被代理转发');
+  console.log('');
+  console.log('  负载均衡策略: round-robin | random | least-connections');
+  console.log('  认证方式: X-API-Key | Authorization: Bearer');
+  console.log('');
+  console.log('  默认路由:');
+  console.log('  ├─ /api/users    → 用户服务 (需认证, 限流100/min)');
+  console.log('  ├─ /api/orders   → 订单服务 (需认证, 限流50/min)');
+  console.log('  ├─ /api/products → 商品服务 (不限认证, 限流200/min)');
+  console.log('  └─ /api/public   → 公共 API (无限制)');
+  console.log('');
+  console.log('  健康检查: http://localhost:' + PORT + '/health');
+  console.log('');
 });
 
 // 优雅关闭
-process.on("SIGINT", () => {
-  console.log("\n正在关闭 API 网关...");
+process.on('SIGINT', () => {
+  console.log('\n正在关闭 API 网关...');
   clearInterval(healthCheckTimer);
   server.close(() => {
-    console.log("API 网关已关闭");
+    console.log('API 网关已关闭');
     process.exit(0);
   });
 });

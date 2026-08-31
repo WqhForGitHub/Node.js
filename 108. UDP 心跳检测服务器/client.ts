@@ -6,7 +6,7 @@
 import * as dgram from 'dgram';
 
 const port = parseInt(process.argv[2] || '41234', 10);
-const interval = (parseInt(process.argv[3] || '5', 10)) * 1000;
+const interval = parseInt(process.argv[3] || '5', 10) * 1000;
 const id = Math.floor(Math.random() * 1e6).toString();
 
 const sock = dgram.createSocket('udp4');

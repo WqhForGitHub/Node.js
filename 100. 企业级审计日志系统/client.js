@@ -55,7 +55,10 @@ class AuditClient {
           port: u.port,
           path: u.pathname,
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) },
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(data),
+          },
         },
         (res) => {
           let chunks = '';

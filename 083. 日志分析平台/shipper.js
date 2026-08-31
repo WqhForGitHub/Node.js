@@ -20,7 +20,7 @@ if (!file) {
       process.stdout.write(line);
     }, 500);
   });
-  sock.on('error', e => console.error('连接错误:', e.message));
+  sock.on('error', (e) => console.error('连接错误:', e.message));
   return;
 }
 
@@ -33,9 +33,9 @@ const sock = net.connect(TCP_PORT, '127.0.0.1', () => {
     if (stat.size < position) position = 0;
     if (stat.size > position) {
       const stream = fs.createReadStream(file, { start: position, end: stat.size });
-      stream.on('data', chunk => sock.write(chunk));
+      stream.on('data', (chunk) => sock.write(chunk));
       position = stat.size;
     }
   });
 });
-sock.on('error', e => console.error('连接错误:', e.message));
+sock.on('error', (e) => console.error('连接错误:', e.message));

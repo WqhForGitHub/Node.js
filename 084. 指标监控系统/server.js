@@ -13,8 +13,21 @@ const history = []; // { ts, snapshot }
 const MAX_HISTORY = 300;
 
 // 默认告警规则
-alerter.addRule({ name: '错误率过高', metric: 'http_errors_total', op: '>', threshold: 100, duration: 0 });
-alerter.addRule({ name: '响应时间 P99 过高', metric: 'http_request_duration_ms', field: 'p99', op: '>', threshold: 1000, duration: 5000 });
+alerter.addRule({
+  name: '错误率过高',
+  metric: 'http_errors_total',
+  op: '>',
+  threshold: 100,
+  duration: 0,
+});
+alerter.addRule({
+  name: '响应时间 P99 过高',
+  metric: 'http_request_duration_ms',
+  field: 'p99',
+  op: '>',
+  threshold: 1000,
+  duration: 5000,
+});
 
 const server = http.createServer((req, res) => {
   const u = url.parse(req.url, true);
@@ -22,42 +35,54 @@ const server = http.createServer((req, res) => {
   // POST /metrics/inc?name=xxx
   if (req.method === 'POST' && u.pathname === '/metrics/inc') {
     registry.counter(u.query.name).inc({}, parseFloat(u.query.value || '1'));
-    res.end('{"ok":true}'); return;
+    res.end('{"ok":true}');
+    return;
   }
   if (req.method === 'POST' && u.pathname === '/metrics/gauge') {
     registry.gauge(u.query.name).set({}, parseFloat(u.query.value));
-    res.end('{"ok":true}'); return;
+    res.end('{"ok":true}');
+    return;
   }
   if (req.method === 'POST' && u.pathname === '/metrics/observe') {
     registry.histogram(u.query.name).observe(parseFloat(u.query.value));
-    res.end('{"ok":true}'); return;
+    res.end('{"ok":true}');
+    return;
   }
 
   if (req.method === 'GET' && u.pathname === '/metrics') {
     res.setHeader('Content-Type', 'text/plain');
-    res.end(registry.prometheus()); return;
+    res.end(registry.prometheus());
+    return;
   }
   if (req.method === 'GET' && u.pathname === '/snapshot') {
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(registry.snapshot())); return;
+    res.end(JSON.stringify(registry.snapshot()));
+    return;
   }
   if (req.method === 'GET' && u.pathname === '/history') {
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(history)); return;
+    res.end(JSON.stringify(history));
+    return;
   }
   if (req.method === 'GET' && u.pathname === '/alerts') {
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ firing: [...alerter.firing.keys()], history: alerter.history.slice(-50) })); return;
+    res.end(
+      JSON.stringify({ firing: [...alerter.firing.keys()], history: alerter.history.slice(-50) })
+    );
+    return;
   }
 
   if (req.method === 'POST' && u.pathname === '/rules') {
     let body = '';
-    req.on('data', d => body += d);
+    req.on('data', (d) => (body += d));
     req.on('end', () => {
       try {
         const id = alerter.addRule(JSON.parse(body));
         res.end(JSON.stringify({ ok: true, id }));
-      } catch (e) { res.statusCode = 400; res.end(JSON.stringify({ error: e.message })); }
+      } catch (e) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: e.message }));
+      }
     });
     return;
   }
@@ -92,4 +117,7 @@ setInterval(() => {
 }, 2000);
 
 server.listen(PORT, () => console.log(`指标监控: http://127.0.0.1:${PORT}`));
-process.on('SIGINT', () => { server.close(); process.exit(0); });
+process.on('SIGINT', () => {
+  server.close();
+  process.exit(0);
+});

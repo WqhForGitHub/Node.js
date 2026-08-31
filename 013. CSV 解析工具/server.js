@@ -1,10 +1,10 @@
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const url = require("url");
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const url = require('url');
 
 const PORT = 3013;
-const DATA_DIR = path.join(__dirname, "data");
+const DATA_DIR = path.join(__dirname, 'data');
 
 // ============================================================
 // 1. 确保数据目录存在 & 创建示例文件
@@ -16,7 +16,7 @@ if (!fs.existsSync(DATA_DIR)) {
 /** 创建示例 CSV 文件 */
 function createSampleFiles() {
   // 示例 1: 员工信息表（标准逗号分隔）
-  const employees = path.join(DATA_DIR, "员工信息.csv");
+  const employees = path.join(DATA_DIR, '员工信息.csv');
   if (!fs.existsSync(employees)) {
     fs.writeFileSync(
       employees,
@@ -31,12 +31,12 @@ function createSampleFiles() {
 郑十,技术部,架构师,35000,2017-04-20,zhengshi@example.com
 陈一一,运营部,运营专员,14000,2022-12-01,chenyy@example.com
 林二二,技术部,测试工程师,16000,2021-08-10,liner@example.com`,
-      "utf-8",
+      'utf-8'
     );
   }
 
   // 示例 2: 商品销售表（含引号字段、逗号在字段内）
-  const sales = path.join(DATA_DIR, "商品销售.csv");
+  const sales = path.join(DATA_DIR, '商品销售.csv');
   if (!fs.existsSync(sales)) {
     fs.writeFileSync(
       sales,
@@ -49,12 +49,12 @@ function createSampleFiles() {
 "真皮钱包","配饰",399.00,400,159600.00,"头层牛皮,手工制作"
 "瑜伽垫","运动",79.00,1800,142200.00,"6mm加厚,防滑设计"
 "进口巧克力","食品",45.80,2500,114500.00,"比利时进口,纯可可脂"`,
-      "utf-8",
+      'utf-8'
     );
   }
 
   // 示例 3: 学生成绩表（分号分隔）
-  const scores = path.join(DATA_DIR, "学生成绩.csv");
+  const scores = path.join(DATA_DIR, '学生成绩.csv');
   if (!fs.existsSync(scores)) {
     fs.writeFileSync(
       scores,
@@ -69,21 +69,21 @@ function createSampleFiles() {
 20240008;周杰;75;96;65;99;98;433
 20240009;吴敏;98;90;92;85;80;445
 20240010;孙磊;80;94;76;93;92;435`,
-      "utf-8",
+      'utf-8'
     );
   }
 
   // 示例 4: 服务器日志（Tab 分隔）
-  const logs = path.join(DATA_DIR, "服务器日志.csv");
+  const logs = path.join(DATA_DIR, '服务器日志.csv');
   if (!fs.existsSync(logs)) {
-    const lines = ["时间\t级别\t来源\t状态码\t耗时(ms)\t详情"];
-    const levels = ["INFO", "WARN", "ERROR", "DEBUG"];
+    const lines = ['时间\t级别\t来源\t状态码\t耗时(ms)\t详情'];
+    const levels = ['INFO', 'WARN', 'ERROR', 'DEBUG'];
     const sources = [
-      "api-gateway",
-      "auth-service",
-      "user-service",
-      "order-service",
-      "payment-service",
+      'api-gateway',
+      'auth-service',
+      'user-service',
+      'order-service',
+      'payment-service',
     ];
     const statuses = [200, 201, 301, 400, 401, 403, 404, 500, 502, 503];
     for (let i = 0; i < 30; i++) {
@@ -98,15 +98,13 @@ function createSampleFiles() {
           : status >= 400
             ? `Invalid request parameter`
             : `Request processed successfully`;
-      lines.push(
-        `${d.toISOString()}\t${level}\t${source}\t${status}\t${duration}\t${detail}`,
-      );
+      lines.push(`${d.toISOString()}\t${level}\t${source}\t${status}\t${duration}\t${detail}`);
     }
-    fs.writeFileSync(logs, lines.join("\n"), "utf-8");
+    fs.writeFileSync(logs, lines.join('\n'), 'utf-8');
   }
 
   // 示例 5: 含转义引号的 CSV
-  const quotes = path.join(DATA_DIR, "书籍清单.csv");
+  const quotes = path.join(DATA_DIR, '书籍清单.csv');
   if (!fs.existsSync(quotes)) {
     fs.writeFileSync(
       quotes,
@@ -116,7 +114,7 @@ function createSampleFiles() {
 "算法导论","Thomas H. Cormen","MIT Press",128.00,"涵盖""排序、图论、动态规划""等核心算法"
 "设计模式","Erich Gamma","机械工业出版社",79.00,"GoF经典之作,""模式""入门首选"
 "代码大全","Steve McConnell","电子工业出版社",118.00,"软件构建的""百科全书"",实用指南"`,
-      "utf-8",
+      'utf-8'
     );
   }
 }
@@ -143,7 +141,7 @@ class CSVParser {
    * @param {boolean} [options.bom=true]       - 是否处理 BOM 头
    */
   constructor(options = {}) {
-    this.delimiter = options.delimiter || ",";
+    this.delimiter = options.delimiter || ',';
     this.quote = options.quote || '"';
     this.escape = options.escape !== false;
     this.header = options.header !== false;
@@ -184,7 +182,7 @@ class CSVParser {
       const obj = {};
       for (let j = 0; j < headers.length; j++) {
         const key = headers[j] || `column_${j}`;
-        obj[key] = j < raw.length ? raw[j] : "";
+        obj[key] = j < raw.length ? raw[j] : '';
       }
       rows.push(obj);
     }
@@ -200,7 +198,7 @@ class CSVParser {
   _parseRows(input) {
     const rows = [];
     let row = [];
-    let field = "";
+    let field = '';
     let inQuotes = false;
     let i = 0;
 
@@ -210,11 +208,7 @@ class CSVParser {
       if (inQuotes) {
         if (ch === this.quote) {
           // 检查是否为转义引号（双引号）
-          if (
-            this.escape &&
-            i + 1 < input.length &&
-            input[i + 1] === this.quote
-          ) {
+          if (this.escape && i + 1 < input.length && input[i + 1] === this.quote) {
             field += this.quote;
             i += 2;
             continue;
@@ -228,32 +222,32 @@ class CSVParser {
         field += ch;
         i++;
       } else {
-        if (ch === this.quote && field === "") {
+        if (ch === this.quote && field === '') {
           // 进入引号模式（只在字段开头才视为引号开始）
           inQuotes = true;
           i++;
         } else if (ch === this.delimiter) {
           row.push(this.trim ? field.trim() : field);
-          field = "";
+          field = '';
           i++;
-        } else if (ch === "\r") {
+        } else if (ch === '\r') {
           // 处理 \r\n 或单独 \r
           row.push(this.trim ? field.trim() : field);
-          field = "";
-          if (i + 1 < input.length && input[i + 1] === "\n") {
+          field = '';
+          if (i + 1 < input.length && input[i + 1] === '\n') {
             i += 2;
           } else {
             i++;
           }
-          if (!this.skipEmpty || row.some((f) => f !== "")) {
+          if (!this.skipEmpty || row.some((f) => f !== '')) {
             rows.push(row);
           }
           row = [];
-        } else if (ch === "\n") {
+        } else if (ch === '\n') {
           row.push(this.trim ? field.trim() : field);
-          field = "";
+          field = '';
           i++;
-          if (!this.skipEmpty || row.some((f) => f !== "")) {
+          if (!this.skipEmpty || row.some((f) => f !== '')) {
             rows.push(row);
           }
           row = [];
@@ -265,9 +259,9 @@ class CSVParser {
     }
 
     // 处理最后一行
-    if (field !== "" || row.length > 0) {
+    if (field !== '' || row.length > 0) {
       row.push(this.trim ? field.trim() : field);
-      if (!this.skipEmpty || row.some((f) => f !== "")) {
+      if (!this.skipEmpty || row.some((f) => f !== '')) {
         rows.push(row);
       }
     }
@@ -288,7 +282,7 @@ class CSVParser {
 
     // 取前几行（跳过引号内的分隔符）
     const firstLines = input.split(/\r?\n/).slice(0, 5);
-    const candidates = [",", "\t", ";", "|"];
+    const candidates = [',', '\t', ';', '|'];
     const scores = {};
 
     for (const sep of candidates) {
@@ -312,7 +306,7 @@ class CSVParser {
       }
     }
 
-    let best = ",";
+    let best = ',';
     let bestScore = 0;
     for (const [sep, score] of Object.entries(scores)) {
       if (score > bestScore) {
@@ -359,19 +353,16 @@ function countOutsideQuotes(line, sep) {
  * @returns {string}
  */
 function serializeCSV(headers, rows, options = {}) {
-  const delimiter = options.delimiter || ",";
+  const delimiter = options.delimiter || ',';
   const quote = options.quote || '"';
   const addBom = options.bom !== false;
 
   function escapeField(field) {
-    const str = String(field ?? "");
+    const str = String(field ?? '');
     const needsQuote =
-      str.includes(delimiter) ||
-      str.includes(quote) ||
-      str.includes("\n") ||
-      str.includes("\r");
+      str.includes(delimiter) || str.includes(quote) || str.includes('\n') || str.includes('\r');
     if (!needsQuote) return str;
-    return quote + str.replace(new RegExp(quote, "g"), quote + quote) + quote;
+    return quote + str.replace(new RegExp(quote, 'g'), quote + quote) + quote;
   }
 
   const lines = [];
@@ -380,8 +371,8 @@ function serializeCSV(headers, rows, options = {}) {
     lines.push(headers.map((h) => escapeField(row[h])).join(delimiter));
   }
 
-  const csv = lines.join("\n");
-  return addBom ? "\ufeff" + csv : csv;
+  const csv = lines.join('\n');
+  return addBom ? '\ufeff' + csv : csv;
 }
 
 // ============================================================
@@ -391,14 +382,14 @@ function serializeCSV(headers, rows, options = {}) {
 /** 发送 JSON 响应 */
 function send(res, statusCode, data) {
   res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
+    'Content-Type': 'application/json; charset=utf-8',
   });
   res.end(JSON.stringify(data));
 }
 
 /** 发送 HTML 响应 */
 function sendHTML(res, html) {
-  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);
 }
 
@@ -407,17 +398,17 @@ function readBody(req, maxBytes = 10 * 1024 * 1024) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let size = 0;
-    req.on("data", (chunk) => {
+    req.on('data', (chunk) => {
       size += chunk.length;
       if (size > maxBytes) {
         req.destroy();
-        reject(new Error("请求体过大"));
+        reject(new Error('请求体过大'));
         return;
       }
       chunks.push(chunk);
     });
-    req.on("end", () => resolve(Buffer.concat(chunks)));
-    req.on("error", reject);
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
   });
 }
 
@@ -430,15 +421,13 @@ function safePath(base, relative) {
 
 /** 判断是否为数字字符串 */
 function isNumeric(val) {
-  if (val === "" || val === null || val === undefined) return false;
+  if (val === '' || val === null || val === undefined) return false;
   return !isNaN(val) && !isNaN(parseFloat(val));
 }
 
 /** 计算列统计信息 */
 function columnStats(values) {
-  const nonEmpty = values.filter(
-    (v) => v !== "" && v !== null && v !== undefined,
-  );
+  const nonEmpty = values.filter((v) => v !== '' && v !== null && v !== undefined);
   const numericVals = nonEmpty.filter(isNumeric).map(Number);
 
   const stats = {
@@ -450,22 +439,20 @@ function columnStats(values) {
 
   if (numericVals.length > nonEmpty.length * 0.5 && numericVals.length > 0) {
     // 超过一半是数字，视为数值列
-    stats.type = "number";
+    stats.type = 'number';
     stats.min = Math.min(...numericVals);
     stats.max = Math.max(...numericVals);
     stats.sum = numericVals.reduce((a, b) => a + b, 0);
     stats.avg = +(stats.sum / numericVals.length).toFixed(2);
   } else {
     // 文本列
-    stats.type = "text";
+    stats.type = 'text';
     const freq = {};
     for (const v of nonEmpty) {
       freq[v] = (freq[v] || 0) + 1;
     }
     const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
-    stats.topValues = sorted
-      .slice(0, 5)
-      .map(([val, count]) => ({ val, count }));
+    stats.topValues = sorted.slice(0, 5).map(([val, count]) => ({ val, count }));
   }
 
   return stats;
@@ -474,7 +461,7 @@ function columnStats(values) {
 /** 解析 multipart/form-data 上传（简易实现） */
 function parseMultipart(body, boundary) {
   const parts = [];
-  const boundaryBuf = Buffer.from("--" + boundary);
+  const boundaryBuf = Buffer.from('--' + boundary);
   let start = body.indexOf(boundaryBuf) + boundaryBuf.length;
 
   while (start < body.length) {
@@ -486,10 +473,10 @@ function parseMultipart(body, boundary) {
     if (nextBoundary === -1) break;
 
     const partData = body.slice(start, nextBoundary - 2); // 减去 \r\n
-    const headerEnd = partData.indexOf("\r\n\r\n");
+    const headerEnd = partData.indexOf('\r\n\r\n');
     if (headerEnd === -1) break;
 
-    const headerStr = partData.slice(0, headerEnd).toString("utf-8");
+    const headerStr = partData.slice(0, headerEnd).toString('utf-8');
     const content = partData.slice(headerEnd + 4);
 
     // 解析 Content-Disposition
@@ -497,7 +484,7 @@ function parseMultipart(body, boundary) {
     const filenameMatch = headerStr.match(/filename="([^"]+)"/);
 
     parts.push({
-      name: nameMatch ? nameMatch[1] : "",
+      name: nameMatch ? nameMatch[1] : '',
       filename: filenameMatch ? filenameMatch[1] : null,
       content,
     });
@@ -519,18 +506,18 @@ let fileIdCounter = 0;
 /** 加载示例文件到存储 */
 function loadSampleFiles() {
   const files = [
-    { name: "员工信息.csv", delimiter: "," },
-    { name: "商品销售.csv", delimiter: "," },
-    { name: "学生成绩.csv", delimiter: ";" },
-    { name: "服务器日志.csv", delimiter: "\t" },
-    { name: "书籍清单.csv", delimiter: "," },
+    { name: '员工信息.csv', delimiter: ',' },
+    { name: '商品销售.csv', delimiter: ',' },
+    { name: '学生成绩.csv', delimiter: ';' },
+    { name: '服务器日志.csv', delimiter: '\t' },
+    { name: '书籍清单.csv', delimiter: ',' },
   ];
 
   for (const f of files) {
     const filePath = path.join(DATA_DIR, f.name);
     if (!fs.existsSync(filePath)) continue;
 
-    const content = fs.readFileSync(filePath, "utf-8");
+    const content = fs.readFileSync(filePath, 'utf-8');
     const parser = new CSVParser({ delimiter: f.delimiter });
     const result = parser.parse(content);
 
@@ -1097,14 +1084,14 @@ function handleListFiles(req, res) {
   const files = [];
   for (const [id, data] of csvStore) {
     const delimiterName =
-      data.delimiter === ","
-        ? "逗号"
-        : data.delimiter === ";"
-          ? "分号"
-          : data.delimiter === "\t"
-            ? "Tab"
-            : data.delimiter === "|"
-              ? "竖线"
+      data.delimiter === ','
+        ? '逗号'
+        : data.delimiter === ';'
+          ? '分号'
+          : data.delimiter === '\t'
+            ? 'Tab'
+            : data.delimiter === '|'
+              ? '竖线'
               : data.delimiter;
     files.push({
       id,
@@ -1122,7 +1109,7 @@ function handleListFiles(req, res) {
 function handleGetFile(req, res, fileId) {
   const data = csvStore.get(fileId);
   if (!data) {
-    return send(res, 404, { success: false, error: "文件不存在" });
+    return send(res, 404, { success: false, error: '文件不存在' });
   }
   send(res, 200, {
     success: true,
@@ -1140,17 +1127,17 @@ function handleGetFile(req, res, fileId) {
 /** POST /api/upload — 上传 CSV 文件 */
 async function handleUpload(req, res) {
   try {
-    const contentType = req.headers["content-type"] || "";
-    if (!contentType.includes("multipart/form-data")) {
+    const contentType = req.headers['content-type'] || '';
+    if (!contentType.includes('multipart/form-data')) {
       return send(res, 400, {
         success: false,
-        error: "需要 multipart/form-data",
+        error: '需要 multipart/form-data',
       });
     }
 
-    const boundary = contentType.split("boundary=")[1];
+    const boundary = contentType.split('boundary=')[1];
     if (!boundary) {
-      return send(res, 400, { success: false, error: "缺少 boundary" });
+      return send(res, 400, { success: false, error: '缺少 boundary' });
     }
 
     const body = await readBody(req, 10 * 1024 * 1024);
@@ -1158,10 +1145,10 @@ async function handleUpload(req, res) {
 
     const filePart = parts.find((p) => p.filename);
     if (!filePart) {
-      return send(res, 400, { success: false, error: "未找到上传文件" });
+      return send(res, 400, { success: false, error: '未找到上传文件' });
     }
 
-    const content = filePart.content.toString("utf-8");
+    const content = filePart.content.toString('utf-8');
     const delimiter = CSVParser.detectDelimiter(content);
     const parser = new CSVParser({ delimiter });
     const result = parser.parse(content);
@@ -1169,7 +1156,7 @@ async function handleUpload(req, res) {
     if (result.headers.length === 0) {
       return send(res, 400, {
         success: false,
-        error: "无法解析 CSV，文件可能为空",
+        error: '无法解析 CSV，文件可能为空',
       });
     }
 
@@ -1197,41 +1184,41 @@ async function handleUpload(req, res) {
       },
     });
   } catch (err) {
-    console.error("上传处理错误:", err);
-    send(res, 500, { success: false, error: "上传处理失败: " + err.message });
+    console.error('上传处理错误:', err);
+    send(res, 500, { success: false, error: '上传处理失败: ' + err.message });
   }
 }
 
 /** POST /api/parse — 解析手动输入的 CSV */
 function handleParse(req, res) {
-  let body = "";
-  req.on("data", (chunk) => {
+  let body = '';
+  req.on('data', (chunk) => {
     body += chunk;
     if (body.length > 1024 * 1024) {
       req.destroy();
-      send(res, 413, { success: false, error: "内容过大" });
+      send(res, 413, { success: false, error: '内容过大' });
     }
   });
-  req.on("end", () => {
+  req.on('end', () => {
     try {
       const parsed = JSON.parse(body);
       const content = parsed.content;
       if (!content || !content.trim()) {
-        return send(res, 400, { success: false, error: "内容为空" });
+        return send(res, 400, { success: false, error: '内容为空' });
       }
 
-      let delimiter = parsed.delimiter || "auto";
-      if (delimiter === "auto") {
+      let delimiter = parsed.delimiter || 'auto';
+      if (delimiter === 'auto') {
         delimiter = CSVParser.detectDelimiter(content);
-      } else if (delimiter === "\\t" || delimiter === "\t") {
-        delimiter = "\t";
+      } else if (delimiter === '\\t' || delimiter === '\t') {
+        delimiter = '\t';
       }
 
       const parser = new CSVParser({ delimiter });
       const result = parser.parse(content);
 
       if (result.headers.length === 0) {
-        return send(res, 400, { success: false, error: "无法解析 CSV" });
+        return send(res, 400, { success: false, error: '无法解析 CSV' });
       }
 
       const id = String(++fileIdCounter);
@@ -1241,7 +1228,7 @@ function handleParse(req, res) {
         rows: result.rows,
         rawRows: result.rawRows,
         delimiter,
-        filename: "手动输入",
+        filename: '手动输入',
         uploadedAt: new Date().toISOString(),
       };
       csvStore.set(id, entry);
@@ -1254,11 +1241,11 @@ function handleParse(req, res) {
           rows: result.rows,
           rawRows: result.rawRows,
           delimiter,
-          filename: "手动输入",
+          filename: '手动输入',
         },
       });
     } catch (err) {
-      send(res, 400, { success: false, error: "解析失败: " + err.message });
+      send(res, 400, { success: false, error: '解析失败: ' + err.message });
     }
   });
 }
@@ -1267,72 +1254,65 @@ function handleParse(req, res) {
 function handleExport(req, res, fileId, parsedUrl) {
   const data = csvStore.get(fileId);
   if (!data) {
-    return send(res, 404, { success: false, error: "文件不存在" });
+    return send(res, 404, { success: false, error: '文件不存在' });
   }
 
-  const format = (parsedUrl.query && parsedUrl.query.format) || "csv";
+  const format = (parsedUrl.query && parsedUrl.query.format) || 'csv';
 
-  if (format === "csv") {
+  if (format === 'csv') {
     const csv = serializeCSV(data.headers, data.rows, {
       delimiter: data.delimiter,
     });
-    const baseName = data.filename.replace(/\.\w+$/, "");
+    const baseName = data.filename.replace(/\.\w+$/, '');
     res.writeHead(200, {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(baseName + ".csv")}`,
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(baseName + '.csv')}`,
     });
-    res.end(csv, "utf-8");
-  } else if (format === "json") {
+    res.end(csv, 'utf-8');
+  } else if (format === 'json') {
     const json = JSON.stringify(
       { headers: data.headers, rows: data.rows, total: data.rows.length },
       null,
-      2,
+      2
     );
-    const baseName = data.filename.replace(/\.\w+$/, "");
+    const baseName = data.filename.replace(/\.\w+$/, '');
     res.writeHead(200, {
-      "Content-Type": "application/json; charset=utf-8",
-      "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(baseName + ".json")}`,
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(baseName + '.json')}`,
     });
-    res.end(json, "utf-8");
-  } else if (format === "sql") {
+    res.end(json, 'utf-8');
+  } else if (format === 'sql') {
     const tableName =
-      data.filename
-        .replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, "_")
-        .replace(/^_+|_+$/g, "") || "csv_data";
-    const safeColumns = data.headers.map((h) =>
-      h.replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g, "_"),
-    );
+      data.filename.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '_').replace(/^_+|_+$/g, '') ||
+      'csv_data';
+    const safeColumns = data.headers.map((h) => h.replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g, '_'));
     const lines = [];
 
     // CREATE TABLE
     lines.push(`CREATE TABLE IF NOT EXISTS \`${tableName}\` (`);
     lines.push(`  id INTEGER PRIMARY KEY AUTOINCREMENT,`);
-    lines.push(
-      data.headers.map((h, i) => `  \`${safeColumns[i]}\` TEXT`).join(",\n"),
-    );
-    lines.push(");");
-    lines.push("");
+    lines.push(data.headers.map((h, i) => `  \`${safeColumns[i]}\` TEXT`).join(',\n'));
+    lines.push(');');
+    lines.push('');
 
     // INSERT
     for (const row of data.rows) {
       const values = data.headers.map((h) => {
-        const v = row[h] || "";
+        const v = row[h] || '';
         return "'" + v.replace(/'/g, "''") + "'";
       });
-      const cols = safeColumns.map((c) => `\`${c}\``).join(", ");
-      lines.push(
-        `INSERT INTO \`${tableName}\` (${cols}) VALUES (${values.join(", ")});`,
-      );
+      const cols = safeColumns.map((c) => `\`${c}\``).join(', ');
+      lines.push(`INSERT INTO \`${tableName}\` (${cols}) VALUES (${values.join(', ')});`);
     }
 
-    const baseName = data.filename.replace(/\.\w+$/, "");
+    const baseName = data.filename.replace(/\.\w+$/, '');
     res.writeHead(200, {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(baseName + ".sql")}`,
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(baseName + '.sql')}`,
     });
-    res.end(lines.join("\n"), "utf-8");
+    res.end(lines.join('\n'), 'utf-8');
   } else {
-    send(res, 400, { success: false, error: "不支持的导出格式: " + format });
+    send(res, 400, { success: false, error: '不支持的导出格式: ' + format });
   }
 }
 
@@ -1340,7 +1320,7 @@ function handleExport(req, res, fileId, parsedUrl) {
 function handleStats(req, res, fileId) {
   const data = csvStore.get(fileId);
   if (!data) {
-    return send(res, 404, { success: false, error: "文件不存在" });
+    return send(res, 404, { success: false, error: '文件不存在' });
   }
 
   const stats = {};
@@ -1363,60 +1343,57 @@ function handler(req, res) {
   const method = req.method;
 
   // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (method === "OPTIONS") {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
   }
 
   try {
     // GET / — 主页面
-    if (method === "GET" && pathname === "/") {
+    if (method === 'GET' && pathname === '/') {
       return handleIndex(req, res);
     }
 
     // GET /api/files — 文件列表
-    if (method === "GET" && pathname === "/api/files") {
+    if (method === 'GET' && pathname === '/api/files') {
       return handleListFiles(req, res);
     }
 
     // POST /api/upload — 上传文件
-    if (method === "POST" && pathname === "/api/upload") {
+    if (method === 'POST' && pathname === '/api/upload') {
       return handleUpload(req, res);
     }
 
     // POST /api/parse — 解析手动输入
-    if (method === "POST" && pathname === "/api/parse") {
+    if (method === 'POST' && pathname === '/api/parse') {
       return handleParse(req, res);
     }
 
     // GET /api/export/:id — 导出
     const exportMatch = pathname.match(/^\/api\/export\/([^/]+)$/);
-    if (method === "GET" && exportMatch) {
+    if (method === 'GET' && exportMatch) {
       return handleExport(req, res, exportMatch[1], parsedUrl);
     }
 
     // GET /api/stats/:id — 统计
     const statsMatch = pathname.match(/^\/api\/stats\/([^/]+)$/);
-    if (method === "GET" && statsMatch) {
+    if (method === 'GET' && statsMatch) {
       return handleStats(req, res, statsMatch[1]);
     }
 
     // GET /api/files/:id — 获取文件数据
     const fileMatch = pathname.match(/^\/api\/files\/([^/]+)$/);
-    if (method === "GET" && fileMatch) {
+    if (method === 'GET' && fileMatch) {
       return handleGetFile(req, res, fileMatch[1]);
     }
 
-    send(res, 404, { success: false, error: "路由不存在" });
+    send(res, 404, { success: false, error: '路由不存在' });
   } catch (err) {
-    console.error("请求处理错误:", err);
-    send(res, 500, { success: false, error: "内部服务器错误" });
+    console.error('请求处理错误:', err);
+    send(res, 500, { success: false, error: '内部服务器错误' });
   }
 }
 
@@ -1461,10 +1438,10 @@ server.listen(PORT, () => {
 });
 
 // 优雅退出
-process.on("SIGINT", () => {
-  console.log("\n服务正在关闭...");
+process.on('SIGINT', () => {
+  console.log('\n服务正在关闭...');
   server.close(() => {
-    console.log("服务已关闭");
+    console.log('服务已关闭');
     process.exit(0);
   });
 });

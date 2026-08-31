@@ -3,39 +3,56 @@
 
 const EARTH_RADIUS = 6371000; // 米
 
-function deg2rad(d) { return d * Math.PI / 180; }
+function deg2rad(d) {
+  return (d * Math.PI) / 180;
+}
 
 // Haversine 距离公式（米）
 function haversine(lat1, lon1, lat2, lon2) {
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
-  const a = Math.sin(dLat/2) ** 2 +
-            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-            Math.sin(dLon/2) ** 2;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) ** 2;
   return 2 * EARTH_RADIUS * Math.asin(Math.sqrt(a));
 }
 
 // GeoHash 编码（简化版，base32）
 const BASE32 = '0123456789bcdefghjkmnpqrstuvwxyz';
 function geohashEncode(lat, lon, precision = 7) {
-  let latMin = -90, latMax = 90;
-  let lonMin = -180, lonMax = 180;
-  let bits = 0, bit = 0, even = true;
+  let latMin = -90,
+    latMax = 90;
+  let lonMin = -180,
+    lonMax = 180;
+  let bits = 0,
+    bit = 0,
+    even = true;
   let hash = '';
   while (hash.length < precision) {
     if (even) {
       const mid = (lonMin + lonMax) / 2;
-      if (lon >= mid) { bits = (bits << 1) | 1; lonMin = mid; }
-      else { bits = bits << 1; lonMax = mid; }
+      if (lon >= mid) {
+        bits = (bits << 1) | 1;
+        lonMin = mid;
+      } else {
+        bits = bits << 1;
+        lonMax = mid;
+      }
     } else {
       const mid = (latMin + latMax) / 2;
-      if (lat >= mid) { bits = (bits << 1) | 1; latMin = mid; }
-      else { bits = bits << 1; latMax = mid; }
+      if (lat >= mid) {
+        bits = (bits << 1) | 1;
+        latMin = mid;
+      } else {
+        bits = bits << 1;
+        latMax = mid;
+      }
     }
     even = !even;
     if (++bit === 5) {
       hash += BASE32[bits];
-      bits = 0; bit = 0;
+      bits = 0;
+      bit = 0;
     }
   }
   return hash;
@@ -43,9 +60,9 @@ function geohashEncode(lat, lon, precision = 7) {
 
 class GeoIndex {
   constructor(precision = 6) {
-    this.precision = precision;  // 6 位 hash ≈ 1.2km 网格
-    this.cells = new Map();      // hash -> Set(userId)
-    this.locations = new Map();  // userId -> { lat, lon, hash, ts }
+    this.precision = precision; // 6 位 hash ≈ 1.2km 网格
+    this.cells = new Map(); // hash -> Set(userId)
+    this.locations = new Map(); // userId -> { lat, lon, hash, ts }
   }
 
   upsert(userId, lat, lon) {
@@ -87,8 +104,12 @@ class GeoIndex {
     return results.sort((a, b) => a.distance - b.distance);
   }
 
-  get(userId) { return this.locations.get(userId); }
-  all() { return [...this.locations]; }
+  get(userId) {
+    return this.locations.get(userId);
+  }
+  all() {
+    return [...this.locations];
+  }
 }
 
 module.exports = { GeoIndex, haversine, geohashEncode };

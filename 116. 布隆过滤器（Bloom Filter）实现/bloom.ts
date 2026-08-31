@@ -13,8 +13,11 @@ import * as crypto from 'crypto';
 
 export class BloomFilter {
   private bits: Buffer; // 位数组（按字节）
-  private n: number;    // 位数
-  constructor(sizeBits: number, private k: number) {
+  private n: number; // 位数
+  constructor(
+    sizeBits: number,
+    private k: number
+  ) {
     if (sizeBits <= 0 || k <= 0) throw new Error('invalid');
     this.n = sizeBits;
     this.bits = Buffer.alloc(Math.ceil(sizeBits / 8));
@@ -49,7 +52,9 @@ export class BloomFilter {
     return this.hash(item).every((idx) => this.getBit(idx));
   }
 
-  get bitCount() { return this.n; }
+  get bitCount() {
+    return this.n;
+  }
   get approxOnes(): number {
     let c = 0;
     for (const b of this.bits) c += countBits(b);
@@ -59,7 +64,10 @@ export class BloomFilter {
 
 function countBits(b: number): number {
   let c = 0;
-  while (b) { c += b & 1; b >>>= 1; }
+  while (b) {
+    c += b & 1;
+    b >>>= 1;
+  }
   return c;
 }
 

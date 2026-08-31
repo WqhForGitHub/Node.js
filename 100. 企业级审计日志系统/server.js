@@ -81,7 +81,10 @@ class AuditStorage extends EventEmitter {
   // 加载所有历史事件到内存索引
   loadAll() {
     if (!fs.existsSync(this.dataDir)) return;
-    const files = fs.readdirSync(this.dataDir).filter((f) => f.startsWith('audit-') && f.endsWith('.jsonl')).sort();
+    const files = fs
+      .readdirSync(this.dataDir)
+      .filter((f) => f.startsWith('audit-') && f.endsWith('.jsonl'))
+      .sort();
     let count = 0;
     for (const file of files) {
       const content = fs.readFileSync(path.join(this.dataDir, file), 'utf-8');
@@ -113,11 +116,17 @@ class AuditStorage extends EventEmitter {
     });
 
     // HMAC 签名
-    event.signature = crypto.createHmac('sha256', this.config.hmacSecret).update(canonical).digest('hex');
+    event.signature = crypto
+      .createHmac('sha256', this.config.hmacSecret)
+      .update(canonical)
+      .digest('hex');
     event.prevHash = this.lastHash;
 
     // 哈希链
-    event.hash = crypto.createHash('sha256').update(canonical + event.signature).digest('hex');
+    event.hash = crypto
+      .createHash('sha256')
+      .update(canonical + event.signature)
+      .digest('hex');
     this.lastHash = event.hash;
   }
 
@@ -180,7 +189,9 @@ class AuditStorage extends EventEmitter {
     }
 
     // 全量扫描兜底
-    let results = candidates ? [...candidates].map((id) => this.eventById.get(id)) : [...this.events];
+    let results = candidates
+      ? [...candidates].map((id) => this.eventById.get(id))
+      : [...this.events];
 
     // 时间范围过滤
     if (filter.startTime) {
@@ -193,9 +204,7 @@ class AuditStorage extends EventEmitter {
     // 全文检索（搜索 resource + context）
     if (filter.search) {
       const keyword = filter.search.toLowerCase();
-      results = results.filter((e) =>
-        JSON.stringify(e).toLowerCase().includes(keyword)
-      );
+      results = results.filter((e) => JSON.stringify(e).toLowerCase().includes(keyword));
     }
 
     // 排序（默认按时间倒序）
@@ -242,13 +251,19 @@ class AuditStorage extends EventEmitter {
         context: event.context,
         prevHash: event.prevHash,
       });
-      const expectedSig = crypto.createHmac('sha256', this.config.hmacSecret).update(canonical).digest('hex');
+      const expectedSig = crypto
+        .createHmac('sha256', this.config.hmacSecret)
+        .update(canonical)
+        .digest('hex');
       if (event.signature !== expectedSig) {
         errors.push({ id: event.id, timestamp: event.timestamp, error: 'SIGNATURE_MISMATCH' });
       }
 
       // 计算下一个 prevHash
-      prevHash = crypto.createHash('sha256').update(canonical + event.signature).digest('hex');
+      prevHash = crypto
+        .createHash('sha256')
+        .update(canonical + event.signature)
+        .digest('hex');
       if (event.hash !== prevHash) {
         errors.push({ id: event.id, timestamp: event.timestamp, error: 'HASH_MISMATCH' });
       }
@@ -288,7 +303,16 @@ class AuditStorage extends EventEmitter {
   // 导出 CSV
   exportCSV(filter) {
     const { items } = this.query({ ...filter, limit: 100000 });
-    const headers = ['id', 'timestamp', 'actor', 'action', 'resource', 'result', 'severity', 'sourceIp'];
+    const headers = [
+      'id',
+      'timestamp',
+      'actor',
+      'action',
+      'resource',
+      'result',
+      'severity',
+      'sourceIp',
+    ];
     const rows = [headers.join(',')];
     for (const e of items) {
       rows.push(headers.map((h) => `"${String(e[h] || '').replace(/"/g, '""')}"`).join(','));
@@ -332,7 +356,9 @@ class AlertEngine {
 
       if (rule.threshold) {
         rule.recentMatches.push({ time: now, event });
-        rule.recentMatches = rule.recentMatches.filter((m) => now - m.time < rule.threshold.windowMs);
+        rule.recentMatches = rule.recentMatches.filter(
+          (m) => now - m.time < rule.threshold.windowMs
+        );
         if (rule.recentMatches.length >= rule.threshold.count) {
           this.fireAlert(rule, event);
           rule.recentMatches = [];

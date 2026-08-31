@@ -8,13 +8,9 @@
  * - 适合大屏幕展示的丰富信息
  */
 
-const aggregator = require("../aggregator");
-const {
-  UserTransformer,
-  ProductTransformer,
-  OrderTransformer,
-} = require("../transformer");
-const { cache } = require("../cache");
+const aggregator = require('../aggregator');
+const { UserTransformer, ProductTransformer, OrderTransformer } = require('../transformer');
+const { cache } = require('../cache');
 
 /**
  * 处理 Web 端请求
@@ -23,20 +19,18 @@ async function handle(req, res, path, method, url) {
   // ============================================================
   // GET /web/homepage - Web 首页聚合数据
   // ============================================================
-  if (method === "GET" && path === "/web/homepage") {
+  if (method === 'GET' && path === '/web/homepage') {
     const data = await aggregator.getHomepageData();
     return {
       success: true,
       data: {
         categories: data.categories,
-        hotProducts: data.hotProducts.map((p) =>
-          ProductTransformer.toWebListItem(p),
-        ),
+        hotProducts: data.hotProducts.map((p) => ProductTransformer.toWebListItem(p)),
         lowStockAlert: data.lowStockAlert,
       },
       meta: {
         timestamp: new Date().toISOString(),
-        source: "bff-web",
+        source: 'bff-web',
       },
     };
   }
@@ -44,8 +38,8 @@ async function handle(req, res, path, method, url) {
   // ============================================================
   // GET /web/dashboard/:userId - 用户仪表盘（Web 版）
   // ============================================================
-  if (method === "GET" && path.match(/^\/web\/dashboard\/u\d+$/)) {
-    const userId = path.split("/")[3];
+  if (method === 'GET' && path.match(/^\/web\/dashboard\/u\d+$/)) {
+    const userId = path.split('/')[3];
     const data = await aggregator.getUserDashboard(userId);
 
     return {
@@ -53,14 +47,12 @@ async function handle(req, res, path, method, url) {
       data: {
         user: data.user ? UserTransformer.toWebDetail(data.user) : null,
         orderStats: data.orderStats,
-        recentOrders: (data.recentOrders || []).map((o) =>
-          OrderTransformer.toListItem(o),
-        ),
+        recentOrders: (data.recentOrders || []).map((o) => OrderTransformer.toListItem(o)),
         preferences: data.preferences,
       },
       meta: {
         timestamp: new Date().toISOString(),
-        source: "bff-web",
+        source: 'bff-web',
         partial: !data.user || !data.orderStats,
       },
     };
@@ -69,12 +61,12 @@ async function handle(req, res, path, method, url) {
   // ============================================================
   // GET /web/orders/:orderId - 订单详情（Web 版 - 完整关联数据）
   // ============================================================
-  if (method === "GET" && path.match(/^\/web\/orders\/o\d+$/)) {
-    const orderId = path.split("/")[3];
+  if (method === 'GET' && path.match(/^\/web\/orders\/o\d+$/)) {
+    const orderId = path.split('/')[3];
     const data = await aggregator.getOrderDetail(orderId);
 
     if (!data) {
-      return { success: false, error: "订单不存在", statusCode: 404 };
+      return { success: false, error: '订单不存在', statusCode: 404 };
     }
 
     return {
@@ -86,12 +78,12 @@ async function handle(req, res, path, method, url) {
           Object.entries(data.productsMap).map(([id, p]) => [
             id,
             ProductTransformer.toOrderEmbedded(p),
-          ]),
-        ),
+          ])
+        )
       ),
       meta: {
         timestamp: new Date().toISOString(),
-        source: "bff-web",
+        source: 'bff-web',
         inventoryInfo: data.inventoryMap,
       },
     };
@@ -100,25 +92,23 @@ async function handle(req, res, path, method, url) {
   // ============================================================
   // GET /web/products/:productId - 商品详情页（Web 版 - 完整规格）
   // ============================================================
-  if (method === "GET" && path.match(/^\/web\/products\/p\d+$/)) {
-    const productId = path.split("/")[3];
+  if (method === 'GET' && path.match(/^\/web\/products\/p\d+$/)) {
+    const productId = path.split('/')[3];
     const data = await aggregator.getProductDetailPage(productId);
 
     if (!data.product) {
-      return { success: false, error: "商品不存在", statusCode: 404 };
+      return { success: false, error: '商品不存在', statusCode: 404 };
     }
 
     return {
       success: true,
       data: {
         ...ProductTransformer.toWebDetail(data.product, data.inventory),
-        relatedProducts: data.relatedProducts.map((p) =>
-          ProductTransformer.toWebListItem(p),
-        ),
+        relatedProducts: data.relatedProducts.map((p) => ProductTransformer.toWebListItem(p)),
       },
       meta: {
         timestamp: new Date().toISOString(),
-        source: "bff-web",
+        source: 'bff-web',
       },
     };
   }
@@ -126,9 +116,9 @@ async function handle(req, res, path, method, url) {
   // ============================================================
   // GET /web/products - 商品列表页（Web 版 - 带库存状态）
   // ============================================================
-  if (method === "GET" && path === "/web/products") {
-    const category = url.searchParams.get("category");
-    const keyword = url.searchParams.get("keyword");
+  if (method === 'GET' && path === '/web/products') {
+    const category = url.searchParams.get('category');
+    const keyword = url.searchParams.get('keyword');
     const data = await aggregator.getProductListPage(category, keyword);
 
     return {
@@ -137,13 +127,13 @@ async function handle(req, res, path, method, url) {
         const inv = data.inventoryMap[p.id];
         return {
           ...ProductTransformer.toWebListItem(p),
-          stockStatus: inv ? inv.status : "unknown",
+          stockStatus: inv ? inv.status : 'unknown',
           available: inv ? inv.available : null,
         };
       }),
       meta: {
         timestamp: new Date().toISOString(),
-        source: "bff-web",
+        source: 'bff-web',
         total: data.products.length,
         filters: { category, keyword },
       },
@@ -153,16 +143,15 @@ async function handle(req, res, path, method, url) {
   // ============================================================
   // GET /web/users/:userId - 用户详情（Web 版）
   // ============================================================
-  if (method === "GET" && path.match(/^\/web\/users\/u\d+$/)) {
-    const userId = path.split("/")[3];
+  if (method === 'GET' && path.match(/^\/web\/users\/u\d+$/)) {
+    const userId = path.split('/')[3];
     const { user, preferences } = await aggregator.parallel({
-      user: () => aggregator.cachedGet("user", `/users/${userId}`, 60000),
-      preferences: () =>
-        aggregator.resilientGet("user", `/users/${userId}/preferences`, 120000),
+      user: () => aggregator.cachedGet('user', `/users/${userId}`, 60000),
+      preferences: () => aggregator.resilientGet('user', `/users/${userId}/preferences`, 120000),
     });
 
     if (!user?.data) {
-      return { success: false, error: "用户不存在", statusCode: 404 };
+      return { success: false, error: '用户不存在', statusCode: 404 };
     }
 
     return {
@@ -171,16 +160,16 @@ async function handle(req, res, path, method, url) {
         ...UserTransformer.toWebDetail(user.data),
         preferences: preferences?.data || null,
       },
-      meta: { timestamp: new Date().toISOString(), source: "bff-web" },
+      meta: { timestamp: new Date().toISOString(), source: 'bff-web' },
     };
   }
 
   // ============================================================
   // POST /web/cache/clear - 清除缓存
   // ============================================================
-  if (method === "POST" && path === "/web/cache/clear") {
+  if (method === 'POST' && path === '/web/cache/clear') {
     cache.clear();
-    return { success: true, message: "缓存已清除" };
+    return { success: true, message: '缓存已清除' };
   }
 
   return null; // 未匹配

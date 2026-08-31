@@ -36,7 +36,9 @@ const tcpServer = net.createServer((socket) => {
       if (!line.trim()) continue;
       try {
         const msg = JSON.parse(line);
-        handleDeviceMessage(socket, msg, (id) => { deviceId = id; });
+        handleDeviceMessage(socket, msg, (id) => {
+          deviceId = id;
+        });
       } catch (e) {
         socket.write(JSON.stringify({ ok: false, error: e.message }) + '\n');
       }
@@ -111,7 +113,11 @@ const httpServer = http.createServer((req, res) => {
   const m = u.pathname.match(/^\/devices\/([^/]+)$/);
   if (req.method === 'GET' && m) {
     const d = registry.get(m[1]);
-    if (!d) { res.statusCode = 404; res.end('{"error":"not found"}'); return; }
+    if (!d) {
+      res.statusCode = 404;
+      res.end('{"error":"not found"}');
+      return;
+    }
     res.end(JSON.stringify(d));
     return;
   }
@@ -125,7 +131,7 @@ const httpServer = http.createServer((req, res) => {
   const cm = u.pathname.match(/^\/devices\/([^/]+)\/command$/);
   if (req.method === 'POST' && cm) {
     let body = '';
-    req.on('data', d => body += d);
+    req.on('data', (d) => (body += d));
     req.on('end', () => {
       try {
         const cmd = JSON.parse(body);

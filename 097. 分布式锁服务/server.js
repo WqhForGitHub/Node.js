@@ -59,7 +59,13 @@ class LockManager {
     if (lock.owner === clientId) {
       lock.reentrantCount++;
       lock.expireAt = now + ttl;
-      return { success: true, token: lock.token, owner: clientId, ttl, reentrant: lock.reentrantCount };
+      return {
+        success: true,
+        token: lock.token,
+        owner: clientId,
+        ttl,
+        reentrant: lock.reentrantCount,
+      };
     }
 
     // 已被其他客户端持有

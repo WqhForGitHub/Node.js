@@ -14,8 +14,11 @@ class Stream extends EventEmitter {
   map(fn) {
     const next = new Stream(`${this.name}.map`);
     this.on('data', (data) => {
-      try { next.emit('data', fn(data)); }
-      catch (e) { next.emit('error', e); }
+      try {
+        next.emit('data', fn(data));
+      } catch (e) {
+        next.emit('error', e);
+      }
     });
     return next;
   }
@@ -58,7 +61,10 @@ class Stream extends EventEmitter {
       const now = Date.now();
       while (buffer.length && now - buffer[0].ts > sizeMs) buffer.shift();
       if (buffer.length > 0) {
-        const result = aggregator(buffer.map(x => x.data), { now, size: sizeMs });
+        const result = aggregator(
+          buffer.map((x) => x.data),
+          { now, size: sizeMs }
+        );
         next.emit('data', result);
       }
     }, slideMs);
@@ -83,7 +89,7 @@ class Stream extends EventEmitter {
           const key = keyFn(data);
           fn(key, data, getStream(key));
         });
-      }
+      },
     };
   }
 
@@ -106,7 +112,9 @@ class Sink {
     this.name = name;
     this.writer = writer;
   }
-  write(data) { this.writer(data); }
+  write(data) {
+    this.writer(data);
+  }
 }
 
 // Source: 数据源
@@ -120,19 +128,21 @@ const aggregators = {
   sum: (key) => (items) => ({
     sum: items.reduce((a, b) => a + (b[key] || 0), 0),
     count: items.length,
-    ts: Date.now()
+    ts: Date.now(),
   }),
   avg: (key) => (items) => ({
     avg: items.reduce((a, b) => a + (b[key] || 0), 0) / items.length,
     count: items.length,
-    ts: Date.now()
+    ts: Date.now(),
   }),
   topK: (key, k) => (items) => {
     const map = {};
-    items.forEach(it => map[it[key]] = (map[it[key]] || 0) + 1);
-    const top = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, k);
+    items.forEach((it) => (map[it[key]] = (map[it[key]] || 0) + 1));
+    const top = Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, k);
     return { top, ts: Date.now() };
-  }
+  },
 };
 
 module.exports = { Stream, Sink, createSource, aggregators };

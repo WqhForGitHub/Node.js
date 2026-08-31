@@ -1,120 +1,164 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh">
-<head>
-<meta charset="UTF-8">
-<title>推送客户端</title>
-<style>
-  body { font-family: Arial; max-width: 600px; margin: 20px auto; padding: 0 20px; }
-  input, button { padding: 8px; margin: 4px; }
-  #notifications { margin-top: 20px; }
-  .notif { background: #f0f8ff; border-left: 4px solid #3498db; padding: 12px; margin: 8px 0; border-radius: 4px; }
-  .notif h4 { margin: 0 0 4px; }
-  .notif small { color: #888; }
-  #status { padding: 4px 8px; border-radius: 4px; background: #ddd; font-size: 12px; }
-  #status.online { background: #2ecc71; color: white; }
-  .topic { display: inline-block; background: #3498db; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin: 2px; }
-</style>
-</head>
-<body>
-<h1>📱 推送客户端</h1>
-<div>
-  状态: <span id="status">未连接</span>
-  设备 ID: <code id="deviceId"></code>
-</div>
-
-<h3>注册</h3>
-<input id="userId" placeholder="用户 ID">
-<button onclick="register()">连接并注册</button>
-
-<h3>订阅主题</h3>
-<input id="topic" placeholder="例如 news, sports">
-<button onclick="subscribe()">订阅</button>
-<div id="topics"></div>
-
-<h3>📬 收到的通知</h3>
-<div id="notifications"></div>
-
-<script>
-let ws, deviceId;
-const subscribedTopics = new Set();
-
-// 持久化设备 ID
-deviceId = localStorage.getItem('deviceId');
-if (!deviceId) {
-  deviceId = 'web-' + Math.random().toString(36).slice(2, 10);
-  localStorage.setItem('deviceId', deviceId);
-}
-document.getElementById('deviceId').textContent = deviceId;
-
-function register() {
-  const userId = document.getElementById('userId').value || 'anonymous';
-  ws = new WebSocket('ws://' + location.host);
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
-      type: 'register', deviceId, userId, platform: 'web'
-    }));
-  };
-  ws.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    if (msg.type === 'registered') {
-      const s = document.getElementById('status');
-      s.textContent = '已注册'; s.className = 'online';
-    }
-    else if (msg.type === 'subscribed') {
-      subscribedTopics.add(msg.topic);
-      renderTopics();
-    }
-    else if (msg.type === 'push') {
-      showNotification(msg);
-      // QoS 1 ack
-      if (msg.qos === 1) {
-        ws.send(JSON.stringify({ type: 'ack', msgId: msg.id }));
+  <head>
+    <meta charset="UTF-8" />
+    <title>推送客户端</title>
+    <style>
+      body {
+        font-family: Arial;
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 0 20px;
       }
-    }
-  };
-  ws.onclose = () => {
-    document.getElementById('status').textContent = '已断开';
-    document.getElementById('status').className = '';
-    setTimeout(() => register(), 3000);
-  };
-  // 心跳
-  setInterval(() => {
-    if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'ping' }));
-  }, 25000);
-}
+      input,
+      button {
+        padding: 8px;
+        margin: 4px;
+      }
+      #notifications {
+        margin-top: 20px;
+      }
+      .notif {
+        background: #f0f8ff;
+        border-left: 4px solid #3498db;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 4px;
+      }
+      .notif h4 {
+        margin: 0 0 4px;
+      }
+      .notif small {
+        color: #888;
+      }
+      #status {
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: #ddd;
+        font-size: 12px;
+      }
+      #status.online {
+        background: #2ecc71;
+        color: white;
+      }
+      .topic {
+        display: inline-block;
+        background: #3498db;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        margin: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📱 推送客户端</h1>
+    <div>
+      状态:
+      <span id="status">未连接</span>
+      设备 ID:
+      <code id="deviceId"></code>
+    </div>
 
-function subscribe() {
-  const topic = document.getElementById('topic').value.trim();
-  if (!topic || !ws || ws.readyState !== 1) return;
-  ws.send(JSON.stringify({ type: 'subscribe', topic }));
-  document.getElementById('topic').value = '';
-}
+    <h3>注册</h3>
+    <input id="userId" placeholder="用户 ID" />
+    <button onclick="register()">连接并注册</button>
 
-function renderTopics() {
-  document.getElementById('topics').innerHTML = [...subscribedTopics].map(t =>
-    `<span class="topic">${t}</span>`).join('');
-}
+    <h3>订阅主题</h3>
+    <input id="topic" placeholder="例如 news, sports" />
+    <button onclick="subscribe()">订阅</button>
+    <div id="topics"></div>
 
-function showNotification(msg) {
-  const div = document.createElement('div');
-  div.className = 'notif';
-  div.innerHTML = `<h4>${escape(msg.title)}</h4>
+    <h3>📬 收到的通知</h3>
+    <div id="notifications"></div>
+
+    <script>
+      let ws, deviceId;
+      const subscribedTopics = new Set();
+
+      // 持久化设备 ID
+      deviceId = localStorage.getItem('deviceId');
+      if (!deviceId) {
+        deviceId = 'web-' + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem('deviceId', deviceId);
+      }
+      document.getElementById('deviceId').textContent = deviceId;
+
+      function register() {
+        const userId = document.getElementById('userId').value || 'anonymous';
+        ws = new WebSocket('ws://' + location.host);
+        ws.onopen = () => {
+          ws.send(
+            JSON.stringify({
+              type: 'register',
+              deviceId,
+              userId,
+              platform: 'web',
+            })
+          );
+        };
+        ws.onmessage = (e) => {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'registered') {
+            const s = document.getElementById('status');
+            s.textContent = '已注册';
+            s.className = 'online';
+          } else if (msg.type === 'subscribed') {
+            subscribedTopics.add(msg.topic);
+            renderTopics();
+          } else if (msg.type === 'push') {
+            showNotification(msg);
+            // QoS 1 ack
+            if (msg.qos === 1) {
+              ws.send(JSON.stringify({ type: 'ack', msgId: msg.id }));
+            }
+          }
+        };
+        ws.onclose = () => {
+          document.getElementById('status').textContent = '已断开';
+          document.getElementById('status').className = '';
+          setTimeout(() => register(), 3000);
+        };
+        // 心跳
+        setInterval(() => {
+          if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'ping' }));
+        }, 25000);
+      }
+
+      function subscribe() {
+        const topic = document.getElementById('topic').value.trim();
+        if (!topic || !ws || ws.readyState !== 1) return;
+        ws.send(JSON.stringify({ type: 'subscribe', topic }));
+        document.getElementById('topic').value = '';
+      }
+
+      function renderTopics() {
+        document.getElementById('topics').innerHTML = [...subscribedTopics]
+          .map((t) => `<span class="topic">${t}</span>`)
+          .join('');
+      }
+
+      function showNotification(msg) {
+        const div = document.createElement('div');
+        div.className = 'notif';
+        div.innerHTML = `<h4>${escape(msg.title)}</h4>
                    <div>${escape(msg.body)}</div>
                    <small>${new Date(msg.ts).toLocaleString()} | QoS ${msg.qos}</small>`;
-  document.getElementById('notifications').prepend(div);
-  // 浏览器通知
-  if (Notification.permission === 'granted') {
-    new Notification(msg.title, { body: msg.body });
-  }
-}
+        document.getElementById('notifications').prepend(div);
+        // 浏览器通知
+        if (Notification.permission === 'granted') {
+          new Notification(msg.title, { body: msg.body });
+        }
+      }
 
-function escape(s) {
-  return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-}
+      function escape(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+      }
 
-if (Notification && Notification.permission === 'default') {
-  Notification.requestPermission();
-}
-</script>
-</body>
+      if (Notification && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    </script>
+  </body>
 </html>

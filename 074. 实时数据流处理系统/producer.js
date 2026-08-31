@@ -21,7 +21,7 @@ setInterval(() => {
     type: pickType(),
     userId: Math.floor(Math.random() * 1000),
     page: `/page-${Math.floor(Math.random() * 50)}`,
-    ts: Date.now()
+    ts: Date.now(),
   };
   const msg = Buffer.from(JSON.stringify(event));
   client.send(msg, 7401, '127.0.0.1');

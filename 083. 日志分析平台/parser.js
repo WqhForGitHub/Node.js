@@ -18,7 +18,7 @@ class LogParser {
       path: m[4],
       status: parseInt(m[5]),
       size: m[6] === '-' ? 0 : parseInt(m[6]),
-      level: parseInt(m[5]) >= 500 ? 'error' : parseInt(m[5]) >= 400 ? 'warn' : 'info'
+      level: parseInt(m[5]) >= 500 ? 'error' : parseInt(m[5]) >= 400 ? 'warn' : 'info',
     };
   }
 
@@ -35,9 +35,15 @@ class LogParser {
         return obj;
       } catch {}
     }
-    return this.parseGeneric(line) || this.parseAccess(line) || {
-      level: 'info', ts: Date.now(), message: line, raw: true
-    };
+    return (
+      this.parseGeneric(line) ||
+      this.parseAccess(line) || {
+        level: 'info',
+        ts: Date.now(),
+        message: line,
+        raw: true,
+      }
+    );
   }
 }
 

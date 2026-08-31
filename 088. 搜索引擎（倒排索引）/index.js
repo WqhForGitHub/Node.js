@@ -20,7 +20,7 @@ class InvertedIndex {
     if (this.docs.has(id)) this.removeDocument(id);
 
     // 合并所有可搜索字段
-    const text = fields.map(f => doc[f] || '').join(' ');
+    const text = fields.map((f) => doc[f] || '').join(' ');
     const tokens = Tokenizer.analyze(text);
     const tf = new Map();
     const positions = new Map();
@@ -77,7 +77,8 @@ class InvertedIndex {
         const docInfo = this.docs.get(docId);
         const tf = posting.tf;
         const dl = docInfo.length;
-        const score = idf * (tf * (this.k1 + 1)) / (tf + this.k1 * (1 - this.b + this.b * dl / avgdl));
+        const score =
+          (idf * (tf * (this.k1 + 1))) / (tf + this.k1 * (1 - this.b + (this.b * dl) / avgdl));
         scores.set(docId, (scores.get(docId) || 0) + score);
         if (!matchedTerms.has(docId)) matchedTerms.set(docId, new Set());
         matchedTerms.get(docId).add(term);
@@ -86,10 +87,11 @@ class InvertedIndex {
 
     const results = [...scores.entries()]
       .map(([id, score]) => ({
-        id, score,
+        id,
+        score,
         doc: this.docs.get(id).doc,
         matched: [...matchedTerms.get(id)],
-        snippet: this.snippet(this.docs.get(id).doc, queryTerms)
+        snippet: this.snippet(this.docs.get(id).doc, queryTerms),
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
@@ -118,7 +120,7 @@ class InvertedIndex {
       documents: this.docs.size,
       terms: this.index.size,
       totalTokens: this.totalLength,
-      avgDocLength: this.docs.size ? this.totalLength / this.docs.size : 0
+      avgDocLength: this.docs.size ? this.totalLength / this.docs.size : 0,
     };
   }
 }

@@ -24,17 +24,19 @@ class ConsistentHash {
 
   removeNode(node) {
     this.nodes.delete(node);
-    this.ring = this.ring.filter(e => e.node !== node);
+    this.ring = this.ring.filter((e) => e.node !== node);
   }
 
   getNode(key) {
     if (this.ring.length === 0) return null;
     const h = this.hash(key);
     // 二分查找第一个 >= h 的节点
-    let lo = 0, hi = this.ring.length - 1;
+    let lo = 0,
+      hi = this.ring.length - 1;
     while (lo < hi) {
       const mid = (lo + hi) >> 1;
-      if (this.ring[mid].hash < h) lo = mid + 1; else hi = mid;
+      if (this.ring[mid].hash < h) lo = mid + 1;
+      else hi = mid;
     }
     return this.ring[this.ring[lo].hash >= h ? lo : 0].node;
   }
@@ -45,15 +47,20 @@ class ConsistentHash {
     const h = this.hash(key);
     const result = [];
     const seen = new Set();
-    let lo = 0, hi = this.ring.length - 1;
+    let lo = 0,
+      hi = this.ring.length - 1;
     while (lo < hi) {
       const mid = (lo + hi) >> 1;
-      if (this.ring[mid].hash < h) lo = mid + 1; else hi = mid;
+      if (this.ring[mid].hash < h) lo = mid + 1;
+      else hi = mid;
     }
     let idx = this.ring[lo].hash >= h ? lo : 0;
     while (result.length < n && result.length < this.nodes.size) {
       const node = this.ring[idx].node;
-      if (!seen.has(node)) { seen.add(node); result.push(node); }
+      if (!seen.has(node)) {
+        seen.add(node);
+        result.push(node);
+      }
       idx = (idx + 1) % this.ring.length;
     }
     return result;

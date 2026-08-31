@@ -1,19 +1,19 @@
-const http = require("http");
-const url = require("url");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+const http = require('http');
+const url = require('url');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 const PORT = 3035;
-const DATA_DIR = path.join(__dirname, "data");
-const USERS_FILE = path.join(DATA_DIR, "users.json");
-const GROUPS_FILE = path.join(DATA_DIR, "groups.json");
-const ROLES_FILE = path.join(DATA_DIR, "roles.json");
-const PERMISSIONS_FILE = path.join(DATA_DIR, "permissions.json");
-const POLICIES_FILE = path.join(DATA_DIR, "policies.json");
-const TOKENS_FILE = path.join(DATA_DIR, "tokens.json");
-const AUDIT_FILE = path.join(DATA_DIR, "audit.json");
-const RESOURCES_FILE = path.join(DATA_DIR, "resources.json");
+const DATA_DIR = path.join(__dirname, 'data');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const GROUPS_FILE = path.join(DATA_DIR, 'groups.json');
+const ROLES_FILE = path.join(DATA_DIR, 'roles.json');
+const PERMISSIONS_FILE = path.join(DATA_DIR, 'permissions.json');
+const POLICIES_FILE = path.join(DATA_DIR, 'policies.json');
+const TOKENS_FILE = path.join(DATA_DIR, 'tokens.json');
+const AUDIT_FILE = path.join(DATA_DIR, 'audit.json');
+const RESOURCES_FILE = path.join(DATA_DIR, 'resources.json');
 
 const TOKEN_EXPIRY = 24 * 60 * 60 * 1000; // 24小时
 const MAX_AUDIT_LOGS = 5000; // 最大审计日志条数
@@ -27,7 +27,7 @@ if (!fs.existsSync(DATA_DIR)) {
 function loadData(filePath, defaultVal) {
   try {
     if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
     }
   } catch (e) {
     console.error(`读取 ${filePath} 失败:`, e.message);
@@ -37,7 +37,7 @@ function loadData(filePath, defaultVal) {
 
 function saveData(filePath, data) {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
   } catch (e) {
     console.error(`写入 ${filePath} 失败:`, e.message);
   }
@@ -48,7 +48,7 @@ let groups = loadData(GROUPS_FILE, []);
 let roles = loadData(ROLES_FILE, {});
 let permissions = loadData(PERMISSIONS_FILE, []);
 let policies = loadData(POLICIES_FILE, []);
-let tokens = loadData(TOKENS_FILE, {});
+const tokens = loadData(TOKENS_FILE, {});
 let auditLogs = loadData(AUDIT_FILE, []);
 let resources = loadData(RESOURCES_FILE, []);
 
@@ -74,30 +74,30 @@ function initDefaultData() {
   if (permissions.length === 0) {
     permissions = [
       // 文章模块
-      { resource: "article", action: "read", description: "读取文章" },
-      { resource: "article", action: "write", description: "编写文章" },
-      { resource: "article", action: "delete", description: "删除文章" },
-      { resource: "article", action: "publish", description: "发布文章" },
-      { resource: "article", action: "audit", description: "审核文章" },
+      { resource: 'article', action: 'read', description: '读取文章' },
+      { resource: 'article', action: 'write', description: '编写文章' },
+      { resource: 'article', action: 'delete', description: '删除文章' },
+      { resource: 'article', action: 'publish', description: '发布文章' },
+      { resource: 'article', action: 'audit', description: '审核文章' },
       // 用户模块
-      { resource: "user", action: "read", description: "查看用户" },
-      { resource: "user", action: "write", description: "编辑用户" },
-      { resource: "user", action: "delete", description: "删除用户" },
+      { resource: 'user', action: 'read', description: '查看用户' },
+      { resource: 'user', action: 'write', description: '编辑用户' },
+      { resource: 'user', action: 'delete', description: '删除用户' },
       // 角色模块
-      { resource: "role", action: "read", description: "查看角色" },
-      { resource: "role", action: "write", description: "编辑角色" },
-      { resource: "role", action: "delete", description: "删除角色" },
+      { resource: 'role', action: 'read', description: '查看角色' },
+      { resource: 'role', action: 'write', description: '编辑角色' },
+      { resource: 'role', action: 'delete', description: '删除角色' },
       // 权限模块
-      { resource: "permission", action: "read", description: "查看权限" },
-      { resource: "permission", action: "write", description: "编辑权限" },
+      { resource: 'permission', action: 'read', description: '查看权限' },
+      { resource: 'permission', action: 'write', description: '编辑权限' },
       // 用户组模块
-      { resource: "group", action: "read", description: "查看用户组" },
-      { resource: "group", action: "write", description: "编辑用户组" },
-      { resource: "group", action: "delete", description: "删除用户组" },
+      { resource: 'group', action: 'read', description: '查看用户组' },
+      { resource: 'group', action: 'write', description: '编辑用户组' },
+      { resource: 'group', action: 'delete', description: '删除用户组' },
       // 系统模块
-      { resource: "system", action: "read", description: "查看系统信息" },
-      { resource: "system", action: "write", description: "修改系统配置" },
-      { resource: "system", action: "audit", description: "查看审计日志" },
+      { resource: 'system', action: 'read', description: '查看系统信息' },
+      { resource: 'system', action: 'write', description: '修改系统配置' },
+      { resource: 'system', action: 'audit', description: '查看审计日志' },
     ];
   }
 
@@ -106,89 +106,84 @@ function initDefaultData() {
     const now = new Date().toISOString();
     roles = {
       superadmin: {
-        name: "superadmin",
-        description: "超级管理员，拥有所有权限，包含通配符",
-        permissions: ["*:*"],
+        name: 'superadmin',
+        description: '超级管理员，拥有所有权限，包含通配符',
+        permissions: ['*:*'],
         inherits: [],
-        dataScope: "all",
+        dataScope: 'all',
         isSystem: true,
         createdAt: now,
         updatedAt: now,
       },
       admin: {
-        name: "admin",
-        description: "管理员，拥有大部分权限",
+        name: 'admin',
+        description: '管理员，拥有大部分权限',
         permissions: [
-          "article:read",
-          "article:write",
-          "article:delete",
-          "article:publish",
-          "article:audit",
-          "user:read",
-          "user:write",
-          "user:delete",
-          "role:read",
-          "role:write",
-          "permission:read",
-          "group:read",
-          "group:write",
-          "system:read",
-          "system:audit",
+          'article:read',
+          'article:write',
+          'article:delete',
+          'article:publish',
+          'article:audit',
+          'user:read',
+          'user:write',
+          'user:delete',
+          'role:read',
+          'role:write',
+          'permission:read',
+          'group:read',
+          'group:write',
+          'system:read',
+          'system:audit',
         ],
-        inherits: ["editor"],
-        dataScope: "all",
+        inherits: ['editor'],
+        dataScope: 'all',
         isSystem: true,
         createdAt: now,
         updatedAt: now,
       },
       editor: {
-        name: "editor",
-        description: "编辑者，可管理文章和审核",
+        name: 'editor',
+        description: '编辑者，可管理文章和审核',
         permissions: [
-          "article:read",
-          "article:write",
-          "article:delete",
-          "article:publish",
-          "article:audit",
-          "user:read",
-          "role:read",
-          "permission:read",
-          "group:read",
+          'article:read',
+          'article:write',
+          'article:delete',
+          'article:publish',
+          'article:audit',
+          'user:read',
+          'role:read',
+          'permission:read',
+          'group:read',
         ],
-        inherits: ["author"],
-        dataScope: "department",
+        inherits: ['author'],
+        dataScope: 'department',
         isSystem: false,
         createdAt: now,
         updatedAt: now,
       },
       author: {
-        name: "author",
-        description: "作者，可编写和发布自己的文章",
+        name: 'author',
+        description: '作者，可编写和发布自己的文章',
         permissions: [
-          "article:read",
-          "article:write",
-          "article:publish",
-          "user:read",
-          "role:read",
-          "permission:read",
+          'article:read',
+          'article:write',
+          'article:publish',
+          'user:read',
+          'role:read',
+          'permission:read',
         ],
-        inherits: ["viewer"],
-        dataScope: "self",
+        inherits: ['viewer'],
+        dataScope: 'self',
         isSystem: false,
         createdAt: now,
         updatedAt: now,
       },
       viewer: {
-        name: "viewer",
-        description: "查看者，只读权限",
-        permissions: [
-          "article:read",
-          "user:read",
-          "role:read",
-          "permission:read",
-        ],
+        name: 'viewer',
+        description: '查看者，只读权限',
+        permissions: ['article:read', 'user:read', 'role:read', 'permission:read'],
         inherits: [],
-        dataScope: "self",
+        dataScope: 'self',
         isSystem: false,
         createdAt: now,
         updatedAt: now,
@@ -202,18 +197,18 @@ function initDefaultData() {
     groups = [
       {
         id: crypto.randomUUID(),
-        name: "技术部",
-        description: "技术部门用户组",
-        roles: ["editor"],
+        name: '技术部',
+        description: '技术部门用户组',
+        roles: ['editor'],
         members: [],
         createdAt: now,
         updatedAt: now,
       },
       {
         id: crypto.randomUUID(),
-        name: "编辑部",
-        description: "内容编辑部门用户组",
-        roles: ["author"],
+        name: '编辑部',
+        description: '内容编辑部门用户组',
+        roles: ['author'],
         members: [],
         createdAt: now,
         updatedAt: now,
@@ -224,38 +219,38 @@ function initDefaultData() {
   // 默认用户
   if (users.length === 0) {
     const now = new Date().toISOString();
-    const techGroup = groups.find((g) => g.name === "技术部");
-    const editGroup = groups.find((g) => g.name === "编辑部");
+    const techGroup = groups.find((g) => g.name === '技术部');
+    const editGroup = groups.find((g) => g.name === '编辑部');
 
     users.push({
       id: crypto.randomUUID(),
-      username: "superadmin",
-      password: hashPassword("admin123"),
-      roles: ["superadmin"],
+      username: 'superadmin',
+      password: hashPassword('admin123'),
+      roles: ['superadmin'],
       groups: [],
-      department: "总部",
+      department: '总部',
       isActive: true,
       createdAt: now,
       updatedAt: now,
     });
     users.push({
       id: crypto.randomUUID(),
-      username: "admin",
-      password: hashPassword("admin123"),
-      roles: ["admin"],
+      username: 'admin',
+      password: hashPassword('admin123'),
+      roles: ['admin'],
       groups: [],
-      department: "总部",
+      department: '总部',
       isActive: true,
       createdAt: now,
       updatedAt: now,
     });
     const editorUser = {
       id: crypto.randomUUID(),
-      username: "editor",
-      password: hashPassword("editor123"),
-      roles: ["editor"],
+      username: 'editor',
+      password: hashPassword('editor123'),
+      roles: ['editor'],
       groups: techGroup ? [techGroup.id] : [],
-      department: "技术部",
+      department: '技术部',
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -263,11 +258,11 @@ function initDefaultData() {
     users.push(editorUser);
     const authorUser = {
       id: crypto.randomUUID(),
-      username: "author",
-      password: hashPassword("author123"),
-      roles: ["author"],
+      username: 'author',
+      password: hashPassword('author123'),
+      roles: ['author'],
       groups: editGroup ? [editGroup.id] : [],
-      department: "编辑部",
+      department: '编辑部',
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -275,11 +270,11 @@ function initDefaultData() {
     users.push(authorUser);
     users.push({
       id: crypto.randomUUID(),
-      username: "viewer",
-      password: hashPassword("viewer123"),
-      roles: ["viewer"],
+      username: 'viewer',
+      password: hashPassword('viewer123'),
+      roles: ['viewer'],
       groups: [],
-      department: "市场部",
+      department: '市场部',
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -296,11 +291,11 @@ function initDefaultData() {
     policies = [
       {
         id: crypto.randomUUID(),
-        name: "文章所有权策略",
-        description: "作者只能修改/删除自己的文章，编辑可以管理所有文章",
-        resource: "article",
-        action: "write",
-        condition: "owner_or_admin",
+        name: '文章所有权策略',
+        description: '作者只能修改/删除自己的文章，编辑可以管理所有文章',
+        resource: 'article',
+        action: 'write',
+        condition: 'owner_or_admin',
         priority: 10,
         enabled: true,
         createdAt: now,
@@ -308,11 +303,11 @@ function initDefaultData() {
       },
       {
         id: crypto.randomUUID(),
-        name: "文章删除策略",
-        description: "作者只能删除自己的草稿文章，编辑和管理员可删除任何文章",
-        resource: "article",
-        action: "delete",
-        condition: "owner_draft_or_admin",
+        name: '文章删除策略',
+        description: '作者只能删除自己的草稿文章，编辑和管理员可删除任何文章',
+        resource: 'article',
+        action: 'delete',
+        condition: 'owner_draft_or_admin',
         priority: 20,
         enabled: true,
         createdAt: now,
@@ -327,35 +322,35 @@ function initDefaultData() {
     resources = [
       {
         id: crypto.randomUUID(),
-        type: "article",
-        title: "RBAC 权限系统介绍",
-        content: "本文介绍基于角色的访问控制系统...",
-        author: "admin",
-        authorId: users.find((u) => u.username === "admin")?.id,
-        department: "总部",
-        status: "published",
+        type: 'article',
+        title: 'RBAC 权限系统介绍',
+        content: '本文介绍基于角色的访问控制系统...',
+        author: 'admin',
+        authorId: users.find((u) => u.username === 'admin')?.id,
+        department: '总部',
+        status: 'published',
         createdAt: now,
       },
       {
         id: crypto.randomUUID(),
-        type: "article",
-        title: "Node.js 最佳实践",
-        content: "Node.js 开发中的最佳实践总结...",
-        author: "editor",
-        authorId: users.find((u) => u.username === "editor")?.id,
-        department: "技术部",
-        status: "draft",
+        type: 'article',
+        title: 'Node.js 最佳实践',
+        content: 'Node.js 开发中的最佳实践总结...',
+        author: 'editor',
+        authorId: users.find((u) => u.username === 'editor')?.id,
+        department: '技术部',
+        status: 'draft',
         createdAt: now,
       },
       {
         id: crypto.randomUUID(),
-        type: "article",
-        title: "我的第一篇文章",
-        content: "这是一篇作者自己写的文章...",
-        author: "author",
-        authorId: users.find((u) => u.username === "author")?.id,
-        department: "编辑部",
-        status: "draft",
+        type: 'article',
+        title: '我的第一篇文章',
+        content: '这是一篇作者自己写的文章...',
+        author: 'author',
+        authorId: users.find((u) => u.username === 'author')?.id,
+        department: '编辑部',
+        status: 'draft',
         createdAt: now,
       },
     ];
@@ -368,23 +363,23 @@ function initDefaultData() {
 
 function parseBody(req) {
   return new Promise((resolve, reject) => {
-    let body = "";
-    req.on("data", (chunk) => (body += chunk));
-    req.on("end", () => {
+    let body = '';
+    req.on('data', (chunk) => (body += chunk));
+    req.on('end', () => {
       if (!body) return resolve({});
       try {
         resolve(JSON.parse(body));
       } catch {
-        reject(new Error("Invalid JSON"));
+        reject(new Error('Invalid JSON'));
       }
     });
-    req.on("error", reject);
+    req.on('error', reject);
   });
 }
 
 function send(res, statusCode, data) {
   res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
+    'Content-Type': 'application/json; charset=utf-8',
   });
   res.end(JSON.stringify(data));
 }
@@ -399,13 +394,13 @@ function sendError(res, statusCode, error) {
 
 function hashPassword(password) {
   return crypto
-    .createHash("sha256")
-    .update(password + "rbac_salt_2025")
-    .digest("hex");
+    .createHash('sha256')
+    .update(password + 'rbac_salt_2025')
+    .digest('hex');
 }
 
 function generateToken() {
-  return crypto.randomBytes(32).toString("hex");
+  return crypto.randomBytes(32).toString('hex');
 }
 
 // ==================== 审计日志 ====================
@@ -526,16 +521,16 @@ function hasPermission(user, permission) {
 }
 
 function matchPermission(userPerms, permission) {
-  const [reqRes, reqAct] = permission.split(":");
+  const [reqRes, reqAct] = permission.split(':');
   return userPerms.some((p) => {
     if (p === permission) return true;
-    const [pRes, pAct] = p.split(":");
+    const [pRes, pAct] = p.split(':');
     // *:* 匹配一切
-    if (pRes === "*" && pAct === "*") return true;
+    if (pRes === '*' && pAct === '*') return true;
     // resource:* 匹配该资源的所有操作
-    if (pRes === reqRes && pAct === "*") return true;
+    if (pRes === reqRes && pAct === '*') return true;
     // *:action 匹配所有资源的该操作
-    if (pRes === "*" && pAct === reqAct) return true;
+    if (pRes === '*' && pAct === reqAct) return true;
     return false;
   });
 }
@@ -553,14 +548,14 @@ function checkPermissions(user, requiredPermissions) {
 // 检查数据范围权限
 function checkDataScope(user, targetResource) {
   const userRoles = getUserRoles(user);
-  let maxScope = "none";
+  let maxScope = 'none';
 
   const scopePriority = { all: 4, department: 3, self: 2, none: 1 };
 
   for (const roleName of userRoles) {
     const role = roles[roleName];
     if (role) {
-      const scope = role.dataScope || "self";
+      const scope = role.dataScope || 'self';
       if (scopePriority[scope] > scopePriority[maxScope]) {
         maxScope = scope;
       }
@@ -569,62 +564,62 @@ function checkDataScope(user, targetResource) {
 
   // 根据数据范围判断是否可访问
   switch (maxScope) {
-    case "all":
-      return { allowed: true, scope: "all", reason: "可访问所有数据" };
-    case "department":
+    case 'all':
+      return { allowed: true, scope: 'all', reason: '可访问所有数据' };
+    case 'department':
       if (targetResource && targetResource.department === user.department) {
         return {
           allowed: true,
-          scope: "department",
-          reason: "可访问本部门数据",
+          scope: 'department',
+          reason: '可访问本部门数据',
         };
       }
       return {
         allowed: false,
-        scope: "department",
-        reason: "只能访问本部门数据",
+        scope: 'department',
+        reason: '只能访问本部门数据',
       };
-    case "self":
+    case 'self':
       if (targetResource && targetResource.authorId === user.id) {
-        return { allowed: true, scope: "self", reason: "可访问自己的数据" };
+        return { allowed: true, scope: 'self', reason: '可访问自己的数据' };
       }
-      return { allowed: false, scope: "self", reason: "只能访问自己的数据" };
+      return { allowed: false, scope: 'self', reason: '只能访问自己的数据' };
     default:
-      return { allowed: false, scope: "none", reason: "无数据访问权限" };
+      return { allowed: false, scope: 'none', reason: '无数据访问权限' };
   }
 }
 
 // 评估策略条件
 function evaluatePolicy(policy, user, targetResource) {
-  if (!policy.enabled) return { pass: true, reason: "策略未启用" };
+  if (!policy.enabled) return { pass: true, reason: '策略未启用' };
 
   switch (policy.condition) {
-    case "owner_or_admin":
+    case 'owner_or_admin':
       // 管理员角色直接通过
-      if (hasPermission(user, "article:audit")) {
-        return { pass: true, reason: "拥有审核权限" };
+      if (hasPermission(user, 'article:audit')) {
+        return { pass: true, reason: '拥有审核权限' };
       }
       // 检查是否是资源所有者
       if (targetResource && targetResource.authorId === user.id) {
-        return { pass: true, reason: "是资源所有者" };
+        return { pass: true, reason: '是资源所有者' };
       }
-      return { pass: false, reason: "非资源所有者且无审核权限" };
+      return { pass: false, reason: '非资源所有者且无审核权限' };
 
-    case "owner_draft_or_admin":
-      if (hasPermission(user, "article:audit")) {
-        return { pass: true, reason: "拥有审核权限" };
+    case 'owner_draft_or_admin':
+      if (hasPermission(user, 'article:audit')) {
+        return { pass: true, reason: '拥有审核权限' };
       }
       if (
         targetResource &&
         targetResource.authorId === user.id &&
-        targetResource.status === "draft"
+        targetResource.status === 'draft'
       ) {
-        return { pass: true, reason: "是资源所有者且资源为草稿" };
+        return { pass: true, reason: '是资源所有者且资源为草稿' };
       }
-      return { pass: false, reason: "非所有者或资源非草稿状态" };
+      return { pass: false, reason: '非所有者或资源非草稿状态' };
 
     default:
-      return { pass: true, reason: "未知条件，默认通过" };
+      return { pass: true, reason: '未知条件，默认通过' };
   }
 }
 
@@ -635,12 +630,12 @@ function checkAccess(user, resource, action, targetResource) {
 
   if (!hasPerm) {
     addAuditLog({
-      type: "access_denied",
+      type: 'access_denied',
       userId: user.id,
       username: user.username,
       permission: permKey,
       resourceId: targetResource?.id,
-      reason: "缺少权限",
+      reason: '缺少权限',
     });
     return {
       allowed: false,
@@ -658,7 +653,7 @@ function checkAccess(user, resource, action, targetResource) {
     const result = evaluatePolicy(policy, user, targetResource);
     if (!result.pass) {
       addAuditLog({
-        type: "policy_denied",
+        type: 'policy_denied',
         userId: user.id,
         username: user.username,
         permission: permKey,
@@ -683,7 +678,7 @@ function checkAccess(user, resource, action, targetResource) {
   const scopeResult = checkDataScope(user, targetResource);
   if (!scopeResult.allowed) {
     addAuditLog({
-      type: "scope_denied",
+      type: 'scope_denied',
       userId: user.id,
       username: user.username,
       permission: permKey,
@@ -703,7 +698,7 @@ function checkAccess(user, resource, action, targetResource) {
   }
 
   addAuditLog({
-    type: "access_granted",
+    type: 'access_granted',
     userId: user.id,
     username: user.username,
     permission: permKey,
@@ -744,8 +739,8 @@ function sanitizeUser(user) {
 // ==================== 认证中间件 ====================
 
 function getTokenFromHeader(req) {
-  const authHeader = req.headers["authorization"];
-  if (authHeader && authHeader.startsWith("Bearer ")) {
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
   return null;
@@ -771,7 +766,7 @@ function requireAuth(handler) {
   return async (req, res, ...args) => {
     const user = authenticate(req);
     if (!user) {
-      return sendError(res, 401, "未认证，请先登录");
+      return sendError(res, 401, '未认证，请先登录');
     }
     return handler(req, res, user, ...args);
   };
@@ -782,7 +777,7 @@ function requirePermission(permission) {
     return requireAuth(async (req, res, user, ...args) => {
       if (!hasPermission(user, permission)) {
         addAuditLog({
-          type: "permission_denied",
+          type: 'permission_denied',
           userId: user.id,
           username: user.username,
           permission,
@@ -801,11 +796,7 @@ function requireAnyPermission(...perms) {
     return requireAuth(async (req, res, user, ...args) => {
       const hasAny = perms.some((p) => hasPermission(user, p));
       if (!hasAny) {
-        return sendError(
-          res,
-          403,
-          `权限不足，需要以下任一权限: ${perms.join(", ")}`,
-        );
+        return sendError(res, 403, `权限不足，需要以下任一权限: ${perms.join(', ')}`);
       }
       return handler(req, res, user, ...args);
     });
@@ -820,19 +811,19 @@ async function register(req, res) {
   const { username, password, roles: roleNames, department } = body;
 
   if (!username || !password) {
-    return sendError(res, 400, "缺少必填字段: username, password");
+    return sendError(res, 400, '缺少必填字段: username, password');
   }
   if (username.length < 3 || username.length > 20) {
-    return sendError(res, 400, "用户名长度应为3-20个字符");
+    return sendError(res, 400, '用户名长度应为3-20个字符');
   }
   if (password.length < 6) {
-    return sendError(res, 400, "密码长度至少6个字符");
+    return sendError(res, 400, '密码长度至少6个字符');
   }
   if (users.find((u) => u.username === username)) {
-    return sendError(res, 409, "用户名已存在");
+    return sendError(res, 409, '用户名已存在');
   }
 
-  const assignedRoles = roleNames || ["viewer"];
+  const assignedRoles = roleNames || ['viewer'];
   for (const r of assignedRoles) {
     if (!roles[r]) {
       return sendError(res, 400, `角色不存在: ${r}`);
@@ -845,7 +836,7 @@ async function register(req, res) {
     password: hashPassword(password),
     roles: assignedRoles,
     groups: [],
-    department: department || "",
+    department: department || '',
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -855,7 +846,7 @@ async function register(req, res) {
   persist();
 
   addAuditLog({
-    type: "user_registered",
+    type: 'user_registered',
     userId: user.id,
     username: user.username,
   });
@@ -869,18 +860,16 @@ async function login(req, res) {
   const { username, password } = body;
 
   if (!username || !password) {
-    return sendError(res, 400, "缺少必填字段: username, password");
+    return sendError(res, 400, '缺少必填字段: username, password');
   }
 
-  const user = users.find(
-    (u) => u.username === username && u.password === hashPassword(password),
-  );
+  const user = users.find((u) => u.username === username && u.password === hashPassword(password));
 
   if (!user) {
-    return sendError(res, 401, "用户名或密码错误");
+    return sendError(res, 401, '用户名或密码错误');
   }
   if (!user.isActive) {
-    return sendError(res, 403, "账号已被禁用");
+    return sendError(res, 403, '账号已被禁用');
   }
 
   const token = generateToken();
@@ -898,7 +887,7 @@ async function login(req, res) {
 
   persist();
 
-  addAuditLog({ type: "user_login", userId: user.id, username: user.username });
+  addAuditLog({ type: 'user_login', userId: user.id, username: user.username });
 
   sendSuccess(res, { token, user: sanitizeUser(user) });
 }
@@ -911,11 +900,11 @@ async function logout(req, res, user) {
     persist();
   }
   addAuditLog({
-    type: "user_logout",
+    type: 'user_logout',
     userId: user.id,
     username: user.username,
   });
-  sendSuccess(res, { message: "已登出" });
+  sendSuccess(res, { message: '已登出' });
 }
 
 // GET /api/auth/me
@@ -952,12 +941,8 @@ async function checkPermissionEndpoint(req, res, user) {
   const body = await parseBody(req);
   const { permissions: requiredPerms, resourceId } = body;
 
-  if (
-    !requiredPerms ||
-    !Array.isArray(requiredPerms) ||
-    requiredPerms.length === 0
-  ) {
-    return sendError(res, 400, "缺少必填字段: permissions (数组)");
+  if (!requiredPerms || !Array.isArray(requiredPerms) || requiredPerms.length === 0) {
+    return sendError(res, 400, '缺少必填字段: permissions (数组)');
   }
 
   const results = checkPermissions(user, requiredPerms);
@@ -985,12 +970,10 @@ async function checkAccessEndpoint(req, res, user) {
   const { resource, action, resourceId } = body;
 
   if (!resource || !action) {
-    return sendError(res, 400, "缺少必填字段: resource, action");
+    return sendError(res, 400, '缺少必填字段: resource, action');
   }
 
-  const targetResource = resourceId
-    ? resources.find((r) => r.id === resourceId)
-    : null;
+  const targetResource = resourceId ? resources.find((r) => r.id === resourceId) : null;
 
   const result = checkAccess(user, resource, action, targetResource);
   sendSuccess(res, result);
@@ -1001,13 +984,7 @@ async function checkAccessEndpoint(req, res, user) {
 // GET /api/users
 function getUsers(req, res) {
   const parsedUrl = url.parse(req.url, true);
-  const {
-    page = "1",
-    limit = "20",
-    search,
-    role,
-    department,
-  } = parsedUrl.query;
+  const { page = '1', limit = '20', search, role, department } = parsedUrl.query;
 
   let filtered = users.map(sanitizeUser);
 
@@ -1037,28 +1014,27 @@ function getUsers(req, res) {
 // GET /api/users/:id
 function getUser(req, res, _user, id) {
   const target = users.find((u) => u.id === id);
-  if (!target) return sendError(res, 404, "用户不存在");
+  if (!target) return sendError(res, 404, '用户不存在');
   sendSuccess(res, sanitizeUser(target));
 }
 
 // PUT /api/users/:id
 async function updateUser(req, res, currentUser, id) {
   const target = users.find((u) => u.id === id);
-  if (!target) return sendError(res, 404, "用户不存在");
+  if (!target) return sendError(res, 404, '用户不存在');
 
   const body = await parseBody(req);
   const { roles: newRoles, groups: newGroups, isActive, department } = body;
 
   if (target.id === currentUser.id && newRoles) {
-    return sendError(res, 403, "不能修改自己的角色");
+    return sendError(res, 403, '不能修改自己的角色');
   }
   if (target.id === currentUser.id && isActive === false) {
-    return sendError(res, 403, "不能禁用自己");
+    return sendError(res, 403, '不能禁用自己');
   }
 
   if (newRoles !== undefined) {
-    if (!Array.isArray(newRoles))
-      return sendError(res, 400, "roles 必须是数组");
+    if (!Array.isArray(newRoles)) return sendError(res, 400, 'roles 必须是数组');
     for (const r of newRoles) {
       if (!roles[r]) return sendError(res, 400, `角色不存在: ${r}`);
     }
@@ -1066,11 +1042,9 @@ async function updateUser(req, res, currentUser, id) {
   }
 
   if (newGroups !== undefined) {
-    if (!Array.isArray(newGroups))
-      return sendError(res, 400, "groups 必须是数组");
+    if (!Array.isArray(newGroups)) return sendError(res, 400, 'groups 必须是数组');
     for (const gid of newGroups) {
-      if (!groups.find((g) => g.id === gid))
-        return sendError(res, 400, `用户组不存在: ${gid}`);
+      if (!groups.find((g) => g.id === gid)) return sendError(res, 400, `用户组不存在: ${gid}`);
     }
     target.groups = newGroups;
   }
@@ -1083,7 +1057,7 @@ async function updateUser(req, res, currentUser, id) {
   persist();
 
   addAuditLog({
-    type: "user_updated",
+    type: 'user_updated',
     userId: currentUser.id,
     username: currentUser.username,
     targetUserId: target.id,
@@ -1096,8 +1070,8 @@ async function updateUser(req, res, currentUser, id) {
 // DELETE /api/users/:id
 function deleteUser(req, res, currentUser, id) {
   const target = users.find((u) => u.id === id);
-  if (!target) return sendError(res, 404, "用户不存在");
-  if (target.id === currentUser.id) return sendError(res, 403, "不能删除自己");
+  if (!target) return sendError(res, 404, '用户不存在');
+  if (target.id === currentUser.id) return sendError(res, 403, '不能删除自己');
 
   users = users.filter((u) => u.id !== id);
 
@@ -1115,39 +1089,35 @@ function deleteUser(req, res, currentUser, id) {
   persist();
 
   addAuditLog({
-    type: "user_deleted",
+    type: 'user_deleted',
     userId: currentUser.id,
     username: currentUser.username,
     targetUserId: id,
     targetUsername: target.username,
   });
 
-  sendSuccess(res, { message: "用户已删除" });
+  sendSuccess(res, { message: '用户已删除' });
 }
 
 // PUT /api/users/:id/password
 async function changePassword(req, res, currentUser, id) {
   const target = users.find((u) => u.id === id);
-  if (!target) return sendError(res, 404, "用户不存在");
+  if (!target) return sendError(res, 404, '用户不存在');
 
-  if (
-    target.id !== currentUser.id &&
-    !hasPermission(currentUser, "user:write")
-  ) {
-    return sendError(res, 403, "权限不足");
+  if (target.id !== currentUser.id && !hasPermission(currentUser, 'user:write')) {
+    return sendError(res, 403, '权限不足');
   }
 
   const body = await parseBody(req);
   const { oldPassword, newPassword } = body;
 
   if (target.id === currentUser.id) {
-    if (!oldPassword) return sendError(res, 400, "缺少必填字段: oldPassword");
-    if (target.password !== hashPassword(oldPassword))
-      return sendError(res, 401, "旧密码错误");
+    if (!oldPassword) return sendError(res, 400, '缺少必填字段: oldPassword');
+    if (target.password !== hashPassword(oldPassword)) return sendError(res, 401, '旧密码错误');
   }
 
   if (!newPassword || newPassword.length < 6) {
-    return sendError(res, 400, "新密码长度至少6个字符");
+    return sendError(res, 400, '新密码长度至少6个字符');
   }
 
   target.password = hashPassword(newPassword);
@@ -1159,7 +1129,7 @@ async function changePassword(req, res, currentUser, id) {
   }
 
   persist();
-  sendSuccess(res, { message: "密码已修改，请重新登录" });
+  sendSuccess(res, { message: '密码已修改，请重新登录' });
 }
 
 // ==================== 用户组管理 API ====================
@@ -1182,7 +1152,7 @@ function getGroups(req, res) {
 // GET /api/groups/:id
 function getGroup(req, res, _user, id) {
   const group = groups.find((g) => g.id === id);
-  if (!group) return sendError(res, 404, "用户组不存在");
+  if (!group) return sendError(res, 404, '用户组不存在');
 
   sendSuccess(res, {
     ...group,
@@ -1209,9 +1179,8 @@ async function createGroup(req, res) {
   const body = await parseBody(req);
   const { name, description, roles: groupRoles } = body;
 
-  if (!name) return sendError(res, 400, "缺少必填字段: name");
-  if (groups.find((g) => g.name === name))
-    return sendError(res, 409, "用户组已存在");
+  if (!name) return sendError(res, 400, '缺少必填字段: name');
+  if (groups.find((g) => g.name === name)) return sendError(res, 409, '用户组已存在');
 
   const validatedRoles = (groupRoles || []).filter((r) => roles[r]);
   const now = new Date().toISOString();
@@ -1219,7 +1188,7 @@ async function createGroup(req, res) {
   const group = {
     id: crypto.randomUUID(),
     name: name.trim(),
-    description: description || "",
+    description: description || '',
     roles: validatedRoles,
     members: [],
     createdAt: now,
@@ -1229,7 +1198,7 @@ async function createGroup(req, res) {
   groups.push(group);
   persist();
 
-  addAuditLog({ type: "group_created", groupName: group.name });
+  addAuditLog({ type: 'group_created', groupName: group.name });
 
   send(res, 201, { success: true, data: group });
 }
@@ -1237,7 +1206,7 @@ async function createGroup(req, res) {
 // PUT /api/groups/:id
 async function updateGroup(req, res, _user, id) {
   const group = groups.find((g) => g.id === id);
-  if (!group) return sendError(res, 404, "用户组不存在");
+  if (!group) return sendError(res, 404, '用户组不存在');
 
   const body = await parseBody(req);
   const {
@@ -1255,8 +1224,7 @@ async function updateGroup(req, res, _user, id) {
 
   // 直接设置角色
   if (groupRoles !== undefined) {
-    if (!Array.isArray(groupRoles))
-      return sendError(res, 400, "roles 必须是数组");
+    if (!Array.isArray(groupRoles)) return sendError(res, 400, 'roles 必须是数组');
     for (const r of groupRoles) {
       if (!roles[r]) return sendError(res, 400, `角色不存在: ${r}`);
     }
@@ -1298,7 +1266,7 @@ async function updateGroup(req, res, _user, id) {
 
   persist();
 
-  addAuditLog({ type: "group_updated", groupName: group.name });
+  addAuditLog({ type: 'group_updated', groupName: group.name });
 
   sendSuccess(res, group);
 }
@@ -1306,7 +1274,7 @@ async function updateGroup(req, res, _user, id) {
 // DELETE /api/groups/:id
 function deleteGroup(req, res, _user, id) {
   const idx = groups.findIndex((g) => g.id === id);
-  if (idx === -1) return sendError(res, 404, "用户组不存在");
+  if (idx === -1) return sendError(res, 404, '用户组不存在');
 
   const group = groups[idx];
 
@@ -1322,9 +1290,9 @@ function deleteGroup(req, res, _user, id) {
   groups.splice(idx, 1);
   persist();
 
-  addAuditLog({ type: "group_deleted", groupName: group.name });
+  addAuditLog({ type: 'group_deleted', groupName: group.name });
 
-  sendSuccess(res, { message: "用户组已删除" });
+  sendSuccess(res, { message: '用户组已删除' });
 }
 
 // ==================== 角色管理 API ====================
@@ -1343,11 +1311,9 @@ function getRoles(req, res) {
 // GET /api/roles/:name
 function getRole(req, res, _user, name) {
   const role = roles[name];
-  if (!role) return sendError(res, 404, "角色不存在");
+  if (!role) return sendError(res, 404, '角色不存在');
 
-  const usersWithRole = users
-    .filter((u) => u.roles.includes(name))
-    .map(sanitizeUser);
+  const usersWithRole = users.filter((u) => u.roles.includes(name)).map(sanitizeUser);
   const groupsWithRole = groups.filter((g) => g.roles.includes(name));
   const inheritedRoles = role.inherits || [];
   const inheritedDetails = inheritedRoles.map((r) => roles[r]).filter(Boolean);
@@ -1380,45 +1346,35 @@ function getRole(req, res, _user, name) {
 // POST /api/roles
 async function createRole(req, res) {
   const body = await parseBody(req);
-  const {
-    name,
-    description,
-    permissions: rolePerms,
-    inherits,
-    dataScope,
-  } = body;
+  const { name, description, permissions: rolePerms, inherits, dataScope } = body;
 
-  if (!name) return sendError(res, 400, "缺少必填字段: name");
-  if (roles[name]) return sendError(res, 409, "角色已存在");
+  if (!name) return sendError(res, 400, '缺少必填字段: name');
+  if (roles[name]) return sendError(res, 409, '角色已存在');
   if (!/^[a-z][a-z0-9_]{1,29}$/.test(name)) {
-    return sendError(
-      res,
-      400,
-      "角色名只能包含小写字母、数字和下划线，2-30个字符，以字母开头",
-    );
+    return sendError(res, 400, '角色名只能包含小写字母、数字和下划线，2-30个字符，以字母开头');
   }
 
   // 验证继承
   if (inherits && inherits.length > 0) {
     for (const parent of inherits) {
       if (!roles[parent]) return sendError(res, 400, `父角色不存在: ${parent}`);
-      if (parent === name) return sendError(res, 400, "角色不能继承自身");
+      if (parent === name) return sendError(res, 400, '角色不能继承自身');
     }
   }
 
   const validatedPerms = (rolePerms || []).filter((p) => {
-    if (p === "*:*") return true;
-    const [r, a] = p.split(":");
+    if (p === '*:*') return true;
+    const [r, a] = p.split(':');
     return permissions.some((perm) => perm.resource === r && perm.action === a);
   });
 
   const now = new Date().toISOString();
   const role = {
     name,
-    description: description || "",
+    description: description || '',
     permissions: validatedPerms,
     inherits: inherits || [],
-    dataScope: dataScope || "self",
+    dataScope: dataScope || 'self',
     isSystem: false,
     createdAt: now,
     updatedAt: now,
@@ -1428,7 +1384,7 @@ async function createRole(req, res) {
   clearUserPermissionCache(); // 清除所有缓存
   persist();
 
-  addAuditLog({ type: "role_created", roleName: name });
+  addAuditLog({ type: 'role_created', roleName: name });
 
   send(res, 201, { success: true, data: role });
 }
@@ -1436,7 +1392,7 @@ async function createRole(req, res) {
 // PUT /api/roles/:name
 async function updateRole(req, res, _user, name) {
   const role = roles[name];
-  if (!role) return sendError(res, 404, "角色不存在");
+  if (!role) return sendError(res, 404, '角色不存在');
 
   const body = await parseBody(req);
   const {
@@ -1451,14 +1407,11 @@ async function updateRole(req, res, _user, name) {
   if (description !== undefined) role.description = description;
 
   if (rolePerms !== undefined) {
-    if (!Array.isArray(rolePerms))
-      return sendError(res, 400, "permissions 必须是数组");
+    if (!Array.isArray(rolePerms)) return sendError(res, 400, 'permissions 必须是数组');
     role.permissions = rolePerms.filter((p) => {
-      if (p === "*:*") return true;
-      const [r, a] = p.split(":");
-      return permissions.some(
-        (perm) => perm.resource === r && perm.action === a,
-      );
+      if (p === '*:*') return true;
+      const [r, a] = p.split(':');
+      return permissions.some((perm) => perm.resource === r && perm.action === a);
     });
   }
 
@@ -1469,28 +1422,21 @@ async function updateRole(req, res, _user, name) {
   }
 
   if (removePermissions !== undefined) {
-    role.permissions = role.permissions.filter(
-      (p) => !removePermissions.includes(p),
-    );
+    role.permissions = role.permissions.filter((p) => !removePermissions.includes(p));
   }
 
   if (inherits !== undefined) {
-    if (!Array.isArray(inherits))
-      return sendError(res, 400, "inherits 必须是数组");
+    if (!Array.isArray(inherits)) return sendError(res, 400, 'inherits 必须是数组');
     for (const parent of inherits) {
       if (!roles[parent]) return sendError(res, 400, `父角色不存在: ${parent}`);
-      if (parent === name) return sendError(res, 400, "角色不能继承自身");
+      if (parent === name) return sendError(res, 400, '角色不能继承自身');
     }
     role.inherits = inherits;
   }
 
   if (dataScope !== undefined) {
-    if (!["all", "department", "self", "none"].includes(dataScope)) {
-      return sendError(
-        res,
-        400,
-        "dataScope 必须是 all, department, self, none 之一",
-      );
+    if (!['all', 'department', 'self', 'none'].includes(dataScope)) {
+      return sendError(res, 400, 'dataScope 必须是 all, department, self, none 之一');
     }
     role.dataScope = dataScope;
   }
@@ -1499,7 +1445,7 @@ async function updateRole(req, res, _user, name) {
   clearUserPermissionCache();
   persist();
 
-  addAuditLog({ type: "role_updated", roleName: name });
+  addAuditLog({ type: 'role_updated', roleName: name });
 
   sendSuccess(res, role);
 }
@@ -1507,57 +1453,48 @@ async function updateRole(req, res, _user, name) {
 // DELETE /api/roles/:name
 function deleteRole(req, res, _user, name) {
   const role = roles[name];
-  if (!role) return sendError(res, 404, "角色不存在");
-  if (role.isSystem) return sendError(res, 403, "系统内置角色不可删除");
+  if (!role) return sendError(res, 404, '角色不存在');
+  if (role.isSystem) return sendError(res, 403, '系统内置角色不可删除');
 
   const usersWithRole = users.filter((u) => u.roles.includes(name));
   if (usersWithRole.length > 0) {
-    return sendError(
-      res,
-      409,
-      `该角色正在被 ${usersWithRole.length} 个用户使用，无法删除`,
-    );
+    return sendError(res, 409, `该角色正在被 ${usersWithRole.length} 个用户使用，无法删除`);
   }
 
   // 检查是否有其他角色继承该角色
   const inheritingRoles = Object.values(roles).filter(
-    (r) => r.inherits && r.inherits.includes(name),
+    (r) => r.inherits && r.inherits.includes(name)
   );
   if (inheritingRoles.length > 0) {
     return sendError(
       res,
       409,
-      `该角色被 [${inheritingRoles.map((r) => r.name).join(", ")}] 继承，无法删除`,
+      `该角色被 [${inheritingRoles.map((r) => r.name).join(', ')}] 继承，无法删除`
     );
   }
 
   // 检查用户组
   const groupsWithRole = groups.filter((g) => g.roles.includes(name));
   if (groupsWithRole.length > 0) {
-    return sendError(
-      res,
-      409,
-      `该角色被 ${groupsWithRole.length} 个用户组使用，无法删除`,
-    );
+    return sendError(res, 409, `该角色被 ${groupsWithRole.length} 个用户组使用，无法删除`);
   }
 
   delete roles[name];
   clearUserPermissionCache();
   persist();
 
-  addAuditLog({ type: "role_deleted", roleName: name });
+  addAuditLog({ type: 'role_deleted', roleName: name });
 
-  sendSuccess(res, { message: "角色已删除" });
+  sendSuccess(res, { message: '角色已删除' });
 }
 
 // GET /api/roles/:name/inheritance-tree - 获取角色继承树
 function getRoleInheritanceTree(req, res, _user, name) {
   const role = roles[name];
-  if (!role) return sendError(res, 404, "角色不存在");
+  if (!role) return sendError(res, 404, '角色不存在');
 
   function buildTree(roleName, visited = new Set()) {
-    if (visited.has(roleName))
-      return { name: roleName, cycle: true, children: [] };
+    if (visited.has(roleName)) return { name: roleName, cycle: true, children: [] };
     visited.add(roleName);
 
     const r = roles[roleName];
@@ -1568,9 +1505,7 @@ function getRoleInheritanceTree(req, res, _user, name) {
       description: r.description,
       permissions: r.permissions,
       dataScope: r.dataScope,
-      children: (r.inherits || []).map((parent) =>
-        buildTree(parent, new Set(visited)),
-      ),
+      children: (r.inherits || []).map((parent) => buildTree(parent, new Set(visited))),
     };
   }
 
@@ -1595,15 +1530,12 @@ async function createPermission(req, res) {
   const body = await parseBody(req);
   const { resource, action, description } = body;
 
-  if (!resource || !action)
-    return sendError(res, 400, "缺少必填字段: resource, action");
-  if (!/^[a-z][a-z0-9_]*$/.test(resource))
-    return sendError(res, 400, "resource 格式不合法");
-  if (!/^[a-z][a-z0-9_]*$/.test(action))
-    return sendError(res, 400, "action 格式不合法");
+  if (!resource || !action) return sendError(res, 400, '缺少必填字段: resource, action');
+  if (!/^[a-z][a-z0-9_]*$/.test(resource)) return sendError(res, 400, 'resource 格式不合法');
+  if (!/^[a-z][a-z0-9_]*$/.test(action)) return sendError(res, 400, 'action 格式不合法');
 
   if (permissions.find((p) => p.resource === resource && p.action === action)) {
-    return sendError(res, 409, "权限已存在");
+    return sendError(res, 409, '权限已存在');
   }
 
   const perm = {
@@ -1615,7 +1547,7 @@ async function createPermission(req, res) {
   persist();
 
   addAuditLog({
-    type: "permission_created",
+    type: 'permission_created',
     permission: `${resource}:${action}`,
   });
 
@@ -1624,10 +1556,8 @@ async function createPermission(req, res) {
 
 // DELETE /api/permissions/:resource/:action
 function deletePermission(req, res, _user, resource, action) {
-  const idx = permissions.findIndex(
-    (p) => p.resource === resource && p.action === action,
-  );
-  if (idx === -1) return sendError(res, 404, "权限不存在");
+  const idx = permissions.findIndex((p) => p.resource === resource && p.action === action);
+  if (idx === -1) return sendError(res, 404, '权限不存在');
 
   const permKey = `${resource}:${action}`;
 
@@ -1640,9 +1570,9 @@ function deletePermission(req, res, _user, resource, action) {
   clearUserPermissionCache();
   persist();
 
-  addAuditLog({ type: "permission_deleted", permission: permKey });
+  addAuditLog({ type: 'permission_deleted', permission: permKey });
 
-  sendSuccess(res, { message: "权限已删除，已从所有角色中移除" });
+  sendSuccess(res, { message: '权限已删除，已从所有角色中移除' });
 }
 
 // ==================== 策略管理 API ====================
@@ -1656,31 +1586,22 @@ function getPolicies(req, res) {
 // POST /api/policies
 async function createPolicy(req, res) {
   const body = await parseBody(req);
-  const { name, description, resource, action, condition, priority, enabled } =
-    body;
+  const { name, description, resource, action, condition, priority, enabled } = body;
 
   if (!name || !resource || !action || !condition) {
-    return sendError(
-      res,
-      400,
-      "缺少必填字段: name, resource, action, condition",
-    );
+    return sendError(res, 400, '缺少必填字段: name, resource, action, condition');
   }
 
-  const validConditions = ["owner_or_admin", "owner_draft_or_admin"];
+  const validConditions = ['owner_or_admin', 'owner_draft_or_admin'];
   if (!validConditions.includes(condition)) {
-    return sendError(
-      res,
-      400,
-      `condition 必须是: ${validConditions.join(", ")}`,
-    );
+    return sendError(res, 400, `condition 必须是: ${validConditions.join(', ')}`);
   }
 
   const now = new Date().toISOString();
   const policy = {
     id: crypto.randomUUID(),
     name: name.trim(),
-    description: description || "",
+    description: description || '',
     resource,
     action,
     condition,
@@ -1693,7 +1614,7 @@ async function createPolicy(req, res) {
   policies.push(policy);
   persist();
 
-  addAuditLog({ type: "policy_created", policyName: policy.name });
+  addAuditLog({ type: 'policy_created', policyName: policy.name });
 
   send(res, 201, { success: true, data: policy });
 }
@@ -1701,11 +1622,10 @@ async function createPolicy(req, res) {
 // PUT /api/policies/:id
 async function updatePolicy(req, res, _user, id) {
   const policy = policies.find((p) => p.id === id);
-  if (!policy) return sendError(res, 404, "策略不存在");
+  if (!policy) return sendError(res, 404, '策略不存在');
 
   const body = await parseBody(req);
-  const { name, description, resource, action, condition, priority, enabled } =
-    body;
+  const { name, description, resource, action, condition, priority, enabled } = body;
 
   if (name !== undefined) policy.name = name.trim();
   if (description !== undefined) policy.description = description;
@@ -1718,7 +1638,7 @@ async function updatePolicy(req, res, _user, id) {
   policy.updatedAt = new Date().toISOString();
   persist();
 
-  addAuditLog({ type: "policy_updated", policyName: policy.name });
+  addAuditLog({ type: 'policy_updated', policyName: policy.name });
 
   sendSuccess(res, policy);
 }
@@ -1726,14 +1646,14 @@ async function updatePolicy(req, res, _user, id) {
 // DELETE /api/policies/:id
 function deletePolicy(req, res, _user, id) {
   const idx = policies.findIndex((p) => p.id === id);
-  if (idx === -1) return sendError(res, 404, "策略不存在");
+  if (idx === -1) return sendError(res, 404, '策略不存在');
 
   const deleted = policies.splice(idx, 1)[0];
   persist();
 
-  addAuditLog({ type: "policy_deleted", policyName: deleted.name });
+  addAuditLog({ type: 'policy_deleted', policyName: deleted.name });
 
-  sendSuccess(res, { message: "策略已删除" });
+  sendSuccess(res, { message: '策略已删除' });
 }
 
 // ==================== 审计日志 API ====================
@@ -1742,8 +1662,8 @@ function deletePolicy(req, res, _user, id) {
 function getAuditLogs(req, res) {
   const parsedUrl = url.parse(req.url, true);
   const {
-    page = "1",
-    limit = "50",
+    page = '1',
+    limit = '50',
     type,
     userId,
     permission,
@@ -1755,8 +1675,7 @@ function getAuditLogs(req, res) {
 
   if (type) filtered = filtered.filter((l) => l.type === type);
   if (userId) filtered = filtered.filter((l) => l.userId === userId);
-  if (permission)
-    filtered = filtered.filter((l) => l.permission === permission);
+  if (permission) filtered = filtered.filter((l) => l.permission === permission);
   if (startDate) filtered = filtered.filter((l) => l.timestamp >= startDate);
   if (endDate) filtered = filtered.filter((l) => l.timestamp <= endDate);
 
@@ -1804,23 +1723,23 @@ function getArticles(req, res, user) {
   const parsedUrl = url.parse(req.url, true);
   const { status, author } = parsedUrl.query;
 
-  let filtered = resources.filter((r) => r.type === "article");
+  let filtered = resources.filter((r) => r.type === 'article');
 
   // 数据范围过滤
   const allRoles = getUserRoles(user);
-  let maxScope = "none";
+  let maxScope = 'none';
   const scopePriority = { all: 4, department: 3, self: 2, none: 1 };
   for (const roleName of allRoles) {
     const role = roles[roleName];
     if (role) {
-      const scope = role.dataScope || "self";
+      const scope = role.dataScope || 'self';
       if (scopePriority[scope] > scopePriority[maxScope]) maxScope = scope;
     }
   }
 
-  if (maxScope === "self") {
+  if (maxScope === 'self') {
     filtered = filtered.filter((r) => r.authorId === user.id);
-  } else if (maxScope === "department") {
+  } else if (maxScope === 'department') {
     filtered = filtered.filter((r) => r.department === user.department);
   }
 
@@ -1828,10 +1747,10 @@ function getArticles(req, res, user) {
   if (author) filtered = filtered.filter((r) => r.author === author);
 
   addAuditLog({
-    type: "resource_accessed",
+    type: 'resource_accessed',
     userId: user.id,
     username: user.username,
-    permission: "article:read",
+    permission: 'article:read',
     scope: maxScope,
     resultCount: filtered.length,
   });
@@ -1844,18 +1763,17 @@ async function createArticle(req, res, user) {
   const body = await parseBody(req);
   const { title, content } = body;
 
-  if (!title || !content)
-    return sendError(res, 400, "缺少必填字段: title, content");
+  if (!title || !content) return sendError(res, 400, '缺少必填字段: title, content');
 
   const article = {
     id: crypto.randomUUID(),
-    type: "article",
+    type: 'article',
     title: title.trim(),
     content: content.trim(),
     author: user.username,
     authorId: user.id,
     department: user.department,
-    status: "draft",
+    status: 'draft',
     createdAt: new Date().toISOString(),
   };
 
@@ -1863,11 +1781,11 @@ async function createArticle(req, res, user) {
   persist();
 
   addAuditLog({
-    type: "resource_created",
+    type: 'resource_created',
     userId: user.id,
     username: user.username,
     resourceId: article.id,
-    permission: "article:write",
+    permission: 'article:write',
   });
 
   send(res, 201, { success: true, data: article });
@@ -1875,11 +1793,11 @@ async function createArticle(req, res, user) {
 
 // PUT /api/resources/articles/:id
 async function updateArticle(req, res, user, id) {
-  const article = resources.find((r) => r.id === id && r.type === "article");
-  if (!article) return sendError(res, 404, "文章不存在");
+  const article = resources.find((r) => r.id === id && r.type === 'article');
+  if (!article) return sendError(res, 404, '文章不存在');
 
   // 综合权限检查
-  const access = checkAccess(user, "article", "write", article);
+  const access = checkAccess(user, 'article', 'write', article);
   if (!access.allowed) return sendError(res, 403, access.reason);
 
   const body = await parseBody(req);
@@ -1894,13 +1812,13 @@ async function updateArticle(req, res, user, id) {
 
 // PUT /api/resources/articles/:id/publish
 function publishArticle(req, res, user, id) {
-  const article = resources.find((r) => r.id === id && r.type === "article");
-  if (!article) return sendError(res, 404, "文章不存在");
+  const article = resources.find((r) => r.id === id && r.type === 'article');
+  if (!article) return sendError(res, 404, '文章不存在');
 
-  const access = checkAccess(user, "article", "publish", article);
+  const access = checkAccess(user, 'article', 'publish', article);
   if (!access.allowed) return sendError(res, 403, access.reason);
 
-  article.status = "published";
+  article.status = 'published';
   article.publishedAt = new Date().toISOString();
   article.publishedBy = user.username;
   persist();
@@ -1910,17 +1828,17 @@ function publishArticle(req, res, user, id) {
 
 // DELETE /api/resources/articles/:id
 function deleteArticle(req, res, user, id) {
-  const idx = resources.findIndex((r) => r.id === id && r.type === "article");
-  if (idx === -1) return sendError(res, 404, "文章不存在");
+  const idx = resources.findIndex((r) => r.id === id && r.type === 'article');
+  if (idx === -1) return sendError(res, 404, '文章不存在');
 
   const article = resources[idx];
-  const access = checkAccess(user, "article", "delete", article);
+  const access = checkAccess(user, 'article', 'delete', article);
   if (!access.allowed) return sendError(res, 403, access.reason);
 
   const deleted = resources.splice(idx, 1)[0];
   persist();
 
-  sendSuccess(res, { message: "文章已删除", data: deleted });
+  sendSuccess(res, { message: '文章已删除', data: deleted });
 }
 
 // GET /api/resources/dashboard
@@ -1932,7 +1850,7 @@ function getDashboard(req, res, user) {
     totalPermissions: permissions.length,
     totalPolicies: policies.length,
     totalGroups: groups.length,
-    totalArticles: resources.filter((r) => r.type === "article").length,
+    totalArticles: resources.filter((r) => r.type === 'article').length,
     activeTokens: Object.keys(tokens).length,
     auditLogCount: auditLogs.length,
     recentUsers: users.slice(-5).map(sanitizeUser).reverse(),
@@ -1944,8 +1862,8 @@ function getDashboard(req, res, user) {
 // GET /api/system/info
 function getSystemInfo(req, res) {
   sendSuccess(res, {
-    name: "RBAC 权限服务",
-    version: "1.0.0",
+    name: 'RBAC 权限服务',
+    version: '1.0.0',
     port: PORT,
     uptime: process.uptime(),
     memory: process.memoryUsage(),
@@ -1978,206 +1896,174 @@ async function handler(req, res) {
   const method = req.method;
 
   // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (method === "OPTIONS") {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
   }
 
   try {
     // ========== Auth 路由 ==========
-    if (method === "POST" && pathname === "/api/auth/register") {
+    if (method === 'POST' && pathname === '/api/auth/register') {
       return await register(req, res);
     }
-    if (method === "POST" && pathname === "/api/auth/login") {
+    if (method === 'POST' && pathname === '/api/auth/login') {
       return await login(req, res);
     }
-    if (method === "POST" && pathname === "/api/auth/logout") {
+    if (method === 'POST' && pathname === '/api/auth/logout') {
       return requireAuth(logout)(req, res);
     }
-    if (method === "GET" && pathname === "/api/auth/me") {
+    if (method === 'GET' && pathname === '/api/auth/me') {
       return requireAuth(getMe)(req, res);
     }
-    if (method === "GET" && pathname === "/api/auth/permissions") {
+    if (method === 'GET' && pathname === '/api/auth/permissions') {
       return requireAuth(getMyPermissions)(req, res);
     }
-    if (method === "POST" && pathname === "/api/auth/check-permission") {
+    if (method === 'POST' && pathname === '/api/auth/check-permission') {
       return requireAuth(checkPermissionEndpoint)(req, res);
     }
-    if (method === "POST" && pathname === "/api/auth/check-access") {
+    if (method === 'POST' && pathname === '/api/auth/check-access') {
       return requireAuth(checkAccessEndpoint)(req, res);
     }
 
     // ========== 用户管理路由 ==========
-    if (method === "GET" && pathname === "/api/users") {
-      return requirePermission("user:read")(getUsers)(req, res);
+    if (method === 'GET' && pathname === '/api/users') {
+      return requirePermission('user:read')(getUsers)(req, res);
     }
 
     const userMatch = pathname.match(/^\/api\/users\/([\w-]+)$/);
     if (userMatch) {
       const id = userMatch[1];
-      if (method === "GET")
-        return requirePermission("user:read")(getUser)(req, res, id);
-      if (method === "PUT")
-        return requirePermission("user:write")(updateUser)(req, res, id);
-      if (method === "DELETE")
-        return requirePermission("user:delete")(deleteUser)(req, res, id);
+      if (method === 'GET') return requirePermission('user:read')(getUser)(req, res, id);
+      if (method === 'PUT') return requirePermission('user:write')(updateUser)(req, res, id);
+      if (method === 'DELETE') return requirePermission('user:delete')(deleteUser)(req, res, id);
     }
 
     const passwordMatch = pathname.match(/^\/api\/users\/([\w-]+)\/password$/);
-    if (passwordMatch && method === "PUT") {
+    if (passwordMatch && method === 'PUT') {
       return requireAuth(changePassword)(req, res, passwordMatch[1]);
     }
 
     // ========== 用户组路由 ==========
-    if (method === "GET" && pathname === "/api/groups") {
-      return requirePermission("group:read")(getGroups)(req, res);
+    if (method === 'GET' && pathname === '/api/groups') {
+      return requirePermission('group:read')(getGroups)(req, res);
     }
-    if (method === "POST" && pathname === "/api/groups") {
-      return requirePermission("group:write")(createGroup)(req, res);
+    if (method === 'POST' && pathname === '/api/groups') {
+      return requirePermission('group:write')(createGroup)(req, res);
     }
 
     const groupMatch = pathname.match(/^\/api\/groups\/([\w-]+)$/);
     if (groupMatch) {
       const id = groupMatch[1];
-      if (method === "GET")
-        return requirePermission("group:read")(getGroup)(req, res, id);
-      if (method === "PUT")
-        return requirePermission("group:write")(updateGroup)(req, res, id);
-      if (method === "DELETE")
-        return requirePermission("group:delete")(deleteGroup)(req, res, id);
+      if (method === 'GET') return requirePermission('group:read')(getGroup)(req, res, id);
+      if (method === 'PUT') return requirePermission('group:write')(updateGroup)(req, res, id);
+      if (method === 'DELETE') return requirePermission('group:delete')(deleteGroup)(req, res, id);
     }
 
     // ========== 角色管理路由 ==========
-    if (method === "GET" && pathname === "/api/roles") {
-      return requirePermission("role:read")(getRoles)(req, res);
+    if (method === 'GET' && pathname === '/api/roles') {
+      return requirePermission('role:read')(getRoles)(req, res);
     }
-    if (method === "POST" && pathname === "/api/roles") {
-      return requirePermission("role:write")(createRole)(req, res);
+    if (method === 'POST' && pathname === '/api/roles') {
+      return requirePermission('role:write')(createRole)(req, res);
     }
 
     const roleMatch = pathname.match(/^\/api\/roles\/([\w]+)$/);
     if (roleMatch) {
       const name = roleMatch[1];
-      if (method === "GET")
-        return requirePermission("role:read")(getRole)(req, res, name);
-      if (method === "PUT")
-        return requirePermission("role:write")(updateRole)(req, res, name);
-      if (method === "DELETE")
-        return requirePermission("role:delete")(deleteRole)(req, res, name);
+      if (method === 'GET') return requirePermission('role:read')(getRole)(req, res, name);
+      if (method === 'PUT') return requirePermission('role:write')(updateRole)(req, res, name);
+      if (method === 'DELETE') return requirePermission('role:delete')(deleteRole)(req, res, name);
     }
 
-    const roleTreeMatch = pathname.match(
-      /^\/api\/roles\/([\w]+)\/inheritance-tree$/,
-    );
-    if (roleTreeMatch && method === "GET") {
-      return requirePermission("role:read")(getRoleInheritanceTree)(
-        req,
-        res,
-        roleTreeMatch[1],
-      );
+    const roleTreeMatch = pathname.match(/^\/api\/roles\/([\w]+)\/inheritance-tree$/);
+    if (roleTreeMatch && method === 'GET') {
+      return requirePermission('role:read')(getRoleInheritanceTree)(req, res, roleTreeMatch[1]);
     }
 
     // ========== 权限管理路由 ==========
-    if (method === "GET" && pathname === "/api/permissions") {
-      return requirePermission("permission:read")(getPermissions)(req, res);
+    if (method === 'GET' && pathname === '/api/permissions') {
+      return requirePermission('permission:read')(getPermissions)(req, res);
     }
-    if (method === "POST" && pathname === "/api/permissions") {
-      return requirePermission("permission:write")(createPermission)(req, res);
+    if (method === 'POST' && pathname === '/api/permissions') {
+      return requirePermission('permission:write')(createPermission)(req, res);
     }
 
     const permMatch = pathname.match(/^\/api\/permissions\/([\w]+)\/([\w]+)$/);
-    if (permMatch && method === "DELETE") {
-      return requirePermission("permission:write")(deletePermission)(
+    if (permMatch && method === 'DELETE') {
+      return requirePermission('permission:write')(deletePermission)(
         req,
         res,
         permMatch[1],
-        permMatch[2],
+        permMatch[2]
       );
     }
 
     // ========== 策略管理路由 ==========
-    if (method === "GET" && pathname === "/api/policies") {
-      return requirePermission("permission:read")(getPolicies)(req, res);
+    if (method === 'GET' && pathname === '/api/policies') {
+      return requirePermission('permission:read')(getPolicies)(req, res);
     }
-    if (method === "POST" && pathname === "/api/policies") {
-      return requirePermission("system:write")(createPolicy)(req, res);
+    if (method === 'POST' && pathname === '/api/policies') {
+      return requirePermission('system:write')(createPolicy)(req, res);
     }
 
     const policyMatch = pathname.match(/^\/api\/policies\/([\w-]+)$/);
     if (policyMatch) {
       const id = policyMatch[1];
-      if (method === "PUT")
-        return requirePermission("system:write")(updatePolicy)(req, res, id);
-      if (method === "DELETE")
-        return requirePermission("system:write")(deletePolicy)(req, res, id);
+      if (method === 'PUT') return requirePermission('system:write')(updatePolicy)(req, res, id);
+      if (method === 'DELETE') return requirePermission('system:write')(deletePolicy)(req, res, id);
     }
 
     // ========== 审计日志路由 ==========
-    if (method === "GET" && pathname === "/api/audit") {
-      return requirePermission("system:audit")(getAuditLogs)(req, res);
+    if (method === 'GET' && pathname === '/api/audit') {
+      return requirePermission('system:audit')(getAuditLogs)(req, res);
     }
-    if (method === "GET" && pathname === "/api/audit/stats") {
-      return requirePermission("system:audit")(getAuditStats)(req, res);
+    if (method === 'GET' && pathname === '/api/audit/stats') {
+      return requirePermission('system:audit')(getAuditStats)(req, res);
     }
 
     // ========== 受保护资源路由 ==========
-    if (method === "GET" && pathname === "/api/resources/articles") {
-      return requirePermission("article:read")(getArticles)(req, res);
+    if (method === 'GET' && pathname === '/api/resources/articles') {
+      return requirePermission('article:read')(getArticles)(req, res);
     }
-    if (method === "POST" && pathname === "/api/resources/articles") {
-      return requirePermission("article:write")(createArticle)(req, res);
-    }
-
-    const articlePublishMatch = pathname.match(
-      /^\/api\/resources\/articles\/([\w-]+)\/publish$/,
-    );
-    if (articlePublishMatch && method === "PUT") {
-      return requirePermission("article:publish")(publishArticle)(
-        req,
-        res,
-        articlePublishMatch[1],
-      );
+    if (method === 'POST' && pathname === '/api/resources/articles') {
+      return requirePermission('article:write')(createArticle)(req, res);
     }
 
-    const articleMatch = pathname.match(
-      /^\/api\/resources\/articles\/([\w-]+)$/,
-    );
+    const articlePublishMatch = pathname.match(/^\/api\/resources\/articles\/([\w-]+)\/publish$/);
+    if (articlePublishMatch && method === 'PUT') {
+      return requirePermission('article:publish')(publishArticle)(req, res, articlePublishMatch[1]);
+    }
+
+    const articleMatch = pathname.match(/^\/api\/resources\/articles\/([\w-]+)$/);
     if (articleMatch) {
       const id = articleMatch[1];
-      if (method === "PUT")
-        return requirePermission("article:write")(updateArticle)(req, res, id);
-      if (method === "DELETE")
-        return requirePermission("article:delete")(deleteArticle)(req, res, id);
+      if (method === 'PUT') return requirePermission('article:write')(updateArticle)(req, res, id);
+      if (method === 'DELETE')
+        return requirePermission('article:delete')(deleteArticle)(req, res, id);
     }
 
-    if (method === "GET" && pathname === "/api/resources/dashboard") {
-      return requireAnyPermission(
-        "dashboard:read",
-        "system:read",
-      )(getDashboard)(req, res);
+    if (method === 'GET' && pathname === '/api/resources/dashboard') {
+      return requireAnyPermission('dashboard:read', 'system:read')(getDashboard)(req, res);
     }
 
     // ========== 系统路由 ==========
-    if (method === "GET" && pathname === "/api/system/info") {
-      return requirePermission("system:read")(getSystemInfo)(req, res);
+    if (method === 'GET' && pathname === '/api/system/info') {
+      return requirePermission('system:read')(getSystemInfo)(req, res);
     }
-    if (method === "POST" && pathname === "/api/system/cache/clear") {
-      return requirePermission("system:write")(clearCache)(req, res);
+    if (method === 'POST' && pathname === '/api/system/cache/clear') {
+      return requirePermission('system:write')(clearCache)(req, res);
     }
 
-    sendError(res, 404, "Route not found");
+    sendError(res, 404, 'Route not found');
   } catch (err) {
-    if (err.message === "Invalid JSON") {
-      return sendError(res, 400, "Invalid JSON");
+    if (err.message === 'Invalid JSON') {
+      return sendError(res, 400, 'Invalid JSON');
     }
-    console.error("服务器错误:", err);
-    sendError(res, 500, "Internal server error");
+    console.error('服务器错误:', err);
+    sendError(res, 500, 'Internal server error');
   }
 }
 
@@ -2270,11 +2156,11 @@ server.listen(PORT, () => {
 });
 
 // 优雅关闭
-process.on("SIGINT", () => {
-  console.log("\n正在关闭服务器...");
+process.on('SIGINT', () => {
+  console.log('\n正在关闭服务器...');
   persist();
   server.close(() => {
-    console.log("服务器已关闭，数据已保存");
+    console.log('服务器已关闭，数据已保存');
     process.exit(0);
   });
 });

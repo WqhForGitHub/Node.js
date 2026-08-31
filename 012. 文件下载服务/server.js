@@ -1,11 +1,11 @@
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const url = require("url");
-const zlib = require("zlib");
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const url = require('url');
+const zlib = require('zlib');
 
 const PORT = 3000;
-const FILES_DIR = path.join(__dirname, "files");
+const FILES_DIR = path.join(__dirname, 'files');
 const MAX_SPEED = 0; // 限速（字节/秒），0 = 不限速
 
 // ============================================================
@@ -19,59 +19,52 @@ if (!fs.existsSync(FILES_DIR)) {
 function createSampleFiles() {
   const samples = [
     {
-      name: "欢迎.txt",
+      name: '欢迎.txt',
       content:
-        "欢迎使用文件下载服务！\n\n这是一个纯 Node.js 实现的文件下载服务 Demo。\n支持：断点续传、分块下载、压缩传输、打包下载等功能。",
+        '欢迎使用文件下载服务！\n\n这是一个纯 Node.js 实现的文件下载服务 Demo。\n支持：断点续传、分块下载、压缩传输、打包下载等功能。',
     },
     {
-      name: "readme.md",
+      name: 'readme.md',
       content:
-        "# 文件下载服务\n\n## 功能列表\n\n- 文件浏览与下载\n- 断点续传（HTTP Range）\n- Gzip/Brotli 压缩传输\n- 多文件打包下载（ZIP）\n- 下载限速\n- 下载统计\n- ETag 缓存控制\n",
+        '# 文件下载服务\n\n## 功能列表\n\n- 文件浏览与下载\n- 断点续传（HTTP Range）\n- Gzip/Brotli 压缩传输\n- 多文件打包下载（ZIP）\n- 下载限速\n- 下载统计\n- ETag 缓存控制\n',
     },
     {
-      name: "data.json",
+      name: 'data.json',
       content: JSON.stringify(
         {
-          service: "文件下载服务",
-          version: "1.0.0",
-          features: [
-            "断点续传",
-            "压缩传输",
-            "打包下载",
-            "下载限速",
-            "ETag 缓存",
-            "下载统计",
-          ],
-          author: "Node.js Demo",
+          service: '文件下载服务',
+          version: '1.0.0',
+          features: ['断点续传', '压缩传输', '打包下载', '下载限速', 'ETag 缓存', '下载统计'],
+          author: 'Node.js Demo',
         },
         null,
-        2,
+        2
       ),
     },
     {
-      name: "config.ini",
+      name: 'config.ini',
       content:
-        "[server]\nport = 3000\nhost = localhost\n\n[download]\nmax_speed = 0\nchunk_size = 65536\n\n[security]\nallow_directory_traversal = false\n",
+        '[server]\nport = 3000\nhost = localhost\n\n[download]\nmax_speed = 0\nchunk_size = 65536\n\n[security]\nallow_directory_traversal = false\n',
     },
   ];
 
   for (const s of samples) {
     const fp = path.join(FILES_DIR, s.name);
     if (!fs.existsSync(fp)) {
-      fs.writeFileSync(fp, s.content, "utf-8");
+      fs.writeFileSync(fp, s.content, 'utf-8');
     }
   }
 
   // 生成一个稍大的测试文件（约 1MB）
-  const bigFile = path.join(FILES_DIR, "测试大文件.log");
+  const bigFile = path.join(FILES_DIR, '测试大文件.log');
   if (!fs.existsSync(bigFile)) {
     const lines = [];
     for (let i = 0; i < 20000; i++) {
       lines.push(
-        `[${new Date(Date.now() - (20000 - i) * 5000).toISOString()}] INFO  request_id=${String(i).padStart(5, "0")} method=GET path=/api/data status=${200 + (i % 3 === 0 ? 1 : 0)} duration=${Math.floor(Math.random() * 200)}ms`,
+        `[${new Date(Date.now() - (20000 - i) * 5000).toISOString()}] INFO  request_id=${String(i).padStart(5, '0')} method=GET path=/api/data status=${200 + (i % 3 === 0 ? 1 : 0)} duration=${Math.floor(Math.random() * 200)}ms`
       );
     }
-    fs.writeFileSync(bigFile, lines.join("\n"), "utf-8");
+    fs.writeFileSync(bigFile, lines.join('\n'), 'utf-8');
   }
 }
 
@@ -80,7 +73,7 @@ createSampleFiles();
 // ============================================================
 // 2. 下载统计
 // ============================================================
-const STATS_FILE = path.join(__dirname, ".stats.json");
+const STATS_FILE = path.join(__dirname, '.stats.json');
 
 /** @type {Map<string, object>} fileStats: fileId -> stats */
 let downloadStats = new Map();
@@ -88,7 +81,7 @@ let downloadStats = new Map();
 function loadStats() {
   try {
     if (fs.existsSync(STATS_FILE)) {
-      const data = JSON.parse(fs.readFileSync(STATS_FILE, "utf-8"));
+      const data = JSON.parse(fs.readFileSync(STATS_FILE, 'utf-8'));
       for (const [key, value] of Object.entries(data)) {
         downloadStats.set(key, value);
       }
@@ -100,7 +93,7 @@ function loadStats() {
 
 function saveStats() {
   const obj = Object.fromEntries(downloadStats);
-  fs.writeFileSync(STATS_FILE, JSON.stringify(obj, null, 2), "utf-8");
+  fs.writeFileSync(STATS_FILE, JSON.stringify(obj, null, 2), 'utf-8');
 }
 
 loadStats();
@@ -137,98 +130,91 @@ function recordDownload(filename, size, completed) {
 /** 发送 JSON 响应 */
 function send(res, statusCode, data) {
   res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
+    'Content-Type': 'application/json; charset=utf-8',
   });
   res.end(JSON.stringify(data));
 }
 
 /** 发送 HTML 响应 */
 function sendHTML(res, html) {
-  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);
 }
 
 /** 格式化文件大小 */
 function formatSize(bytes) {
-  if (bytes === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
+  if (bytes === 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2) + " " + units[i];
+  return (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2) + ' ' + units[i];
 }
 
 /** 获取文件的 MIME 类型 */
 function getMimeType(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const types = {
-    ".txt": "text/plain",
-    ".html": "text/html",
-    ".htm": "text/html",
-    ".css": "text/css",
-    ".js": "application/javascript",
-    ".json": "application/json",
-    ".md": "text/markdown",
-    ".xml": "application/xml",
-    ".csv": "text/csv",
-    ".ini": "text/plain",
-    ".log": "text/plain",
-    ".pdf": "application/pdf",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".gif": "image/gif",
-    ".svg": "image/svg+xml",
-    ".webp": "image/webp",
-    ".ico": "image/x-icon",
-    ".mp3": "audio/mpeg",
-    ".wav": "audio/wav",
-    ".mp4": "video/mp4",
-    ".webm": "video/webm",
-    ".zip": "application/zip",
-    ".tar": "application/x-tar",
-    ".gz": "application/gzip",
-    ".rar": "application/x-rar-compressed",
-    ".7z": "application/x-7z-compressed",
-    ".doc": "application/msword",
-    ".docx":
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ".xls": "application/vnd.ms-excel",
-    ".xlsx":
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ".ppt": "application/vnd.ms-powerpoint",
-    ".pptx":
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    '.txt': 'text/plain',
+    '.html': 'text/html',
+    '.htm': 'text/html',
+    '.css': 'text/css',
+    '.js': 'application/javascript',
+    '.json': 'application/json',
+    '.md': 'text/markdown',
+    '.xml': 'application/xml',
+    '.csv': 'text/csv',
+    '.ini': 'text/plain',
+    '.log': 'text/plain',
+    '.pdf': 'application/pdf',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.webp': 'image/webp',
+    '.ico': 'image/x-icon',
+    '.mp3': 'audio/mpeg',
+    '.wav': 'audio/wav',
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
+    '.zip': 'application/zip',
+    '.tar': 'application/x-tar',
+    '.gz': 'application/gzip',
+    '.rar': 'application/x-rar-compressed',
+    '.7z': 'application/x-7z-compressed',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.xls': 'application/vnd.ms-excel',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.ppt': 'application/vnd.ms-powerpoint',
+    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   };
-  return types[ext] || "application/octet-stream";
+  return types[ext] || 'application/octet-stream';
 }
 
 /** 根据 MIME 类型获取友好分类名 */
 function getCategory(mimeType) {
-  if (mimeType.startsWith("image/")) return "图片";
-  if (mimeType.startsWith("video/")) return "视频";
-  if (mimeType.startsWith("audio/")) return "音频";
-  if (mimeType === "application/pdf") return "PDF";
-  if (mimeType.startsWith("text/")) return "文本";
-  if (mimeType.includes("json") || mimeType.includes("xml")) return "数据";
+  if (mimeType.startsWith('image/')) return '图片';
+  if (mimeType.startsWith('video/')) return '视频';
+  if (mimeType.startsWith('audio/')) return '音频';
+  if (mimeType === 'application/pdf') return 'PDF';
+  if (mimeType.startsWith('text/')) return '文本';
+  if (mimeType.includes('json') || mimeType.includes('xml')) return '数据';
   if (
-    mimeType.includes("zip") ||
-    mimeType.includes("tar") ||
-    mimeType.includes("gzip") ||
-    mimeType.includes("rar") ||
-    mimeType.includes("7z")
+    mimeType.includes('zip') ||
+    mimeType.includes('tar') ||
+    mimeType.includes('gzip') ||
+    mimeType.includes('rar') ||
+    mimeType.includes('7z')
   )
-    return "压缩包";
-  if (
-    mimeType.includes("word") ||
-    mimeType.includes("sheet") ||
-    mimeType.includes("presentation")
-  )
-    return "办公文档";
-  return "其他";
+    return '压缩包';
+  if (mimeType.includes('word') || mimeType.includes('sheet') || mimeType.includes('presentation'))
+    return '办公文档';
+  return '其他';
 }
 
 /** 计算文件的 ETag */
 function computeETag(stat, filePath) {
-  return `"${stat.size}-${stat.mtimeMs.toFixed(0)}-${Buffer.from(filePath).toString("base64").slice(0, 12)}"`;
+  return `"${stat.size}-${stat.mtimeMs.toFixed(0)}-${Buffer.from(filePath).toString('base64').slice(0, 12)}"`;
 }
 
 /** 安全拼接路径（防止目录穿越） */
@@ -247,7 +233,7 @@ function listDirectory(dir, baseDir = dir) {
 
   for (const entry of entries) {
     // 隐藏文件跳过
-    if (entry.name.startsWith(".")) continue;
+    if (entry.name.startsWith('.')) continue;
 
     const fullPath = path.join(dir, entry.name);
     const relativePath = path.relative(baseDir, fullPath);
@@ -255,8 +241,8 @@ function listDirectory(dir, baseDir = dir) {
     if (entry.isDirectory()) {
       items.push({
         name: entry.name,
-        path: relativePath.replace(/\\/g, "/"),
-        type: "directory",
+        path: relativePath.replace(/\\/g, '/'),
+        type: 'directory',
         children: listDirectory(fullPath, baseDir),
       });
     } else {
@@ -264,8 +250,8 @@ function listDirectory(dir, baseDir = dir) {
       const mimeType = getMimeType(fullPath);
       items.push({
         name: entry.name,
-        path: relativePath.replace(/\\/g, "/"),
-        type: "file",
+        path: relativePath.replace(/\\/g, '/'),
+        type: 'file',
         size: stat.size,
         sizeFormatted: formatSize(stat.size),
         mimeType,
@@ -278,7 +264,7 @@ function listDirectory(dir, baseDir = dir) {
 
   // 目录在前，文件在后；各自按名称排序
   items.sort((a, b) => {
-    if (a.type !== b.type) return a.type === "directory" ? -1 : 1;
+    if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
     return a.name.localeCompare(b.name);
   });
 
@@ -286,13 +272,13 @@ function listDirectory(dir, baseDir = dir) {
 }
 
 /** 将嵌套文件列表扁平化 */
-function flattenFiles(items, prefix = "") {
+function flattenFiles(items, prefix = '') {
   const result = [];
   for (const item of items) {
     const itemPath = prefix ? `${prefix}/${item.name}` : item.name;
-    if (item.type === "file") {
+    if (item.type === 'file') {
       result.push({ ...item, path: itemPath });
-    } else if (item.type === "directory") {
+    } else if (item.type === 'directory') {
       result.push(...flattenFiles(item.children || [], itemPath));
     }
   }
@@ -318,7 +304,7 @@ function createThrottledStream(filePath, options = {}, bytesPerSec = 0) {
   let lastTime = Date.now();
   let sentInPeriod = 0;
 
-  stream.on("data", (chunk) => {
+  stream.on('data', (chunk) => {
     sentInPeriod += chunk.length;
     if (sentInPeriod >= bytesPerSec) {
       const elapsed = Date.now() - lastTime;
@@ -356,7 +342,7 @@ function createZipBuffer(files) {
   let offset = 0;
 
   for (const file of files) {
-    const nameBytes = Buffer.from(file.name, "utf-8");
+    const nameBytes = Buffer.from(file.name, 'utf-8');
     const data = file.data;
     const crc = crc32(data);
 
@@ -748,7 +734,7 @@ function handleIndex(req, res) {
 function handleListFiles(req, res, parsedUrl) {
   const { search, category, sort } = parsedUrl.query || {};
 
-  let items = listDirectory(FILES_DIR);
+  const items = listDirectory(FILES_DIR);
   let flat = flattenFiles(items);
 
   // 搜索
@@ -763,11 +749,10 @@ function handleListFiles(req, res, parsedUrl) {
   }
 
   // 排序
-  const sortField = sort || "name";
+  const sortField = sort || 'name';
   flat.sort((a, b) => {
-    if (sortField === "size") return a.size - b.size;
-    if (sortField === "modified")
-      return new Date(a.modified) - new Date(b.modified);
+    if (sortField === 'size') return a.size - b.size;
+    if (sortField === 'modified') return new Date(a.modified) - new Date(b.modified);
     return a.name.localeCompare(b.name);
   });
 
@@ -778,11 +763,11 @@ function handleListFiles(req, res, parsedUrl) {
 function handleDownloadFile(req, res, filePath) {
   const fullPath = safePath(FILES_DIR, filePath);
   if (!fullPath) {
-    return send(res, 403, { success: false, error: "禁止访问" });
+    return send(res, 403, { success: false, error: '禁止访问' });
   }
 
   if (!fs.existsSync(fullPath) || fs.statSync(fullPath).isDirectory()) {
-    return send(res, 404, { success: false, error: "文件不存在" });
+    return send(res, 404, { success: false, error: '文件不存在' });
   }
 
   const stat = fs.statSync(fullPath);
@@ -792,39 +777,39 @@ function handleDownloadFile(req, res, filePath) {
   const lastModified = stat.mtime.toUTCString();
 
   // If-None-Match → 304
-  if (req.headers["if-none-match"] === etag) {
+  if (req.headers['if-none-match'] === etag) {
     res.writeHead(304);
     return res.end();
   }
 
   // If-Modified-Since → 304
   if (
-    !req.headers["if-none-match"] &&
-    req.headers["if-modified-since"] &&
-    new Date(req.headers["if-modified-since"]) >= stat.mtime
+    !req.headers['if-none-match'] &&
+    req.headers['if-modified-since'] &&
+    new Date(req.headers['if-modified-since']) >= stat.mtime
   ) {
     res.writeHead(304);
     return res.end();
   }
 
   // Range 请求 → 断点续传
-  const rangeHeader = req.headers["range"];
+  const rangeHeader = req.headers['range'];
   if (rangeHeader) {
     const rangeMatch = rangeHeader.match(/bytes=(\d*)-(\d*)/);
     if (!rangeMatch) {
       res.writeHead(416, {
-        "Content-Range": `bytes */${fileSize}`,
+        'Content-Range': `bytes */${fileSize}`,
       });
       return res.end();
     }
 
-    let start = rangeMatch[1] ? parseInt(rangeMatch[1], 10) : 0;
-    let end = rangeMatch[2] ? parseInt(rangeMatch[2], 10) : fileSize - 1;
+    const start = rangeMatch[1] ? parseInt(rangeMatch[1], 10) : 0;
+    const end = rangeMatch[2] ? parseInt(rangeMatch[2], 10) : fileSize - 1;
 
     // 边界检查
     if (start >= fileSize || end >= fileSize || start > end) {
       res.writeHead(416, {
-        "Content-Range": `bytes */${fileSize}`,
+        'Content-Range': `bytes */${fileSize}`,
       });
       return res.end();
     }
@@ -833,62 +818,58 @@ function handleDownloadFile(req, res, filePath) {
     const originalName = path.basename(filePath);
 
     res.writeHead(206, {
-      "Content-Type": mimeType,
-      "Content-Length": contentLength,
-      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-      "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`,
-      "Accept-Ranges": "bytes",
+      'Content-Type': mimeType,
+      'Content-Length': contentLength,
+      'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+      'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`,
+      'Accept-Ranges': 'bytes',
       ETag: etag,
-      "Last-Modified": lastModified,
-      "Cache-Control": "public, max-age=86400",
+      'Last-Modified': lastModified,
+      'Cache-Control': 'public, max-age=86400',
     });
 
     const stream = createThrottledStream(fullPath, { start, end }, MAX_SPEED);
     stream.pipe(res);
 
     // 统计
-    recordDownload(
-      originalName,
-      contentLength,
-      start === 0 && end === fileSize - 1,
-    );
+    recordDownload(originalName, contentLength, start === 0 && end === fileSize - 1);
     return;
   }
 
   // 普通下载
   const originalName = path.basename(filePath);
   const headers = {
-    "Content-Type": mimeType,
-    "Content-Length": fileSize,
-    "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`,
-    "Accept-Ranges": "bytes",
+    'Content-Type': mimeType,
+    'Content-Length': fileSize,
+    'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`,
+    'Accept-Ranges': 'bytes',
     ETag: etag,
-    "Last-Modified": lastModified,
-    "Cache-Control": "public, max-age=86400",
+    'Last-Modified': lastModified,
+    'Cache-Control': 'public, max-age=86400',
   };
 
   // 压缩传输（仅对文本类文件，且客户端支持）
-  const acceptEncoding = req.headers["accept-encoding"] || "";
+  const acceptEncoding = req.headers['accept-encoding'] || '';
   const isCompressible =
-    mimeType.startsWith("text/") ||
-    mimeType.includes("json") ||
-    mimeType.includes("xml") ||
-    mimeType.includes("javascript") ||
-    mimeType === "image/svg+xml";
+    mimeType.startsWith('text/') ||
+    mimeType.includes('json') ||
+    mimeType.includes('xml') ||
+    mimeType.includes('javascript') ||
+    mimeType === 'image/svg+xml';
 
   if (isCompressible && fileSize > 1024) {
-    if (acceptEncoding.includes("br")) {
-      headers["Content-Encoding"] = "br";
-      delete headers["Content-Length"];
+    if (acceptEncoding.includes('br')) {
+      headers['Content-Encoding'] = 'br';
+      delete headers['Content-Length'];
       res.writeHead(200, headers);
       const stream = createThrottledStream(fullPath, {}, MAX_SPEED);
       stream.pipe(zlib.createBrotliCompress()).pipe(res);
       recordDownload(originalName, fileSize, true);
       return;
     }
-    if (acceptEncoding.includes("gzip")) {
-      headers["Content-Encoding"] = "gzip";
-      delete headers["Content-Length"];
+    if (acceptEncoding.includes('gzip')) {
+      headers['Content-Encoding'] = 'gzip';
+      delete headers['Content-Length'];
       res.writeHead(200, headers);
       const stream = createThrottledStream(fullPath, {}, MAX_SPEED);
       stream.pipe(zlib.createGzip()).pipe(res);
@@ -907,66 +888,66 @@ function handleDownloadFile(req, res, filePath) {
 function handlePreviewFile(req, res, filePath) {
   const fullPath = safePath(FILES_DIR, filePath);
   if (!fullPath) {
-    return send(res, 403, { success: false, error: "禁止访问" });
+    return send(res, 403, { success: false, error: '禁止访问' });
   }
 
   if (!fs.existsSync(fullPath) || fs.statSync(fullPath).isDirectory()) {
-    return send(res, 404, { success: false, error: "文件不存在" });
+    return send(res, 404, { success: false, error: '文件不存在' });
   }
 
   const stat = fs.statSync(fullPath);
   // 预览限制：文本类 1MB，图片 5MB，其他不支持
   const mimeType = getMimeType(fullPath);
   const isText =
-    mimeType.startsWith("text/") ||
-    mimeType.includes("json") ||
-    mimeType.includes("xml") ||
-    mimeType.includes("javascript") ||
-    mimeType === "application/octet-stream";
-  const isImage = mimeType.startsWith("image/");
+    mimeType.startsWith('text/') ||
+    mimeType.includes('json') ||
+    mimeType.includes('xml') ||
+    mimeType.includes('javascript') ||
+    mimeType === 'application/octet-stream';
+  const isImage = mimeType.startsWith('image/');
 
   if (isText && stat.size <= 1024 * 1024) {
     res.writeHead(200, {
-      "Content-Type": mimeType + "; charset=utf-8",
-      "Content-Length": stat.size,
+      'Content-Type': mimeType + '; charset=utf-8',
+      'Content-Length': stat.size,
     });
     fs.createReadStream(fullPath).pipe(res);
   } else if (isImage && stat.size <= 5 * 1024 * 1024) {
     res.writeHead(200, {
-      "Content-Type": mimeType,
-      "Content-Length": stat.size,
+      'Content-Type': mimeType,
+      'Content-Length': stat.size,
     });
     fs.createReadStream(fullPath).pipe(res);
   } else {
     send(res, 415, {
       success: false,
-      error: "此文件不支持在线预览",
+      error: '此文件不支持在线预览',
     });
   }
 }
 
 /** POST /api/download/zip — 多文件打包下载 */
 function handleZipDownload(req, res) {
-  let body = "";
-  req.on("data", (chunk) => {
+  let body = '';
+  req.on('data', (chunk) => {
     body += chunk;
     if (body.length > 1024 * 1024) {
       // 请求体过大
       req.destroy();
-      send(res, 413, { success: false, error: "请求体过大" });
+      send(res, 413, { success: false, error: '请求体过大' });
     }
   });
-  req.on("end", () => {
+  req.on('end', () => {
     try {
       const parsed = JSON.parse(body);
       const files = parsed.files;
       if (!Array.isArray(files) || files.length === 0) {
-        return send(res, 400, { success: false, error: "请选择要下载的文件" });
+        return send(res, 400, { success: false, error: '请选择要下载的文件' });
       }
       if (files.length > 100) {
         return send(res, 400, {
           success: false,
-          error: "一次最多打包 100 个文件",
+          error: '一次最多打包 100 个文件',
         });
       }
 
@@ -994,14 +975,14 @@ function handleZipDownload(req, res) {
       }
 
       if (!zipFiles.length) {
-        return send(res, 400, { success: false, error: "没有可下载的文件" });
+        return send(res, 400, { success: false, error: '没有可下载的文件' });
       }
 
       const zipBuffer = createZipBuffer(zipFiles);
       res.writeHead(200, {
-        "Content-Type": "application/zip",
-        "Content-Length": zipBuffer.length,
-        "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent("download-" + Date.now() + ".zip")}`,
+        'Content-Type': 'application/zip',
+        'Content-Length': zipBuffer.length,
+        'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent('download-' + Date.now() + '.zip')}`,
       });
       res.end(zipBuffer);
 
@@ -1010,7 +991,7 @@ function handleZipDownload(req, res) {
         recordDownload(f.name, f.data.length, true);
       }
     } catch {
-      send(res, 400, { success: false, error: "无效的请求体" });
+      send(res, 400, { success: false, error: '无效的请求体' });
     }
   });
 }
@@ -1020,13 +1001,10 @@ function handleStats(req, res) {
   const items = listDirectory(FILES_DIR);
   const flat = flattenFiles(items);
   const totalSize = flat.reduce((sum, f) => sum + f.size, 0);
-  const totalDownloads = Array.from(downloadStats.values()).reduce(
-    (sum, s) => sum + s.count,
-    0,
-  );
+  const totalDownloads = Array.from(downloadStats.values()).reduce((sum, s) => sum + s.count, 0);
   const totalBytesSent = Array.from(downloadStats.values()).reduce(
     (sum, s) => sum + s.totalBytes,
-    0,
+    0
   );
 
   send(res, 200, {
@@ -1052,55 +1030,52 @@ function handler(req, res) {
   const method = req.method;
 
   // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (method === "OPTIONS") {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
   }
 
   try {
     // GET / — 下载页面
-    if (method === "GET" && pathname === "/") {
+    if (method === 'GET' && pathname === '/') {
       return handleIndex(req, res);
     }
 
     // GET /api/files — 文件列表
-    if (method === "GET" && pathname === "/api/files") {
+    if (method === 'GET' && pathname === '/api/files') {
       return handleListFiles(req, res, parsedUrl);
     }
 
     // GET /api/stats — 下载统计
-    if (method === "GET" && pathname === "/api/stats") {
+    if (method === 'GET' && pathname === '/api/stats') {
       return handleStats(req, res);
     }
 
     // POST /api/download/zip — 打包下载
-    if (method === "POST" && pathname === "/api/download/zip") {
+    if (method === 'POST' && pathname === '/api/download/zip') {
       return handleZipDownload(req, res);
     }
 
     // /api/files/:path/download 和 /api/files/:path/preview
     const downloadMatch = pathname.match(/^\/api\/files\/(.+?)\/download$/);
-    if (method === "GET" && downloadMatch) {
+    if (method === 'GET' && downloadMatch) {
       const filePath = decodeURIComponent(downloadMatch[1]);
       return handleDownloadFile(req, res, filePath);
     }
 
     const previewMatch = pathname.match(/^\/api\/files\/(.+?)\/preview$/);
-    if (method === "GET" && previewMatch) {
+    if (method === 'GET' && previewMatch) {
       const filePath = decodeURIComponent(previewMatch[1]);
       return handlePreviewFile(req, res, filePath);
     }
 
-    send(res, 404, { success: false, error: "路由不存在" });
+    send(res, 404, { success: false, error: '路由不存在' });
   } catch (err) {
-    console.error("请求处理错误:", err);
-    send(res, 500, { success: false, error: "内部服务器错误" });
+    console.error('请求处理错误:', err);
+    send(res, 500, { success: false, error: '内部服务器错误' });
   }
 }
 
@@ -1147,10 +1122,10 @@ server.listen(PORT, () => {
 });
 
 // 优雅退出
-process.on("SIGINT", () => {
-  console.log("\n服务正在关闭...");
+process.on('SIGINT', () => {
+  console.log('\n服务正在关闭...');
   server.close(() => {
-    console.log("服务已关闭");
+    console.log('服务已关闭');
     process.exit(0);
   });
 });

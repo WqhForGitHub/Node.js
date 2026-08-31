@@ -1,16 +1,26 @@
 {
-  "name": "note-api",
-  "version": "1.0.0",
-  "description": "纯 Node.js 实现的笔记管理 API",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
-  },
-  "keywords": [
-    "notes",
-    "api",
-    "node"
-  ],
-  "license": "MIT"
+    "name":  "note-api",
+    "version":  "1.0.0",
+    "description":  "纯 Node.js 实现的笔记管理 API",
+    "main":  "server.js",
+    "scripts":  {
+                    "start":  "node server.js",
+                    "dev":  "node --watch server.js",
+                    "format":  "prettier --write .",
+                    "format:check":  "prettier --check .",
+                    "lint":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue --fix",
+                    "lint:check":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue"
+                },
+    "keywords":  [
+                     "notes",
+                     "api",
+                     "node"
+                 ],
+    "license":  "MIT",
+    "devDependencies":  {
+                            "eslint":  "^8.57.1",
+                            "prettier":  "^3.3.3",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-prettier":  "^5.2.1"
+                        }
 }

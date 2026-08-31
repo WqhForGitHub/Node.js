@@ -127,7 +127,7 @@ class OpenAICompatibleProvider extends BaseProvider {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
             'Content-Length': Buffer.byteLength(data),
           },
         },
@@ -266,7 +266,12 @@ class ApiKeyManager {
       userId,
       key,
       quota: { dailyTokenLimit: quota.dailyTokenLimit || Infinity, rpm: quota.rpm || 60 },
-      usage: { tokensToday: 0, requestCount: 0, lastResetDate: new Date().toDateString(), recentRequests: [] },
+      usage: {
+        tokensToday: 0,
+        requestCount: 0,
+        lastResetDate: new Date().toDateString(),
+        recentRequests: [],
+      },
       createdAt: Date.now(),
     });
     return key;
@@ -323,7 +328,10 @@ const keyManager = new ApiKeyManager();
 // 用量日志
 const logFile = path.join(__dirname, 'usage.log');
 function logUsage(record) {
-  fs.appendFileSync(logFile, JSON.stringify({ ...record, timestamp: new Date().toISOString() }) + '\n');
+  fs.appendFileSync(
+    logFile,
+    JSON.stringify({ ...record, timestamp: new Date().toISOString() }) + '\n'
+  );
 }
 
 // ============ HTTP 服务 ============
@@ -401,7 +409,7 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
+          Connection: 'keep-alive',
         });
 
         const sendChunk = (delta) => {
@@ -416,7 +424,11 @@ const server = http.createServer(async (req, res) => {
         };
 
         try {
-          const result = await provider.chat(messages, { model, temperature, max_tokens }, sendChunk);
+          const result = await provider.chat(
+            messages,
+            { model, temperature, max_tokens },
+            sendChunk
+          );
           // 结束帧
           res.write(
             `data: ${JSON.stringify({
@@ -429,7 +441,13 @@ const server = http.createServer(async (req, res) => {
           res.end();
 
           keyManager.recordUsage(apiKey, result.usage.total_tokens);
-          logUsage({ apiKey, userId: check.entry.userId, model, usage: result.usage, stream: true });
+          logUsage({
+            apiKey,
+            userId: check.entry.userId,
+            model,
+            usage: result.usage,
+            stream: true,
+          });
         } catch (e) {
           res.write(`data: ${JSON.stringify({ error: e.message })}\n\n`);
           res.end();
@@ -443,11 +461,23 @@ const server = http.createServer(async (req, res) => {
             object: 'chat.completion',
             created: Math.floor(Date.now() / 1000),
             model,
-            choices: [{ index: 0, message: { role: 'assistant', content: result.content }, finish_reason: 'stop' }],
+            choices: [
+              {
+                index: 0,
+                message: { role: 'assistant', content: result.content },
+                finish_reason: 'stop',
+              },
+            ],
             usage: result.usage,
           };
           keyManager.recordUsage(apiKey, result.usage.total_tokens);
-          logUsage({ apiKey, userId: check.entry.userId, model, usage: result.usage, stream: false });
+          logUsage({
+            apiKey,
+            userId: check.entry.userId,
+            model,
+            usage: result.usage,
+            stream: false,
+          });
 
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify(response));
@@ -557,5 +587,11 @@ server.listen(PORT, () => {
   console.log('  GET  /v1/usage            用量查询');
   console.log('\n演示 API Key: sk-demo-12345');
   console.log('已注册 Provider:', Array.from(router.providers.keys()).join(', '));
-  console.log('已注册模型:', router.listModels().map((m) => m.id).join(', '));
+  console.log(
+    '已注册模型:',
+    router
+      .listModels()
+      .map((m) => m.id)
+      .join(', ')
+  );
 });

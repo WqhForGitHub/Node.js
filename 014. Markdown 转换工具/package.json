@@ -1,20 +1,30 @@
 {
-  "name": "markdown-converter",
-  "version": "1.0.0",
-  "description": "纯 Node.js 实现的 Markdown 转换工具（Markdown ↔ HTML）",
-  "main": "lib/md2html.js",
-  "bin": {
-    "md-convert": "./cli.js"
-  },
-  "scripts": {
-    "md2html": "node cli.js md2html",
-    "html2md": "node cli.js html2md",
-    "demo": "node cli.js md2html sample.md -o output.html"
-  },
-  "keywords": [
-    "markdown",
-    "html",
-    "converter"
-  ],
-  "license": "MIT"
+    "name":  "markdown-converter",
+    "version":  "1.0.0",
+    "description":  "纯 Node.js 实现的 Markdown 转换工具（Markdown ↔ HTML）",
+    "main":  "lib/md2html.js",
+    "bin":  {
+                "md-convert":  "./cli.js"
+            },
+    "scripts":  {
+                    "md2html":  "node cli.js md2html",
+                    "html2md":  "node cli.js html2md",
+                    "demo":  "node cli.js md2html sample.md -o output.html",
+                    "format":  "prettier --write .",
+                    "format:check":  "prettier --check .",
+                    "lint":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue --fix",
+                    "lint:check":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue"
+                },
+    "keywords":  [
+                     "markdown",
+                     "html",
+                     "converter"
+                 ],
+    "license":  "MIT",
+    "devDependencies":  {
+                            "eslint":  "^8.57.1",
+                            "prettier":  "^3.3.3",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-prettier":  "^5.2.1"
+                        }
 }

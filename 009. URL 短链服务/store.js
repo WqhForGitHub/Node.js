@@ -3,11 +3,11 @@
  * 管理短链映射关系及访问统计
  */
 
-const fs = require("fs");
-const path = require("path");
-const shortCode = require("./shortCode");
+const fs = require('fs');
+const path = require('path');
+const shortCode = require('./shortCode');
 
-const DATA_FILE = path.join(__dirname, "data.json");
+const DATA_FILE = path.join(__dirname, 'data.json');
 
 /**
  * 默认数据结构
@@ -27,11 +27,11 @@ function getDefaultData() {
 function loadData() {
   try {
     if (fs.existsSync(DATA_FILE)) {
-      const raw = fs.readFileSync(DATA_FILE, "utf-8");
+      const raw = fs.readFileSync(DATA_FILE, 'utf-8');
       return JSON.parse(raw);
     }
   } catch (err) {
-    console.error("数据文件读取失败，将重新初始化:", err.message);
+    console.error('数据文件读取失败，将重新初始化:', err.message);
   }
   return getDefaultData();
 }
@@ -41,7 +41,7 @@ function loadData() {
  * @param {object} data - 数据对象
  */
 function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
 /**

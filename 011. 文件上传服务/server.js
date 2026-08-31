@@ -1,33 +1,33 @@
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
-const url = require("url");
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const url = require('url');
 
 const PORT = 3000;
-const UPLOAD_DIR = path.join(__dirname, "uploads");
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const ALLOWED_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-  "image/svg+xml",
-  "video/mp4",
-  "video/webm",
-  "audio/mpeg",
-  "audio/ogg",
-  "audio/wav",
-  "application/pdf",
-  "text/plain",
-  "text/csv",
-  "text/markdown",
-  "application/json",
-  "application/zip",
-  "application/x-tar",
-  "application/gzip",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/svg+xml',
+  'video/mp4',
+  'video/webm',
+  'audio/mpeg',
+  'audio/ogg',
+  'audio/wav',
+  'application/pdf',
+  'text/plain',
+  'text/csv',
+  'text/markdown',
+  'application/json',
+  'application/zip',
+  'application/x-tar',
+  'application/gzip',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
 // ============================================================
@@ -40,7 +40,7 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 // ============================================================
 // 2. 文件元数据存储（内存 + 持久化）
 // ============================================================
-const META_FILE = path.join(UPLOAD_DIR, ".meta.json");
+const META_FILE = path.join(UPLOAD_DIR, '.meta.json');
 
 /** @type {Map<string, object>} */
 let fileStore = new Map();
@@ -48,7 +48,7 @@ let fileStore = new Map();
 function loadMeta() {
   try {
     if (fs.existsSync(META_FILE)) {
-      const data = JSON.parse(fs.readFileSync(META_FILE, "utf-8"));
+      const data = JSON.parse(fs.readFileSync(META_FILE, 'utf-8'));
       for (const [key, value] of Object.entries(data)) {
         fileStore.set(key, value);
       }
@@ -60,7 +60,7 @@ function loadMeta() {
 
 function saveMeta() {
   const obj = Object.fromEntries(fileStore);
-  fs.writeFileSync(META_FILE, JSON.stringify(obj, null, 2), "utf-8");
+  fs.writeFileSync(META_FILE, JSON.stringify(obj, null, 2), 'utf-8');
 }
 
 loadMeta();
@@ -72,54 +72,49 @@ loadMeta();
 /** 发送 JSON 响应 */
 function send(res, statusCode, data) {
   res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
+    'Content-Type': 'application/json; charset=utf-8',
   });
   res.end(JSON.stringify(data));
 }
 
 /** 发送 HTML 响应 */
 function sendHTML(res, html) {
-  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);
 }
 
 /** 根据 MIME 类型获取友好分类名 */
 function getCategory(mimeType) {
-  if (mimeType.startsWith("image/")) return "图片";
-  if (mimeType.startsWith("video/")) return "视频";
-  if (mimeType.startsWith("audio/")) return "音频";
-  if (mimeType === "application/pdf") return "PDF";
-  if (mimeType.startsWith("text/")) return "文本";
-  if (mimeType.includes("json")) return "数据";
-  if (
-    mimeType.includes("zip") ||
-    mimeType.includes("tar") ||
-    mimeType.includes("gzip")
-  )
-    return "压缩包";
-  if (mimeType.includes("sheet") || mimeType.includes("document"))
-    return "办公文档";
-  return "其他";
+  if (mimeType.startsWith('image/')) return '图片';
+  if (mimeType.startsWith('video/')) return '视频';
+  if (mimeType.startsWith('audio/')) return '音频';
+  if (mimeType === 'application/pdf') return 'PDF';
+  if (mimeType.startsWith('text/')) return '文本';
+  if (mimeType.includes('json')) return '数据';
+  if (mimeType.includes('zip') || mimeType.includes('tar') || mimeType.includes('gzip'))
+    return '压缩包';
+  if (mimeType.includes('sheet') || mimeType.includes('document')) return '办公文档';
+  return '其他';
 }
 
 /** 格式化文件大小 */
 function formatSize(bytes) {
-  if (bytes === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
+  if (bytes === 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2) + " " + units[i];
+  return (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2) + ' ' + units[i];
 }
 
 /** 生成文件存储名（避免冲突） */
 function generateStorageName(originalName) {
   const ext = path.extname(originalName);
-  const id = crypto.randomUUID().split("-")[0];
+  const id = crypto.randomUUID().split('-')[0];
   return `${Date.now()}-${id}${ext}`;
 }
 
 /** 清理过期的临时文件 */
 function cleanupTempFiles() {
-  const tempDir = path.join(UPLOAD_DIR, ".temp");
+  const tempDir = path.join(UPLOAD_DIR, '.temp');
   if (!fs.existsSync(tempDir)) return;
   const files = fs.readdirSync(tempDir);
   const now = Date.now();
@@ -146,25 +141,21 @@ setInterval(cleanupTempFiles, 5 * 60 * 1000); // 每 5 分钟清理一次
  */
 function parseMultipart(req) {
   return new Promise((resolve, reject) => {
-    const contentType = req.headers["content-type"] || "";
+    const contentType = req.headers['content-type'] || '';
     const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^\s;]+))/);
     if (!boundaryMatch) {
-      return reject(
-        new Error(
-          "无法解析 boundary，请确认 Content-Type 为 multipart/form-data",
-        ),
-      );
+      return reject(new Error('无法解析 boundary，请确认 Content-Type 为 multipart/form-data'));
     }
 
-    const boundary = "--" + (boundaryMatch[1] || boundaryMatch[2]);
-    const endBoundary = boundary + "--";
+    const boundary = '--' + (boundaryMatch[1] || boundaryMatch[2]);
+    const endBoundary = boundary + '--';
     const fields = {};
     const files = [];
 
     let buffer = Buffer.alloc(0);
     let totalBytes = 0;
 
-    req.on("data", (chunk) => {
+    req.on('data', (chunk) => {
       totalBytes += chunk.length;
       if (totalBytes > MAX_FILE_SIZE + 1024 * 1024) {
         // 额外 1MB 给表单字段
@@ -175,7 +166,7 @@ function parseMultipart(req) {
       buffer = Buffer.concat([buffer, chunk]);
     });
 
-    req.on("end", () => {
+    req.on('end', () => {
       try {
         const result = parseMultipartBuffer(buffer, boundary, endBoundary);
         resolve(result);
@@ -184,7 +175,7 @@ function parseMultipart(req) {
       }
     });
 
-    req.on("error", reject);
+    req.on('error', reject);
   });
 }
 
@@ -207,10 +198,10 @@ function parseMultipartBuffer(buffer, boundary, endBoundary) {
     }
 
     // 查找头部结束位置（\r\n\r\n）
-    const headerEnd = bufferIndexOf(buffer, Buffer.from("\r\n\r\n"), start);
+    const headerEnd = bufferIndexOf(buffer, Buffer.from('\r\n\r\n'), start);
     if (headerEnd === -1) break;
 
-    const headerStr = buffer.slice(start, headerEnd).toString("utf-8");
+    const headerStr = buffer.slice(start, headerEnd).toString('utf-8');
 
     // 解析 Content-Disposition
     const nameMatch = headerStr.match(/name="([^"]+)"/);
@@ -223,11 +214,7 @@ function parseMultipartBuffer(buffer, boundary, endBoundary) {
     const bodyStart = headerEnd + 4; // 跳过 \r\n\r\n
 
     // 查找下一个边界
-    let nextBoundary = bufferIndexOf(
-      buffer,
-      Buffer.from("\r\n" + boundary),
-      bodyStart,
-    );
+    let nextBoundary = bufferIndexOf(buffer, Buffer.from('\r\n' + boundary), bodyStart);
     if (nextBoundary === -1) {
       nextBoundary = bufferIndexOf(buffer, Buffer.from(endBoundary), bodyStart);
     }
@@ -240,9 +227,7 @@ function parseMultipartBuffer(buffer, boundary, endBoundary) {
     if (filenameMatch) {
       // 这是一个文件
       const filename = filenameMatch[1];
-      const mimeType = contentTypeMatch
-        ? contentTypeMatch[1].trim()
-        : "application/octet-stream";
+      const mimeType = contentTypeMatch ? contentTypeMatch[1].trim() : 'application/octet-stream';
 
       files.push({
         field: fieldName,
@@ -253,7 +238,7 @@ function parseMultipartBuffer(buffer, boundary, endBoundary) {
       });
     } else {
       // 这是一个普通字段
-      fields[fieldName] = body.toString("utf-8");
+      fields[fieldName] = body.toString('utf-8');
     }
 
     start = nextBoundary + boundary.length + 2; // 跳过 \r\n
@@ -297,7 +282,7 @@ function saveFile(fileInfo, description) {
   const fileId = crypto.randomUUID();
 
   // 计算文件哈希
-  const hash = crypto.createHash("sha256").update(fileInfo.data).digest("hex");
+  const hash = crypto.createHash('sha256').update(fileInfo.data).digest('hex');
 
   // 检查是否有相同哈希的文件（去重提示）
   let duplicateOf = null;
@@ -317,7 +302,7 @@ function saveFile(fileInfo, description) {
     category: getCategory(fileInfo.mimeType),
     size: fileInfo.size,
     hash,
-    description: description || "",
+    description: description || '',
     duplicateOf,
     uploadedAt: new Date().toISOString(),
   };
@@ -378,20 +363,20 @@ function listFiles(options = {}) {
     files = files.filter(
       (f) =>
         f.originalName.toLowerCase().includes(keyword) ||
-        f.description.toLowerCase().includes(keyword),
+        f.description.toLowerCase().includes(keyword)
     );
   }
 
   // 排序
-  const sortBy = options.sort || "uploadedAt";
-  const sortOrder = options.order || "desc";
+  const sortBy = options.sort || 'uploadedAt';
+  const sortOrder = options.order || 'desc';
   files.sort((a, b) => {
     let valA = a[sortBy];
     let valB = b[sortBy];
-    if (typeof valA === "string") valA = valA.toLowerCase();
-    if (typeof valB === "string") valB = valB.toLowerCase();
-    if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-    if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+    if (typeof valA === 'string') valA = valA.toLowerCase();
+    if (typeof valB === 'string') valB = valB.toLowerCase();
+    if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+    if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
     return 0;
   });
 
@@ -409,7 +394,7 @@ function getStats() {
 
   for (const f of files) {
     categories[f.category] = (categories[f.category] || 0) + 1;
-    const typeGroup = f.mimeType.split("/")[0];
+    const typeGroup = f.mimeType.split('/')[0];
     types[typeGroup] = (types[typeGroup] || 0) + f.size;
   }
 
@@ -682,12 +667,12 @@ function handleIndex(req, res) {
 
 /** POST /api/upload — 上传文件 */
 async function handleUpload(req, res) {
-  const contentType = req.headers["content-type"] || "";
+  const contentType = req.headers['content-type'] || '';
 
-  if (!contentType.includes("multipart/form-data")) {
+  if (!contentType.includes('multipart/form-data')) {
     return send(res, 400, {
       success: false,
-      error: "Content-Type 必须为 multipart/form-data",
+      error: 'Content-Type 必须为 multipart/form-data',
     });
   }
 
@@ -695,7 +680,7 @@ async function handleUpload(req, res) {
     const { fields, files } = await parseMultipart(req);
 
     if (!files.length) {
-      return send(res, 400, { success: false, error: "未检测到上传文件" });
+      return send(res, 400, { success: false, error: '未检测到上传文件' });
     }
 
     const results = [];
@@ -722,11 +707,11 @@ async function handleUpload(req, res) {
 
       // 校验文件名安全
       const safeName = path.basename(file.filename);
-      if (safeName !== file.filename || safeName.includes("..")) {
+      if (safeName !== file.filename || safeName.includes('..')) {
         results.push({
           success: false,
           filename: file.filename,
-          error: "文件名不合法",
+          error: '文件名不合法',
         });
         continue;
       }
@@ -774,7 +759,7 @@ function handleListFiles(req, res, parsedUrl) {
 function handleGetFileInfo(req, res, id) {
   const meta = getFileInfo(id);
   if (!meta) {
-    return send(res, 404, { success: false, error: "文件不存在" });
+    return send(res, 404, { success: false, error: '文件不存在' });
   }
   send(res, 200, {
     success: true,
@@ -786,26 +771,26 @@ function handleGetFileInfo(req, res, id) {
 function handleDownloadFile(req, res, id) {
   const meta = getFileInfo(id);
   if (!meta) {
-    return send(res, 404, { success: false, error: "文件不存在" });
+    return send(res, 404, { success: false, error: '文件不存在' });
   }
 
   const filepath = path.join(UPLOAD_DIR, meta.storageName);
   if (!fs.existsSync(filepath)) {
-    return send(res, 404, { success: false, error: "物理文件已丢失" });
+    return send(res, 404, { success: false, error: '物理文件已丢失' });
   }
 
   // 安全检查：确保文件路径在上传目录内
   const resolvedPath = path.resolve(filepath);
   if (!resolvedPath.startsWith(path.resolve(UPLOAD_DIR))) {
-    return send(res, 403, { success: false, error: "禁止访问" });
+    return send(res, 403, { success: false, error: '禁止访问' });
   }
 
   const stat = fs.statSync(filepath);
   res.writeHead(200, {
-    "Content-Type": meta.mimeType,
-    "Content-Length": stat.size,
-    "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(meta.originalName)}`,
-    "Cache-Control": "public, max-age=86400",
+    'Content-Type': meta.mimeType,
+    'Content-Length': stat.size,
+    'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(meta.originalName)}`,
+    'Cache-Control': 'public, max-age=86400',
   });
 
   const stream = fs.createReadStream(filepath);
@@ -816,7 +801,7 @@ function handleDownloadFile(req, res, id) {
 function handleDeleteFile(req, res, id) {
   const meta = deleteFile(id);
   if (!meta) {
-    return send(res, 404, { success: false, error: "文件不存在" });
+    return send(res, 404, { success: false, error: '文件不存在' });
   }
   send(res, 200, {
     success: true,
@@ -848,15 +833,15 @@ function handleStats(req, res) {
 async function handleUpdateFile(req, res, id) {
   const meta = getFileInfo(id);
   if (!meta) {
-    return send(res, 404, { success: false, error: "文件不存在" });
+    return send(res, 404, { success: false, error: '文件不存在' });
   }
 
-  let body = "";
+  let body = '';
   await new Promise((resolve) => {
-    req.on("data", (chunk) => {
+    req.on('data', (chunk) => {
       body += chunk;
     });
-    req.on("end", resolve);
+    req.on('end', resolve);
   });
 
   try {
@@ -871,7 +856,7 @@ async function handleUpdateFile(req, res, id) {
       data: { ...meta, sizeFormatted: formatSize(meta.size) },
     });
   } catch {
-    send(res, 400, { success: false, error: "无效的 JSON" });
+    send(res, 400, { success: false, error: '无效的 JSON' });
   }
 }
 
@@ -884,76 +869,71 @@ async function handler(req, res) {
   const method = req.method;
 
   // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (method === "OPTIONS") {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
   }
 
   try {
     // GET / — 上传页面
-    if (method === "GET" && pathname === "/") {
+    if (method === 'GET' && pathname === '/') {
       return handleIndex(req, res);
     }
 
     // POST /api/upload — 上传文件
-    if (method === "POST" && pathname === "/api/upload") {
+    if (method === 'POST' && pathname === '/api/upload') {
       return await handleUpload(req, res);
     }
 
     // GET /api/files — 文件列表
-    if (method === "GET" && pathname === "/api/files") {
+    if (method === 'GET' && pathname === '/api/files') {
       return handleListFiles(req, res, parsedUrl);
     }
 
     // GET /api/stats — 统计信息
-    if (method === "GET" && pathname === "/api/stats") {
+    if (method === 'GET' && pathname === '/api/stats') {
       return handleStats(req, res);
     }
 
     // DELETE /api/files — 清空所有文件
-    if (method === "DELETE" && pathname === "/api/files") {
+    if (method === 'DELETE' && pathname === '/api/files') {
       return handleClearFiles(req, res);
     }
 
     // 路由匹配：/api/files/:id 和 /api/files/:id/download
-    const fileMatch = pathname.match(
-      /^\/api\/files\/([a-f0-9-]+)(\/download)?$/,
-    );
+    const fileMatch = pathname.match(/^\/api\/files\/([a-f0-9-]+)(\/download)?$/);
     if (fileMatch) {
       const id = fileMatch[1];
       const isDownload = !!fileMatch[2];
 
       // GET /api/files/:id/download — 下载文件
-      if (method === "GET" && isDownload) {
+      if (method === 'GET' && isDownload) {
         return handleDownloadFile(req, res, id);
       }
 
       // GET /api/files/:id — 文件详情
-      if (method === "GET" && !isDownload) {
+      if (method === 'GET' && !isDownload) {
         return handleGetFileInfo(req, res, id);
       }
 
       // PUT /api/files/:id — 更新文件信息
-      if (method === "PUT" && !isDownload) {
+      if (method === 'PUT' && !isDownload) {
         return await handleUpdateFile(req, res, id);
       }
 
       // DELETE /api/files/:id — 删除文件
-      if (method === "DELETE" && !isDownload) {
+      if (method === 'DELETE' && !isDownload) {
         return handleDeleteFile(req, res, id);
       }
     }
 
-    send(res, 404, { success: false, error: "路由不存在" });
+    send(res, 404, { success: false, error: '路由不存在' });
   } catch (err) {
-    console.error("请求处理错误:", err);
-    send(res, 500, { success: false, error: "内部服务器错误" });
+    console.error('请求处理错误:', err);
+    send(res, 500, { success: false, error: '内部服务器错误' });
   }
 }
 
@@ -1001,10 +981,10 @@ server.listen(PORT, () => {
 });
 
 // 优雅退出
-process.on("SIGINT", () => {
-  console.log("\n服务正在关闭...");
+process.on('SIGINT', () => {
+  console.log('\n服务正在关闭...');
   server.close(() => {
-    console.log("服务已关闭");
+    console.log('服务已关闭');
     process.exit(0);
   });
 });

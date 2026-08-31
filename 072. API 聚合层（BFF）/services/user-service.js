@@ -5,88 +5,88 @@
  * 端口: 5001
  */
 
-const http = require("http");
+const http = require('http');
 
 const PORT = process.env.USER_SERVICE_PORT || 5001;
 
 // 模拟用户数据库
 const users = {
   u001: {
-    id: "u001",
-    name: "张三",
-    email: "zhangsan@example.com",
-    avatar: "/avatars/u001.png",
-    level: "gold",
-    phone: "138****1234",
-    address: "北京市朝阳区xxx路",
-    registeredAt: "2024-01-15T08:30:00Z",
+    id: 'u001',
+    name: '张三',
+    email: 'zhangsan@example.com',
+    avatar: '/avatars/u001.png',
+    level: 'gold',
+    phone: '138****1234',
+    address: '北京市朝阳区xxx路',
+    registeredAt: '2024-01-15T08:30:00Z',
   },
   u002: {
-    id: "u002",
-    name: "李四",
-    email: "lisi@example.com",
-    avatar: "/avatars/u002.png",
-    level: "silver",
-    phone: "139****5678",
-    address: "上海市浦东新区xxx街",
-    registeredAt: "2024-03-20T14:15:00Z",
+    id: 'u002',
+    name: '李四',
+    email: 'lisi@example.com',
+    avatar: '/avatars/u002.png',
+    level: 'silver',
+    phone: '139****5678',
+    address: '上海市浦东新区xxx街',
+    registeredAt: '2024-03-20T14:15:00Z',
   },
   u003: {
-    id: "u003",
-    name: "王五",
-    email: "wangwu@example.com",
-    avatar: "/avatars/u003.png",
-    level: "platinum",
-    phone: "137****9012",
-    address: "广州市天河区xxx道",
-    registeredAt: "2023-11-05T09:45:00Z",
+    id: 'u003',
+    name: '王五',
+    email: 'wangwu@example.com',
+    avatar: '/avatars/u003.png',
+    level: 'platinum',
+    phone: '137****9012',
+    address: '广州市天河区xxx道',
+    registeredAt: '2023-11-05T09:45:00Z',
   },
   u004: {
-    id: "u004",
-    name: "赵六",
-    email: "zhaoliu@example.com",
-    avatar: "/avatars/u004.png",
-    level: "gold",
-    phone: "136****3456",
-    address: "深圳市南山区xxx巷",
-    registeredAt: "2024-06-10T16:20:00Z",
+    id: 'u004',
+    name: '赵六',
+    email: 'zhaoliu@example.com',
+    avatar: '/avatars/u004.png',
+    level: 'gold',
+    phone: '136****3456',
+    address: '深圳市南山区xxx巷',
+    registeredAt: '2024-06-10T16:20:00Z',
   },
 };
 
 // 模拟用户偏好设置
 const preferences = {
   u001: {
-    language: "zh-CN",
-    theme: "dark",
+    language: 'zh-CN',
+    theme: 'dark',
     notifications: { email: true, sms: false, push: true },
   },
   u002: {
-    language: "zh-CN",
-    theme: "light",
+    language: 'zh-CN',
+    theme: 'light',
     notifications: { email: true, sms: true, push: false },
   },
   u003: {
-    language: "en",
-    theme: "dark",
+    language: 'en',
+    theme: 'dark',
     notifications: { email: false, sms: false, push: true },
   },
   u004: {
-    language: "zh-CN",
-    theme: "auto",
+    language: 'zh-CN',
+    theme: 'auto',
     notifications: { email: true, sms: true, push: true },
   },
 };
 
 function json(res, code, data) {
-  res.writeHead(code, { "Content-Type": "application/json; charset=utf-8" });
+  res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(data));
 }
 
 function parseBody(req) {
   return new Promise((resolve) => {
-    let body = "";
-    req.on("data", (chunk) => (body += chunk));
-    req.on("end", () => {
+    let body = '';
+    req.on('data', (chunk) => (body += chunk));
+    req.on('end', () => {
       try {
         resolve(JSON.parse(body));
       } catch {
@@ -98,10 +98,10 @@ function parseBody(req) {
 
 const server = http.createServer(async (req, res) => {
   // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (req.method === "OPTIONS") {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
   }
@@ -113,16 +113,16 @@ const server = http.createServer(async (req, res) => {
   console.log(`[UserService] ${method} ${path}`);
 
   // 健康检查
-  if (method === "GET" && path === "/health") {
+  if (method === 'GET' && path === '/health') {
     return json(res, 200, {
-      status: "healthy",
-      service: "user-service",
+      status: 'healthy',
+      service: 'user-service',
       uptime: process.uptime(),
     });
   }
 
   // 获取所有用户列表
-  if (method === "GET" && path === "/users") {
+  if (method === 'GET' && path === '/users') {
     const list = Object.values(users).map(({ id, name, level, avatar }) => ({
       id,
       name,
@@ -133,24 +133,23 @@ const server = http.createServer(async (req, res) => {
   }
 
   // 获取单个用户详情
-  if (method === "GET" && path.startsWith("/users/")) {
-    const userId = path.split("/")[2];
+  if (method === 'GET' && path.startsWith('/users/')) {
+    const userId = path.split('/')[2];
     const user = users[userId];
-    if (!user) return json(res, 404, { success: false, error: "用户不存在" });
+    if (!user) return json(res, 404, { success: false, error: '用户不存在' });
     return json(res, 200, { success: true, data: user });
   }
 
   // 获取用户偏好设置
-  if (method === "GET" && path.match(/^\/users\/u\d+\/preferences$/)) {
-    const userId = path.split("/")[2];
+  if (method === 'GET' && path.match(/^\/users\/u\d+\/preferences$/)) {
+    const userId = path.split('/')[2];
     const pref = preferences[userId];
-    if (!pref)
-      return json(res, 404, { success: false, error: "偏好设置不存在" });
+    if (!pref) return json(res, 404, { success: false, error: '偏好设置不存在' });
     return json(res, 200, { success: true, data: pref });
   }
 
   // 批量获取用户信息
-  if (method === "POST" && path === "/users/batch") {
+  if (method === 'POST' && path === '/users/batch') {
     const body = await parseBody(req);
     const ids = body.ids || [];
     const result = ids.map((id) => users[id]).filter(Boolean);
@@ -158,16 +157,15 @@ const server = http.createServer(async (req, res) => {
   }
 
   // 更新用户信息
-  if (method === "PUT" && path.startsWith("/users/")) {
-    const userId = path.split("/")[2];
-    if (!users[userId])
-      return json(res, 404, { success: false, error: "用户不存在" });
+  if (method === 'PUT' && path.startsWith('/users/')) {
+    const userId = path.split('/')[2];
+    if (!users[userId]) return json(res, 404, { success: false, error: '用户不存在' });
     const body = await parseBody(req);
     Object.assign(users[userId], body);
     return json(res, 200, { success: true, data: users[userId] });
   }
 
-  json(res, 404, { success: false, error: "路由未找到" });
+  json(res, 404, { success: false, error: '路由未找到' });
 });
 
 server.listen(PORT, () => {

@@ -1,12 +1,12 @@
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
 // ─── 配置 ──────────────────────────────────────────────
 
 const PORT = 3004;
-const DATA_DIR = path.join(__dirname, "data");
-const META_FILE = path.join(DATA_DIR, "_meta.json");
+const DATA_DIR = path.join(__dirname, 'data');
+const META_FILE = path.join(DATA_DIR, '_meta.json');
 
 // ─── 数据层 ──────────────────────────────────────────────
 
@@ -17,18 +17,14 @@ function ensureDataDir() {
 function readMeta() {
   ensureDataDir();
   if (!fs.existsSync(META_FILE)) {
-    fs.writeFileSync(
-      META_FILE,
-      JSON.stringify({ collections: {} }, null, 2),
-      "utf-8",
-    );
+    fs.writeFileSync(META_FILE, JSON.stringify({ collections: {} }, null, 2), 'utf-8');
   }
-  return JSON.parse(fs.readFileSync(META_FILE, "utf-8"));
+  return JSON.parse(fs.readFileSync(META_FILE, 'utf-8'));
 }
 
 function writeMeta(meta) {
   ensureDataDir();
-  fs.writeFileSync(META_FILE, JSON.stringify(meta, null, 2), "utf-8");
+  fs.writeFileSync(META_FILE, JSON.stringify(meta, null, 2), 'utf-8');
 }
 
 function getCollectionFile(name) {
@@ -38,16 +34,12 @@ function getCollectionFile(name) {
 function readCollection(name) {
   const file = getCollectionFile(name);
   if (!fs.existsSync(file)) return null;
-  return JSON.parse(fs.readFileSync(file, "utf-8"));
+  return JSON.parse(fs.readFileSync(file, 'utf-8'));
 }
 
 function writeCollection(name, data) {
   ensureDataDir();
-  fs.writeFileSync(
-    getCollectionFile(name),
-    JSON.stringify(data, null, 2),
-    "utf-8",
-  );
+  fs.writeFileSync(getCollectionFile(name), JSON.stringify(data, null, 2), 'utf-8');
 }
 
 // ─── 工具函数 ──────────────────────────────────────────────
@@ -55,22 +47,22 @@ function writeCollection(name, data) {
 function parseBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on("data", (chunk) => chunks.push(chunk));
-    req.on("end", () => {
+    req.on('data', (chunk) => chunks.push(chunk));
+    req.on('end', () => {
       try {
-        const body = Buffer.concat(chunks).toString("utf-8");
+        const body = Buffer.concat(chunks).toString('utf-8');
         resolve(body ? JSON.parse(body) : {});
       } catch {
-        reject(new Error("无效的 JSON 格式"));
+        reject(new Error('无效的 JSON 格式'));
       }
     });
-    req.on("error", reject);
+    req.on('error', reject);
   });
 }
 
 function sendJson(res, statusCode, data) {
   res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
+    'Content-Type': 'application/json; charset=utf-8',
   });
   res.end(JSON.stringify(data));
 }
@@ -80,34 +72,29 @@ function generateId() {
 }
 
 function parsePath(url) {
-  const pathname = url.split("?")[0];
-  const segments = pathname.replace(/^\/|\/$/g, "").split("/");
+  const pathname = url.split('?')[0];
+  const segments = pathname.replace(/^\/|\/$/g, '').split('/');
   return { segments };
 }
 
 function parseQuery(url) {
-  const queryStr = url.split("?")[1] || "";
+  const queryStr = url.split('?')[1] || '';
   const query = {};
   if (!queryStr) return query;
-  for (const pair of queryStr.split("&")) {
-    const [key, ...vals] = pair.split("=");
-    if (key)
-      query[decodeURIComponent(key)] = decodeURIComponent(vals.join("="));
+  for (const pair of queryStr.split('&')) {
+    const [key, ...vals] = pair.split('=');
+    if (key) query[decodeURIComponent(key)] = decodeURIComponent(vals.join('='));
   }
   return query;
 }
 
 function isValidCollectionName(name) {
-  return (
-    typeof name === "string" &&
-    /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name) &&
-    name !== "_meta"
-  );
+  return typeof name === 'string' && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name) && name !== '_meta';
 }
 
 function matchDocument(doc, filter) {
   for (const [key, value] of Object.entries(filter)) {
-    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
       // 操作符查询
       if (value.$eq !== undefined && doc[key] !== value.$eq) return false;
       if (value.$ne !== undefined && doc[key] === value.$ne) return false;
@@ -116,27 +103,19 @@ function matchDocument(doc, filter) {
       if (value.$lt !== undefined && !(doc[key] < value.$lt)) return false;
       if (value.$lte !== undefined && !(doc[key] <= value.$lte)) return false;
       if (value.$in !== undefined) {
-        if (!Array.isArray(value.$in) || !value.$in.includes(doc[key]))
-          return false;
+        if (!Array.isArray(value.$in) || !value.$in.includes(doc[key])) return false;
       }
       if (value.$nin !== undefined) {
-        if (!Array.isArray(value.$nin) || value.$nin.includes(doc[key]))
-          return false;
+        if (!Array.isArray(value.$nin) || value.$nin.includes(doc[key])) return false;
       }
       if (value.$contains !== undefined) {
-        if (typeof doc[key] !== "string" || !doc[key].includes(value.$contains))
-          return false;
+        if (typeof doc[key] !== 'string' || !doc[key].includes(value.$contains)) return false;
       }
       if (value.$startsWith !== undefined) {
-        if (
-          typeof doc[key] !== "string" ||
-          !doc[key].startsWith(value.$startsWith)
-        )
-          return false;
+        if (typeof doc[key] !== 'string' || !doc[key].startsWith(value.$startsWith)) return false;
       }
       if (value.$endsWith !== undefined) {
-        if (typeof doc[key] !== "string" || !doc[key].endsWith(value.$endsWith))
-          return false;
+        if (typeof doc[key] !== 'string' || !doc[key].endsWith(value.$endsWith)) return false;
       }
     } else {
       // 精确匹配
@@ -187,7 +166,7 @@ async function handleCreateCollection(req, res) {
   if (!name || !isValidCollectionName(name)) {
     return sendJson(res, 400, {
       success: false,
-      error: "集合名称无效，仅允许字母、数字和下划线，且不能以数字开头",
+      error: '集合名称无效，仅允许字母、数字和下划线，且不能以数字开头',
     });
   }
 
@@ -303,7 +282,7 @@ async function handleListDocs(req, res, collectionName) {
     } catch {
       return sendJson(res, 400, {
         success: false,
-        error: "filter 参数格式错误，需为有效 JSON",
+        error: 'filter 参数格式错误，需为有效 JSON',
       });
     }
   }
@@ -312,7 +291,7 @@ async function handleListDocs(req, res, collectionName) {
   let selectFields = null;
   if (query.fields) {
     selectFields = query.fields
-      .split(",")
+      .split(',')
       .map((f) => f.trim())
       .filter(Boolean);
   }
@@ -343,7 +322,7 @@ async function handleListDocs(req, res, collectionName) {
     ? pagedDocs.map((doc) => {
         const result = { id: doc.id };
         for (const f of selectFields) {
-          if (f !== "id" && doc[f] !== undefined) result[f] = doc[f];
+          if (f !== 'id' && doc[f] !== undefined) result[f] = doc[f];
         }
         return result;
       })
@@ -367,10 +346,10 @@ async function handleCreateDoc(req, res, collectionName) {
   }
 
   const body = await parseBody(req);
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return sendJson(res, 400, {
       success: false,
-      error: "请求体必须是一个 JSON 对象",
+      error: '请求体必须是一个 JSON 对象',
     });
   }
 
@@ -418,7 +397,7 @@ async function handleBulkCreateDocs(req, res, collectionName) {
   if (!Array.isArray(body)) {
     return sendJson(res, 400, {
       success: false,
-      error: "请求体必须是一个 JSON 数组",
+      error: '请求体必须是一个 JSON 数组',
     });
   }
 
@@ -428,7 +407,7 @@ async function handleBulkCreateDocs(req, res, collectionName) {
   const created = [];
 
   for (const item of body) {
-    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue;
 
     // 唯一索引校验
     let skip = false;
@@ -487,10 +466,10 @@ async function handleUpdateDoc(req, res, collectionName, docId) {
   }
 
   const body = await parseBody(req);
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return sendJson(res, 400, {
       success: false,
-      error: "请求体必须是一个 JSON 对象",
+      error: '请求体必须是一个 JSON 对象',
     });
   }
 
@@ -508,9 +487,7 @@ async function handleUpdateDoc(req, res, collectionName, docId) {
   const indexes = meta.collections[collectionName].indexes || [];
   for (const idx of indexes) {
     if (body[idx] !== undefined) {
-      const duplicate = docs.find(
-        (d) => d.id !== docId && d[idx] === body[idx],
-      );
+      const duplicate = docs.find((d) => d.id !== docId && d[idx] === body[idx]);
       if (duplicate) {
         return sendJson(res, 409, {
           success: false,
@@ -574,12 +551,12 @@ async function handleQueryDocs(req, res, collectionName) {
   let docs = readCollection(collectionName) || [];
 
   // 过滤
-  if (filter && typeof filter === "object") {
+  if (filter && typeof filter === 'object') {
     docs = docs.filter((doc) => matchDocument(doc, filter));
   }
 
   // 排序
-  if (sort && typeof sort === "object") {
+  if (sort && typeof sort === 'object') {
     docs = sortDocuments(docs, sort);
   }
 
@@ -592,7 +569,7 @@ async function handleQueryDocs(req, res, collectionName) {
   let result = docs.slice(offset, offset + l);
 
   // 字段投影
-  if (projection && typeof projection === "object") {
+  if (projection && typeof projection === 'object') {
     const includeMode = !Object.values(projection).includes(0);
     result = result.map((doc) => {
       const projected = {};
@@ -600,8 +577,7 @@ async function handleQueryDocs(req, res, collectionName) {
         // 包含模式：只返回指定的字段（id 始终返回）
         projected.id = doc.id;
         for (const [key, val] of Object.entries(projection)) {
-          if (val && key !== "id" && doc[key] !== undefined)
-            projected[key] = doc[key];
+          if (val && key !== 'id' && doc[key] !== undefined) projected[key] = doc[key];
         }
       } else {
         // 排除模式：返回除了指定字段外的所有字段
@@ -633,10 +609,10 @@ async function handleAddIndex(req, res, collectionName) {
   const body = await parseBody(req);
   const { field } = body;
 
-  if (!field || typeof field !== "string") {
+  if (!field || typeof field !== 'string') {
     return sendJson(res, 400, {
       success: false,
-      error: "必须指定索引字段名 (field)",
+      error: '必须指定索引字段名 (field)',
     });
   }
 
@@ -679,10 +655,10 @@ async function handleRemoveIndex(req, res, collectionName) {
   const body = await parseBody(req);
   const { field } = body;
 
-  if (!field || typeof field !== "string") {
+  if (!field || typeof field !== 'string') {
     return sendJson(res, 400, {
       success: false,
-      error: "必须指定索引字段名 (field)",
+      error: '必须指定索引字段名 (field)',
     });
   }
 
@@ -711,91 +687,67 @@ async function handler(req, res) {
   try {
     // GET /api/collections - 列出所有集合
     if (
-      method === "GET" &&
+      method === 'GET' &&
       segments.length === 2 &&
-      segments[0] === "api" &&
-      segments[1] === "collections"
+      segments[0] === 'api' &&
+      segments[1] === 'collections'
     ) {
       return await handleListCollections(req, res);
     }
 
     // POST /api/collections - 创建集合
     if (
-      method === "POST" &&
+      method === 'POST' &&
       segments.length === 2 &&
-      segments[0] === "api" &&
-      segments[1] === "collections"
+      segments[0] === 'api' &&
+      segments[1] === 'collections'
     ) {
       return await handleCreateCollection(req, res);
     }
 
     // 以下路由需要集合名称: /api/collections/:name/...
-    if (
-      segments.length >= 3 &&
-      segments[0] === "api" &&
-      segments[1] === "collections"
-    ) {
+    if (segments.length >= 3 && segments[0] === 'api' && segments[1] === 'collections') {
       const collectionName = segments[2];
 
       // DELETE /api/collections/:name - 删除集合
-      if (method === "DELETE" && segments.length === 3) {
+      if (method === 'DELETE' && segments.length === 3) {
         return await handleDeleteCollection(req, res, collectionName);
       }
 
       // GET /api/collections/:name/stats - 集合统计
-      if (
-        method === "GET" &&
-        segments.length === 4 &&
-        segments[3] === "stats"
-      ) {
+      if (method === 'GET' && segments.length === 4 && segments[3] === 'stats') {
         return await handleCollectionStats(req, res, collectionName);
       }
 
       // POST /api/collections/:name/indexes - 添加索引
-      if (
-        method === "POST" &&
-        segments.length === 4 &&
-        segments[3] === "indexes"
-      ) {
+      if (method === 'POST' && segments.length === 4 && segments[3] === 'indexes') {
         return await handleAddIndex(req, res, collectionName);
       }
 
       // DELETE /api/collections/:name/indexes - 删除索引
-      if (
-        method === "DELETE" &&
-        segments.length === 4 &&
-        segments[3] === "indexes"
-      ) {
+      if (method === 'DELETE' && segments.length === 4 && segments[3] === 'indexes') {
         return await handleRemoveIndex(req, res, collectionName);
       }
 
       // /api/collections/:name/docs/...
-      if (segments.length >= 4 && segments[3] === "docs") {
+      if (segments.length >= 4 && segments[3] === 'docs') {
         // GET /api/collections/:name/docs - 列出文档
-        if (method === "GET" && segments.length === 4) {
+        if (method === 'GET' && segments.length === 4) {
           return await handleListDocs(req, res, collectionName);
         }
 
         // POST /api/collections/:name/docs - 创建文档
-        if (method === "POST" && segments.length === 4) {
+        if (method === 'POST' && segments.length === 4) {
           return await handleCreateDoc(req, res, collectionName);
         }
 
         // POST /api/collections/:name/docs/bulk - 批量创建
-        if (
-          method === "POST" &&
-          segments.length === 5 &&
-          segments[4] === "bulk"
-        ) {
+        if (method === 'POST' && segments.length === 5 && segments[4] === 'bulk') {
           return await handleBulkCreateDocs(req, res, collectionName);
         }
 
         // POST /api/collections/:name/docs/query - 高级查询
-        if (
-          method === "POST" &&
-          segments.length === 5 &&
-          segments[4] === "query"
-        ) {
+        if (method === 'POST' && segments.length === 5 && segments[4] === 'query') {
           return await handleQueryDocs(req, res, collectionName);
         }
 
@@ -804,27 +756,27 @@ async function handler(req, res) {
           const docId = segments[4];
 
           // GET /api/collections/:name/docs/:id - 获取文档
-          if (method === "GET") {
+          if (method === 'GET') {
             return await handleGetDoc(req, res, collectionName, docId);
           }
 
           // PUT /api/collections/:name/docs/:id - 更新文档
-          if (method === "PUT") {
+          if (method === 'PUT') {
             return await handleUpdateDoc(req, res, collectionName, docId);
           }
 
           // DELETE /api/collections/:name/docs/:id - 删除文档
-          if (method === "DELETE") {
+          if (method === 'DELETE') {
             return await handleDeleteDoc(req, res, collectionName, docId);
           }
         }
       }
     }
 
-    sendJson(res, 404, { success: false, error: "接口未找到" });
+    sendJson(res, 404, { success: false, error: '接口未找到' });
   } catch (err) {
-    console.error("服务器错误:", err.message);
-    sendJson(res, 500, { success: false, error: "服务器内部错误" });
+    console.error('服务器错误:', err.message);
+    sendJson(res, 500, { success: false, error: '服务器内部错误' });
   }
 }
 
@@ -832,30 +784,22 @@ async function handler(req, res) {
 
 const server = http.createServer(handler);
 server.listen(PORT, () => {
-  console.log("JSON 文件数据库已启动");
+  console.log('JSON 文件数据库已启动');
   console.log(`   地址: http://localhost:${PORT}`);
-  console.log("   接口:");
+  console.log('   接口:');
+  console.log('     GET    /api/collections                       - 列出所有集合');
+  console.log('     POST   /api/collections                       - 创建集合');
+  console.log('     DELETE /api/collections/:name                 - 删除集合');
+  console.log('     GET    /api/collections/:name/stats            - 集合统计');
+  console.log('     POST   /api/collections/:name/indexes          - 添加唯一索引');
+  console.log('     DELETE /api/collections/:name/indexes          - 删除索引');
   console.log(
-    "     GET    /api/collections                       - 列出所有集合",
+    '     GET    /api/collections/:name/docs             - 列出文档 (支持 filter/sort/page/limit/fields)'
   );
-  console.log("     POST   /api/collections                       - 创建集合");
-  console.log("     DELETE /api/collections/:name                 - 删除集合");
-  console.log("     GET    /api/collections/:name/stats            - 集合统计");
-  console.log(
-    "     POST   /api/collections/:name/indexes          - 添加唯一索引",
-  );
-  console.log("     DELETE /api/collections/:name/indexes          - 删除索引");
-  console.log(
-    "     GET    /api/collections/:name/docs             - 列出文档 (支持 filter/sort/page/limit/fields)",
-  );
-  console.log("     POST   /api/collections/:name/docs             - 创建文档");
-  console.log(
-    "     POST   /api/collections/:name/docs/bulk       - 批量创建文档",
-  );
-  console.log(
-    "     POST   /api/collections/:name/docs/query      - 高级查询 (POST body)",
-  );
-  console.log("     GET    /api/collections/:name/docs/:id         - 获取文档");
-  console.log("     PUT    /api/collections/:name/docs/:id         - 更新文档");
-  console.log("     DELETE /api/collections/:name/docs/:id         - 删除文档");
+  console.log('     POST   /api/collections/:name/docs             - 创建文档');
+  console.log('     POST   /api/collections/:name/docs/bulk       - 批量创建文档');
+  console.log('     POST   /api/collections/:name/docs/query      - 高级查询 (POST body)');
+  console.log('     GET    /api/collections/:name/docs/:id         - 获取文档');
+  console.log('     PUT    /api/collections/:name/docs/:id         - 更新文档');
+  console.log('     DELETE /api/collections/:name/docs/:id         - 删除文档');
 });

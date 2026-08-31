@@ -4,7 +4,10 @@ const crypto = require('crypto');
 const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
 function acceptKey(key) {
-  return crypto.createHash('sha1').update(key + GUID).digest('base64');
+  return crypto
+    .createHash('sha1')
+    .update(key + GUID)
+    .digest('base64');
 }
 
 function handshake(req, socket) {
@@ -15,7 +18,7 @@ function handshake(req, socket) {
     'Upgrade: websocket',
     'Connection: Upgrade',
     `Sec-WebSocket-Accept: ${accept}`,
-    '\r\n'
+    '\r\n',
   ].join('\r\n');
   socket.write(headers);
 }
@@ -48,10 +51,18 @@ function decode(buf) {
   const masked = (buf[1] & 0x80) !== 0;
   let len = buf[1] & 0x7f;
   let offset = 2;
-  if (len === 126) { len = buf.readUInt16BE(2); offset = 4; }
-  else if (len === 127) { len = Number(buf.readBigUInt64BE(2)); offset = 10; }
+  if (len === 126) {
+    len = buf.readUInt16BE(2);
+    offset = 4;
+  } else if (len === 127) {
+    len = Number(buf.readBigUInt64BE(2));
+    offset = 10;
+  }
   let mask;
-  if (masked) { mask = buf.slice(offset, offset + 4); offset += 4; }
+  if (masked) {
+    mask = buf.slice(offset, offset + 4);
+    offset += 4;
+  }
   if (buf.length < offset + len) return null;
   const payload = buf.slice(offset, offset + len);
   if (masked) {
@@ -77,15 +88,15 @@ class WSConnection {
         this.buffer = this.buffer.slice(frame.total);
         try {
           const msg = JSON.parse(frame.payload.toString());
-          (this.handlers.message || []).forEach(h => h(msg));
+          (this.handlers.message || []).forEach((h) => h(msg));
         } catch (_) {}
       }
     });
     socket.on('close', () => {
-      (this.handlers.close || []).forEach(h => h());
+      (this.handlers.close || []).forEach((h) => h());
     });
     socket.on('error', () => {
-      (this.handlers.close || []).forEach(h => h());
+      (this.handlers.close || []).forEach((h) => h());
     });
   }
 
@@ -95,11 +106,15 @@ class WSConnection {
   }
 
   send(data) {
-    try { this.socket.write(encode(data)); } catch (_) {}
+    try {
+      this.socket.write(encode(data));
+    } catch (_) {}
   }
 
   close() {
-    try { this.socket.end(); } catch (_) {}
+    try {
+      this.socket.end();
+    } catch (_) {}
   }
 }
 

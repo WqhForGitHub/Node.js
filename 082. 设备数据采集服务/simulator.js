@@ -12,11 +12,14 @@ setInterval(() => {
     device: devices[Math.floor(Math.random() * devices.length)],
     metric: metrics[Math.floor(Math.random() * metrics.length)],
     value: Math.random() * 100,
-    ts: Date.now()
+    ts: Date.now(),
   };
   const buf = Buffer.from(JSON.stringify(point));
   client.send(buf, UDP_PORT, '127.0.0.1');
   console.log('发送:', point);
 }, 1000);
 
-process.on('SIGINT', () => { client.close(); process.exit(0); });
+process.on('SIGINT', () => {
+  client.close();
+  process.exit(0);
+});

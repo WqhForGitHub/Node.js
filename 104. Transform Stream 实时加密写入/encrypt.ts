@@ -20,7 +20,10 @@ function keystream(key: Buffer, offset: number): number {
 
 class XorCipher extends Transform {
   private offset = 0;
-  constructor(private key: Buffer, private encrypt: boolean) {
+  constructor(
+    private key: Buffer,
+    private encrypt: boolean
+  ) {
     super();
   }
   _transform(chunk: Buffer, _enc: string, cb: () => void) {
@@ -50,12 +53,12 @@ function run(mode: 'enc' | 'dec', input: string, output: string, keyStr: string)
     fs.createReadStream(input),
     new XorCipher(key, mode === 'enc'),
     fs.createWriteStream(output),
-    pipelineCb,
+    pipelineCb
   );
 }
 
 const [, , mode, input, output, keyStr] = process.argv;
-if (mode !== 'enc' && mode !== 'dec' || !input || !output || !keyStr) {
+if ((mode !== 'enc' && mode !== 'dec') || !input || !output || !keyStr) {
   console.error('用法: ts-node encrypt.ts enc|dec <in> <out> <key>');
   process.exit(1);
 }

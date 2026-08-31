@@ -48,7 +48,9 @@ class Table {
     return this.rows.delete(pk);
   }
 
-  get(pk) { return this.rows.get(pk); }
+  get(pk) {
+    return this.rows.get(pk);
+  }
 
   // 简单 where：{field: value} 或 {field: {op: 'gt', value: x}}
   find(where = {}, options = {}) {
@@ -58,11 +60,11 @@ class Table {
       if (this.indexes.has(field) && (typeof cond !== 'object' || cond === null)) {
         const set = this.indexes.get(field).get(cond);
         const ids = set ? [...set] : [];
-        candidates = candidates ? candidates.filter(id => ids.includes(id)) : ids;
+        candidates = candidates ? candidates.filter((id) => ids.includes(id)) : ids;
       }
     }
-    let rows = candidates ? candidates.map(id => this.rows.get(id)) : [...this.rows.values()];
-    rows = rows.filter(r => this._match(r, where));
+    let rows = candidates ? candidates.map((id) => this.rows.get(id)) : [...this.rows.values()];
+    rows = rows.filter((r) => this._match(r, where));
     if (options.orderBy) {
       const [field, dir] = options.orderBy.split(/\s+/);
       rows.sort((a, b) => {
@@ -103,22 +105,33 @@ class Table {
   _removeIndex(field, value, pk) {
     const idx = this.indexes.get(field);
     const set = idx.get(value);
-    if (set) { set.delete(pk); if (set.size === 0) idx.delete(value); }
+    if (set) {
+      set.delete(pk);
+      if (set.size === 0) idx.delete(value);
+    }
   }
 
-  count() { return this.rows.size; }
-  toJSON() { return { name: this.name, schema: this.schema, rows: [...this.rows.values()] }; }
+  count() {
+    return this.rows.size;
+  }
+  toJSON() {
+    return { name: this.name, schema: this.schema, rows: [...this.rows.values()] };
+  }
 }
 
 class Database {
-  constructor() { this.tables = new Map(); }
+  constructor() {
+    this.tables = new Map();
+  }
   createTable(name, schema) {
     if (this.tables.has(name)) throw new Error(`表已存在: ${name}`);
     const t = new Table(name, schema);
     this.tables.set(name, t);
     return t;
   }
-  dropTable(name) { return this.tables.delete(name); }
+  dropTable(name) {
+    return this.tables.delete(name);
+  }
   table(name) {
     const t = this.tables.get(name);
     if (!t) throw new Error(`表不存在: ${name}`);

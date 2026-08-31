@@ -16,12 +16,15 @@ class Gateway extends EventEmitter {
     super();
     this.devicesFile = path.join(__dirname, 'devices.json');
     this.topicsFile = path.join(__dirname, 'topics.json');
-    this.devices = new Map();    // deviceId -> { userId, platform, topics: [], offline: [] }
-    this.topics = new Map();     // topic -> Set(deviceId)
-    this.online = new Map();     // deviceId -> conn
+    this.devices = new Map(); // deviceId -> { userId, platform, topics: [], offline: [] }
+    this.topics = new Map(); // topic -> Set(deviceId)
+    this.online = new Map(); // deviceId -> conn
     this.pendingAck = new Map(); // msgId -> { deviceId, msg, timer, retries }
     this.metrics = {
-      sent: 0, delivered: 0, failed: 0, queued: 0
+      sent: 0,
+      delivered: 0,
+      failed: 0,
+      queued: 0,
     };
     this.load();
   }
@@ -29,14 +32,18 @@ class Gateway extends EventEmitter {
   registerDevice(deviceId, userId, platform) {
     if (!this.devices.has(deviceId)) {
       this.devices.set(deviceId, {
-        deviceId, userId, platform,
-        topics: [], offline: [],
-        registeredAt: Date.now()
+        deviceId,
+        userId,
+        platform,
+        topics: [],
+        offline: [],
+        registeredAt: Date.now(),
       });
       this.save();
     } else {
       const d = this.devices.get(deviceId);
-      d.userId = userId; d.platform = platform;
+      d.userId = userId;
+      d.platform = platform;
     }
     return this.devices.get(deviceId);
   }
@@ -53,7 +60,7 @@ class Gateway extends EventEmitter {
 
   unsubscribe(deviceId, topic) {
     const d = this.devices.get(deviceId);
-    if (d) d.topics = d.topics.filter(t => t !== topic);
+    if (d) d.topics = d.topics.filter((t) => t !== topic);
     const s = this.topics.get(topic);
     if (s) {
       s.delete(deviceId);
@@ -173,27 +180,31 @@ class Gateway extends EventEmitter {
       body: payload.body,
       data: payload.data || {},
       ts: Date.now(),
-      ttl: opts.ttl
+      ttl: opts.ttl,
     };
   }
 
   save() {
     try {
       fs.writeFileSync(this.devicesFile, JSON.stringify([...this.devices.values()]));
-      fs.writeFileSync(this.topicsFile, JSON.stringify(
-        [...this.topics].map(([t, s]) => ({ topic: t, devices: [...s] }))
-      ));
+      fs.writeFileSync(
+        this.topicsFile,
+        JSON.stringify([...this.topics].map(([t, s]) => ({ topic: t, devices: [...s] })))
+      );
     } catch (_) {}
   }
 
   load() {
     try {
       if (fs.existsSync(this.devicesFile)) {
-        JSON.parse(fs.readFileSync(this.devicesFile, 'utf8')).forEach(d => this.devices.set(d.deviceId, d));
+        JSON.parse(fs.readFileSync(this.devicesFile, 'utf8')).forEach((d) =>
+          this.devices.set(d.deviceId, d)
+        );
       }
       if (fs.existsSync(this.topicsFile)) {
-        JSON.parse(fs.readFileSync(this.topicsFile, 'utf8')).forEach(t =>
-          this.topics.set(t.topic, new Set(t.devices)));
+        JSON.parse(fs.readFileSync(this.topicsFile, 'utf8')).forEach((t) =>
+          this.topics.set(t.topic, new Set(t.devices))
+        );
       }
       console.log(`已加载 ${this.devices.size} 个设备, ${this.topics.size} 个主题`);
     } catch (_) {}
@@ -205,7 +216,7 @@ class Gateway extends EventEmitter {
       devices: this.devices.size,
       online: this.online.size,
       topics: this.topics.size,
-      pendingAck: this.pendingAck.size
+      pendingAck: this.pendingAck.size,
     };
   }
 }

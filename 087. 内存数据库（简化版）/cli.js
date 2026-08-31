@@ -16,22 +16,35 @@ sock.on('data', (chunk) => {
   while ((idx = buf.indexOf('\n')) >= 0) {
     const line = buf.slice(0, idx);
     buf = buf.slice(idx + 1);
-    if (pending) { pending(JSON.parse(line)); pending = null; }
+    if (pending) {
+      pending(JSON.parse(line));
+      pending = null;
+    }
   }
 });
-sock.on('error', e => { console.error(e.message); process.exit(1); });
+sock.on('error', (e) => {
+  console.error(e.message);
+  process.exit(1);
+});
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 function send(cmd) {
-  return new Promise((resolve) => { pending = resolve; sock.write(JSON.stringify(cmd) + '\n'); });
+  return new Promise((resolve) => {
+    pending = resolve;
+    sock.write(JSON.stringify(cmd) + '\n');
+  });
 }
 
 function prompt() {
   rl.question('memdb> ', async (input) => {
     input = input.trim();
     if (!input) return prompt();
-    if (input === 'exit' || input === 'quit') { sock.end(); rl.close(); return; }
+    if (input === 'exit' || input === 'quit') {
+      sock.end();
+      rl.close();
+      return;
+    }
     if (input === 'help') {
       console.log(`命令示例:
   create users {pk:"id", fields:{email:{unique:true}, name:{index:true}}}
@@ -87,8 +100,10 @@ function parseCommand(s) {
       const m = rest.match(/^(\w+)\s+(.+)$/);
       return { op: 'delete', table: m[1], pk: parseValue(m[2]) };
     }
-    case 'tables': return { op: 'tables' };
-    default: throw new Error('unknown: ' + verb);
+    case 'tables':
+      return { op: 'tables' };
+    default:
+      throw new Error('unknown: ' + verb);
   }
 }
 

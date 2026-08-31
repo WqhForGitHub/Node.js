@@ -13,7 +13,7 @@ function broadcastPresence(username, status) {
   const u = store.users.get(username);
   if (!u) return;
   // 通知所有好友
-  u.friends.forEach(f => {
+  u.friends.forEach((f) => {
     const friendConn = online.get(f);
     if (friendConn) friendConn.conn.send({ type: 'presence', user: username, status });
   });
@@ -35,7 +35,7 @@ const server = http.createServer((req, res) => {
     res.end(fs.readFileSync(path.join(__dirname, 'client.html')));
   } else if (req.url === '/api/register' && req.method === 'POST') {
     let body = '';
-    req.on('data', c => body += c);
+    req.on('data', (c) => (body += c));
     req.on('end', () => {
       try {
         const { username, password } = JSON.parse(body);
@@ -65,7 +65,7 @@ server.on('upgrade', (req, socket) => {
       const user = r.user;
       conn.send({
         type: 'login-ok',
-        user: { username, friends: user.friends, groups: user.groups }
+        user: { username, friends: user.friends, groups: user.groups },
       });
       // 发送离线消息
       const offline = store.getOffline(username);
@@ -74,64 +74,61 @@ server.on('upgrade', (req, socket) => {
       }
       broadcastPresence(username, 'online');
       console.log(`${username} 登录，当前在线: ${online.size}`);
-    }
-    else if (!username) {
+    } else if (!username) {
       return conn.send({ type: 'error', error: '请先登录' });
-    }
-    else if (msg.type === 'msg-private') {
+    } else if (msg.type === 'msg-private') {
       const m = {
         id: crypto.randomBytes(6).toString('hex'),
         type: 'msg-private',
-        from: username, to: msg.to,
-        content: msg.content, ts: Date.now()
+        from: username,
+        to: msg.to,
+        content: msg.content,
+        ts: Date.now(),
       };
       store.saveMessage(m);
       conn.send({ type: 'msg-ack', id: m.id, ts: m.ts });
       deliver(msg.to, m);
-    }
-    else if (msg.type === 'msg-group') {
+    } else if (msg.type === 'msg-group') {
       const group = store.groups.get(msg.groupId);
       if (!group || !group.members.includes(username)) return;
       const m = {
         id: crypto.randomBytes(6).toString('hex'),
         type: 'msg-group',
-        from: username, groupId: msg.groupId,
-        content: msg.content, ts: Date.now()
+        from: username,
+        groupId: msg.groupId,
+        content: msg.content,
+        ts: Date.now(),
       };
       store.saveMessage(m);
       conn.send({ type: 'msg-ack', id: m.id, ts: m.ts });
-      group.members.forEach(member => {
+      group.members.forEach((member) => {
         if (member !== username) deliver(member, m);
       });
-    }
-    else if (msg.type === 'add-friend') {
+    } else if (msg.type === 'add-friend') {
       const r = store.addFriend(username, msg.friend);
       conn.send({ type: 'add-friend-result', ...r, friend: msg.friend });
-    }
-    else if (msg.type === 'create-group') {
+    } else if (msg.type === 'create-group') {
       const g = store.createGroup(msg.name, username);
       conn.send({ type: 'group-created', group: g });
-    }
-    else if (msg.type === 'join-group') {
+    } else if (msg.type === 'join-group') {
       const r = store.joinGroup(msg.groupId, username);
       conn.send({ type: 'group-joined', ...r });
-    }
-    else if (msg.type === 'history') {
+    } else if (msg.type === 'history') {
       let messages;
       if (msg.with) {
-        messages = store.getHistory(m =>
-          m.type === 'msg-private' &&
-          ((m.from === username && m.to === msg.with) ||
-           (m.from === msg.with && m.to === username)));
+        messages = store.getHistory(
+          (m) =>
+            m.type === 'msg-private' &&
+            ((m.from === username && m.to === msg.with) ||
+              (m.from === msg.with && m.to === username))
+        );
       } else if (msg.groupId) {
-        messages = store.getHistory(m =>
-          m.type === 'msg-group' && m.groupId === msg.groupId);
+        messages = store.getHistory((m) => m.type === 'msg-group' && m.groupId === msg.groupId);
       } else {
         messages = [];
       }
       conn.send({ type: 'history', messages, with: msg.with, groupId: msg.groupId });
-    }
-    else if (msg.type === 'typing') {
+    } else if (msg.type === 'typing') {
       const m = { type: 'typing', from: username, to: msg.to };
       const target = online.get(msg.to);
       if (target) target.conn.send(m);

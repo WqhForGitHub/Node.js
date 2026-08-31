@@ -6,7 +6,7 @@ export class LRUCache<K, V> {
   constructor(private capacity: number) {}
   get(k: K): V | undefined {
     if (!this.map.has(k)) return undefined;
-   const v = this.map.get(k)!;
+    const v = this.map.get(k)!;
     this.map.delete(k);
     this.map.set(k, v);
     return v;
@@ -19,5 +19,7 @@ export class LRUCache<K, V> {
       this.map.delete(first);
     }
   }
-  size() { return this.map.size; }
+  size() {
+    return this.map.size;
+  }
 }

@@ -8,7 +8,10 @@ class LRUCache {
 
   get(key) {
     const e = this.map.get(key);
-    if (!e) { this.stats.misses++; return undefined; }
+    if (!e) {
+      this.stats.misses++;
+      return undefined;
+    }
     if (e.expireAt && Date.now() > e.expireAt) {
       this.map.delete(key);
       this.stats.misses++;
@@ -33,15 +36,24 @@ class LRUCache {
     }
   }
 
-  del(key) { return this.map.delete(key); }
+  del(key) {
+    return this.map.delete(key);
+  }
   has(key) {
     const e = this.map.get(key);
     if (!e) return false;
-    if (e.expireAt && Date.now() > e.expireAt) { this.map.delete(key); return false; }
+    if (e.expireAt && Date.now() > e.expireAt) {
+      this.map.delete(key);
+      return false;
+    }
     return true;
   }
-  size() { return this.map.size; }
-  clear() { this.map.clear(); }
+  size() {
+    return this.map.size;
+  }
+  clear() {
+    this.map.clear();
+  }
 }
 
 module.exports = LRUCache;

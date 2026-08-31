@@ -11,12 +11,12 @@ class TaskQueue extends EventEmitter {
     this.persistFile = options.persistFile || path.join(__dirname, `queue-${name}.json`);
     this.maxRetries = options.maxRetries || 3;
     this.retryDelay = options.retryDelay || 2000;
-    this.tasks = new Map();         // taskId -> task
-    this.pending = [];              // 待处理 taskId 列表
-    this.processing = new Map();    // taskId -> { workerId, startTime }
+    this.tasks = new Map(); // taskId -> task
+    this.pending = []; // 待处理 taskId 列表
+    this.processing = new Map(); // taskId -> { workerId, startTime }
     this.completed = [];
     this.failed = [];
-    this.delayed = new Map();       // taskId -> timer
+    this.delayed = new Map(); // taskId -> timer
 
     this.load();
     // 定时持久化
@@ -35,7 +35,7 @@ class TaskQueue extends EventEmitter {
       attempts: 0,
       maxRetries: options.maxRetries ?? this.maxRetries,
       createdAt: Date.now(),
-      status: 'pending'
+      status: 'pending',
     };
     this.tasks.set(id, task);
 
@@ -124,7 +124,7 @@ class TaskQueue extends EventEmitter {
       processing: this.processing.size,
       delayed: this.delayed.size,
       completed: this.completed.length,
-      failed: this.failed.length
+      failed: this.failed.length,
     };
   }
 
@@ -135,7 +135,7 @@ class TaskQueue extends EventEmitter {
         tasks: [...this.tasks.values()],
         pending: this.pending,
         completed: this.completed,
-        failed: this.failed
+        failed: this.failed,
       };
       fs.writeFileSync(this.persistFile, JSON.stringify(data));
     } catch (e) {
@@ -147,24 +147,26 @@ class TaskQueue extends EventEmitter {
     if (!fs.existsSync(this.persistFile)) return;
     try {
       const data = JSON.parse(fs.readFileSync(this.persistFile, 'utf8'));
-      data.tasks.forEach(t => {
+      data.tasks.forEach((t) => {
         // 重启时把 processing 状态恢复为 pending
         if (t.status === 'processing') t.status = 'pending';
         this.tasks.set(t.id, t);
       });
-      this.pending = (data.pending || []).filter(id => {
+      this.pending = (data.pending || []).filter((id) => {
         const t = this.tasks.get(id);
         return t && t.status === 'pending';
       });
       // 恢复未在 pending 中但状态为 pending 的任务
-      data.tasks.forEach(t => {
+      data.tasks.forEach((t) => {
         if (t.status === 'pending' && !this.pending.includes(t.id)) {
           this.pending.push(t.id);
         }
       });
       this.completed = data.completed || [];
       this.failed = data.failed || [];
-      console.log(`[${this.name}] 已加载 ${this.tasks.size} 个任务，${this.pending.length} 个待处理`);
+      console.log(
+        `[${this.name}] 已加载 ${this.tasks.size} 个任务，${this.pending.length} 个待处理`
+      );
     } catch (e) {
       console.error('加载失败:', e.message);
     }

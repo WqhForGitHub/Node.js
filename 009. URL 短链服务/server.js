@@ -10,9 +10,9 @@
  *   GET  /                 - API 说明页
  */
 
-const http = require("http");
-const url = require("url");
-const store = require("./store");
+const http = require('http');
+const url = require('url');
+const store = require('./store');
 
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
@@ -24,18 +24,18 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
  */
 function parseBody(req) {
   return new Promise((resolve, reject) => {
-    let body = "";
-    req.on("data", (chunk) => {
+    let body = '';
+    req.on('data', (chunk) => {
       body += chunk;
     });
-    req.on("end", () => {
+    req.on('end', () => {
       try {
         resolve(body ? JSON.parse(body) : {});
       } catch {
-        reject(new Error("请求体不是合法的 JSON"));
+        reject(new Error('请求体不是合法的 JSON'));
       }
     });
-    req.on("error", reject);
+    req.on('error', reject);
   });
 }
 
@@ -44,7 +44,7 @@ function parseBody(req) {
  */
 function sendJson(res, statusCode, data) {
   res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
+    'Content-Type': 'application/json; charset=utf-8',
   });
   res.end(JSON.stringify(data));
 }
@@ -53,7 +53,7 @@ function sendJson(res, statusCode, data) {
  * 发送 HTML 响应
  */
 function sendHtml(res, statusCode, html) {
-  res.writeHead(statusCode, { "Content-Type": "text/html; charset=utf-8" });
+  res.writeHead(statusCode, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);
 }
 
@@ -63,7 +63,7 @@ function sendHtml(res, statusCode, html) {
 function isValidUrl(str) {
   try {
     const parsed = new URL(str);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch {
     return false;
   }
@@ -142,10 +142,10 @@ async function handleShorten(req, res) {
     const originalUrl = body.url;
 
     if (!originalUrl) {
-      return sendJson(res, 400, { error: "缺少 url 字段" });
+      return sendJson(res, 400, { error: '缺少 url 字段' });
     }
     if (!isValidUrl(originalUrl)) {
-      return sendJson(res, 400, { error: "url 格式不合法，仅支持 http/https" });
+      return sendJson(res, 400, { error: 'url 格式不合法，仅支持 http/https' });
     }
 
     const result = store.createShortUrl(originalUrl);
@@ -193,56 +193,56 @@ function handleDelete(req, res, code) {
   if (!ok) {
     return sendJson(res, 404, { error: `短链 "${code}" 不存在` });
   }
-  sendJson(res, 200, { message: "删除成功", code });
+  sendJson(res, 200, { message: '删除成功', code });
 }
 
 // ============== 请求分发 ==============
 
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url);
-  const pathname = parsedUrl.pathname.replace(/\/+$/, "") || "/";
+  const pathname = parsedUrl.pathname.replace(/\/+$/, '') || '/';
   const method = req.method.toUpperCase();
 
   // 路由匹配
   try {
     // GET / → 首页
-    if (method === "GET" && pathname === "/") {
+    if (method === 'GET' && pathname === '/') {
       return handleIndex(req, res);
     }
 
     // POST /shorten → 创建短链
-    if (method === "POST" && pathname === "/shorten") {
+    if (method === 'POST' && pathname === '/shorten') {
       return await handleShorten(req, res);
     }
 
     // GET /list → 列出所有
-    if (method === "GET" && pathname === "/list") {
+    if (method === 'GET' && pathname === '/list') {
       return handleList(req, res);
     }
 
     // GET /info/:code → 查看信息
     const infoMatch = pathname.match(/^\/info\/([0-9a-zA-Z]+)$/);
-    if (method === "GET" && infoMatch) {
+    if (method === 'GET' && infoMatch) {
       return handleInfo(req, res, infoMatch[1]);
     }
 
     // DELETE /:code → 删除
     const deleteMatch = pathname.match(/^\/([0-9a-zA-Z]+)$/);
-    if (method === "DELETE" && deleteMatch) {
+    if (method === 'DELETE' && deleteMatch) {
       return handleDelete(req, res, deleteMatch[1]);
     }
 
     // GET /:code → 重定向
     const redirectMatch = pathname.match(/^\/([0-9a-zA-Z]+)$/);
-    if (method === "GET" && redirectMatch) {
+    if (method === 'GET' && redirectMatch) {
       return handleRedirect(req, res, redirectMatch[1]);
     }
 
     // 404
-    sendJson(res, 404, { error: "接口不存在" });
+    sendJson(res, 404, { error: '接口不存在' });
   } catch (err) {
-    console.error("服务器错误:", err);
-    sendJson(res, 500, { error: "服务器内部错误" });
+    console.error('服务器错误:', err);
+    sendJson(res, 500, { error: '服务器内部错误' });
   }
 });
 
@@ -251,5 +251,5 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`\n  URL 短链服务已启动`);
   console.log(`  地址: ${BASE_URL}`);
-  console.log(`  数据: ${require("path").join(__dirname, "data.json")}\n`);
+  console.log(`  数据: ${require('path').join(__dirname, 'data.json')}\n`);
 });

@@ -1,14 +1,14 @@
-const http = require("http");
-const url = require("url");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+const http = require('http');
+const url = require('url');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 const PORT = 3033;
-const DATA_DIR = path.join(__dirname, "data");
-const LIKES_FILE = path.join(DATA_DIR, "likes.json");
-const FAVORITES_FILE = path.join(DATA_DIR, "favorites.json");
-const TARGETS_FILE = path.join(DATA_DIR, "targets.json");
+const DATA_DIR = path.join(__dirname, 'data');
+const LIKES_FILE = path.join(DATA_DIR, 'likes.json');
+const FAVORITES_FILE = path.join(DATA_DIR, 'favorites.json');
+const TARGETS_FILE = path.join(DATA_DIR, 'targets.json');
 
 // ==================== 数据存储 ====================
 
@@ -19,7 +19,7 @@ if (!fs.existsSync(DATA_DIR)) {
 function loadData(filePath, defaultVal) {
   try {
     if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
     }
   } catch (e) {
     console.error(`读取 ${filePath} 失败:`, e.message);
@@ -29,7 +29,7 @@ function loadData(filePath, defaultVal) {
 
 function saveData(filePath, data) {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
   } catch (e) {
     console.error(`写入 ${filePath} 失败:`, e.message);
   }
@@ -37,11 +37,11 @@ function saveData(filePath, data) {
 
 // 内存数据（启动时从文件加载）
 // likes: { [targetId]: { [userId]: { createdAt, targetType } } }
-let likes = loadData(LIKES_FILE, {});
+const likes = loadData(LIKES_FILE, {});
 // favorites: { [targetId]: { [userId]: { createdAt, targetType, note } } }
-let favorites = loadData(FAVORITES_FILE, {});
+const favorites = loadData(FAVORITES_FILE, {});
 // targets: { [targetId]: { type, title, likeCount, favoriteCount } }
-let targets = loadData(TARGETS_FILE, {});
+const targets = loadData(TARGETS_FILE, {});
 
 // 持久化（防抖 300ms）
 let persistTimer = null;
@@ -65,23 +65,23 @@ function persistNow() {
 
 function parseBody(req) {
   return new Promise((resolve, reject) => {
-    let body = "";
-    req.on("data", (chunk) => (body += chunk));
-    req.on("end", () => {
+    let body = '';
+    req.on('data', (chunk) => (body += chunk));
+    req.on('end', () => {
       if (!body) return resolve({});
       try {
         resolve(JSON.parse(body));
       } catch {
-        reject(new Error("Invalid JSON"));
+        reject(new Error('Invalid JSON'));
       }
     });
-    req.on("error", reject);
+    req.on('error', reject);
   });
 }
 
 function send(res, statusCode, data) {
   res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
+    'Content-Type': 'application/json; charset=utf-8',
   });
   res.end(JSON.stringify(data));
 }
@@ -114,9 +114,7 @@ function ensureTarget(targetId, targetType, title) {
 function recalcTarget(targetId) {
   if (!targets[targetId]) return;
   targets[targetId].likeCount = Object.keys(likes[targetId] || {}).length;
-  targets[targetId].favoriteCount = Object.keys(
-    favorites[targetId] || {},
-  ).length;
+  targets[targetId].favoriteCount = Object.keys(favorites[targetId] || {}).length;
 }
 
 // ==================== 点赞 API ====================
@@ -127,26 +125,19 @@ async function addLike(req, res) {
   const { targetId, targetType, userId, title } = body;
 
   if (!targetId || !targetType || !userId) {
-    return sendError(res, 400, "缺少必填字段: targetId, targetType, userId");
+    return sendError(res, 400, '缺少必填字段: targetId, targetType, userId');
   }
 
-  const validTypes = [
-    "post",
-    "article",
-    "comment",
-    "video",
-    "photo",
-    "product",
-  ];
+  const validTypes = ['post', 'article', 'comment', 'video', 'photo', 'product'];
   if (!validTypes.includes(targetType)) {
-    return sendError(res, 400, `targetType 必须是: ${validTypes.join(", ")}`);
+    return sendError(res, 400, `targetType 必须是: ${validTypes.join(', ')}`);
   }
 
   ensureTarget(targetId, targetType, title);
 
   // 检查是否已点赞
   if (likes[targetId] && likes[targetId][userId]) {
-    return sendError(res, 409, "已经点过赞了");
+    return sendError(res, 409, '已经点过赞了');
   }
 
   if (!likes[targetId]) likes[targetId] = {};
@@ -175,11 +166,11 @@ async function removeLike(req, res) {
   const { targetId, userId } = body;
 
   if (!targetId || !userId) {
-    return sendError(res, 400, "缺少必填字段: targetId, userId");
+    return sendError(res, 400, '缺少必填字段: targetId, userId');
   }
 
   if (!likes[targetId] || !likes[targetId][userId]) {
-    return sendError(res, 404, "尚未点赞");
+    return sendError(res, 404, '尚未点赞');
   }
 
   delete likes[targetId][userId];
@@ -204,7 +195,7 @@ async function toggleLike(req, res) {
   const { targetId, targetType, userId, title } = body;
 
   if (!targetId || !targetType || !userId) {
-    return sendError(res, 400, "缺少必填字段: targetId, targetType, userId");
+    return sendError(res, 400, '缺少必填字段: targetId, targetType, userId');
   }
 
   ensureTarget(targetId, targetType, title);
@@ -254,32 +245,25 @@ async function addFavorite(req, res) {
   const { targetId, targetType, userId, title, note } = body;
 
   if (!targetId || !targetType || !userId) {
-    return sendError(res, 400, "缺少必填字段: targetId, targetType, userId");
+    return sendError(res, 400, '缺少必填字段: targetId, targetType, userId');
   }
 
-  const validTypes = [
-    "post",
-    "article",
-    "comment",
-    "video",
-    "photo",
-    "product",
-  ];
+  const validTypes = ['post', 'article', 'comment', 'video', 'photo', 'product'];
   if (!validTypes.includes(targetType)) {
-    return sendError(res, 400, `targetType 必须是: ${validTypes.join(", ")}`);
+    return sendError(res, 400, `targetType 必须是: ${validTypes.join(', ')}`);
   }
 
   ensureTarget(targetId, targetType, title);
 
   if (favorites[targetId] && favorites[targetId][userId]) {
-    return sendError(res, 409, "已经收藏过了");
+    return sendError(res, 409, '已经收藏过了');
   }
 
   if (!favorites[targetId]) favorites[targetId] = {};
   favorites[targetId][userId] = {
     createdAt: new Date().toISOString(),
     targetType,
-    note: note || "",
+    note: note || '',
   };
 
   recalcTarget(targetId);
@@ -302,11 +286,11 @@ async function removeFavorite(req, res) {
   const { targetId, userId } = body;
 
   if (!targetId || !userId) {
-    return sendError(res, 400, "缺少必填字段: targetId, userId");
+    return sendError(res, 400, '缺少必填字段: targetId, userId');
   }
 
   if (!favorites[targetId] || !favorites[targetId][userId]) {
-    return sendError(res, 404, "尚未收藏");
+    return sendError(res, 404, '尚未收藏');
   }
 
   delete favorites[targetId][userId];
@@ -331,7 +315,7 @@ async function toggleFavorite(req, res) {
   const { targetId, targetType, userId, title, note } = body;
 
   if (!targetId || !targetType || !userId) {
-    return sendError(res, 400, "缺少必填字段: targetId, targetType, userId");
+    return sendError(res, 400, '缺少必填字段: targetId, targetType, userId');
   }
 
   ensureTarget(targetId, targetType, title);
@@ -355,7 +339,7 @@ async function toggleFavorite(req, res) {
     favorites[targetId][userId] = {
       createdAt: new Date().toISOString(),
       targetType,
-      note: note || "",
+      note: note || '',
     };
     recalcTarget(targetId);
     persist();
@@ -378,14 +362,14 @@ async function updateFavoriteNote(req, res) {
   const { targetId, userId, note } = body;
 
   if (!targetId || !userId) {
-    return sendError(res, 400, "缺少必填字段: targetId, userId");
+    return sendError(res, 400, '缺少必填字段: targetId, userId');
   }
 
   if (!favorites[targetId] || !favorites[targetId][userId]) {
-    return sendError(res, 404, "尚未收藏");
+    return sendError(res, 404, '尚未收藏');
   }
 
-  favorites[targetId][userId].note = note || "";
+  favorites[targetId][userId].note = note || '';
   favorites[targetId][userId].updatedAt = new Date().toISOString();
   persist();
 
@@ -404,7 +388,7 @@ function getStatus(req, res) {
   const { targetId, userId } = parsedUrl.query;
 
   if (!targetId) {
-    return sendError(res, 400, "缺少查询参数: targetId");
+    return sendError(res, 400, '缺少查询参数: targetId');
   }
 
   const target = targets[targetId];
@@ -423,7 +407,7 @@ function getStatus(req, res) {
     result.liked = !!(likes[targetId] && likes[targetId][userId]);
     result.favorited = !!(favorites[targetId] && favorites[targetId][userId]);
     if (result.favorited) {
-      result.favoriteNote = favorites[targetId][userId].note || "";
+      result.favoriteNote = favorites[targetId][userId].note || '';
     }
   }
 
@@ -446,13 +430,9 @@ function getTargets(req, res) {
 
   // 排序
   const sortField =
-    sort === "likes"
-      ? "likeCount"
-      : sort === "favorites"
-        ? "favoriteCount"
-        : "createdAt";
+    sort === 'likes' ? 'likeCount' : sort === 'favorites' ? 'favoriteCount' : 'createdAt';
   list.sort((a, b) => {
-    if (sortField === "createdAt") {
+    if (sortField === 'createdAt') {
       return new Date(b.createdAt) - new Date(a.createdAt);
     }
     return b[sortField] - a[sortField];
@@ -473,7 +453,7 @@ function getLikeUsers(req, res) {
   const { targetId } = parsedUrl.query;
 
   if (!targetId) {
-    return sendError(res, 400, "缺少查询参数: targetId");
+    return sendError(res, 400, '缺少查询参数: targetId');
   }
 
   const userMap = likes[targetId] || {};
@@ -494,7 +474,7 @@ function getFavoriteUsers(req, res) {
   const { targetId } = parsedUrl.query;
 
   if (!targetId) {
-    return sendError(res, 400, "缺少查询参数: targetId");
+    return sendError(res, 400, '缺少查询参数: targetId');
   }
 
   const userMap = favorites[targetId] || {};
@@ -515,7 +495,7 @@ function getUserLikes(req, res) {
   const { userId, type } = parsedUrl.query;
 
   if (!userId) {
-    return sendError(res, 400, "缺少查询参数: userId");
+    return sendError(res, 400, '缺少查询参数: userId');
   }
 
   const result = [];
@@ -544,7 +524,7 @@ function getUserFavorites(req, res) {
   const { userId, type } = parsedUrl.query;
 
   if (!userId) {
-    return sendError(res, 400, "缺少查询参数: userId");
+    return sendError(res, 400, '缺少查询参数: userId');
   }
 
   const result = [];
@@ -573,11 +553,11 @@ function getStats(req, res) {
   const totalTargets = Object.keys(targets).length;
   const totalLikes = Object.values(likes).reduce(
     (sum, userMap) => sum + Object.keys(userMap).length,
-    0,
+    0
   );
   const totalFavorites = Object.values(favorites).reduce(
     (sum, userMap) => sum + Object.keys(userMap).length,
-    0,
+    0
   );
 
   // 点赞数 Top 5
@@ -612,13 +592,13 @@ function getStats(req, res) {
 // ==================== 前端页面 ====================
 
 function serveHTML(req, res) {
-  const htmlPath = path.join(__dirname, "index.html");
+  const htmlPath = path.join(__dirname, 'index.html');
   try {
-    const html = fs.readFileSync(htmlPath, "utf-8");
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    const html = fs.readFileSync(htmlPath, 'utf-8');
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html);
   } catch {
-    sendError(res, 404, "前端页面未找到");
+    sendError(res, 404, '前端页面未找到');
   }
 }
 
@@ -630,92 +610,89 @@ async function handler(req, res) {
   const method = req.method;
 
   // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (method === "OPTIONS") {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
   }
 
   try {
     // 前端页面
-    if (method === "GET" && pathname === "/") {
+    if (method === 'GET' && pathname === '/') {
       return serveHTML(req, res);
     }
 
     // ===== 点赞 API =====
     // POST /api/like - 点赞
-    if (method === "POST" && pathname === "/api/like") {
+    if (method === 'POST' && pathname === '/api/like') {
       return await addLike(req, res);
     }
     // DELETE /api/like - 取消点赞
-    if (method === "DELETE" && pathname === "/api/like") {
+    if (method === 'DELETE' && pathname === '/api/like') {
       return await removeLike(req, res);
     }
     // POST /api/like/toggle - 点赞切换
-    if (method === "POST" && pathname === "/api/like/toggle") {
+    if (method === 'POST' && pathname === '/api/like/toggle') {
       return await toggleLike(req, res);
     }
     // GET /api/likes - 获取点赞用户列表
-    if (method === "GET" && pathname === "/api/likes") {
+    if (method === 'GET' && pathname === '/api/likes') {
       return getLikeUsers(req, res);
     }
 
     // ===== 收藏 API =====
     // POST /api/favorite - 收藏
-    if (method === "POST" && pathname === "/api/favorite") {
+    if (method === 'POST' && pathname === '/api/favorite') {
       return await addFavorite(req, res);
     }
     // DELETE /api/favorite - 取消收藏
-    if (method === "DELETE" && pathname === "/api/favorite") {
+    if (method === 'DELETE' && pathname === '/api/favorite') {
       return await removeFavorite(req, res);
     }
     // POST /api/favorite/toggle - 收藏切换
-    if (method === "POST" && pathname === "/api/favorite/toggle") {
+    if (method === 'POST' && pathname === '/api/favorite/toggle') {
       return await toggleFavorite(req, res);
     }
     // PUT /api/favorite/note - 更新收藏备注
-    if (method === "PUT" && pathname === "/api/favorite/note") {
+    if (method === 'PUT' && pathname === '/api/favorite/note') {
       return await updateFavoriteNote(req, res);
     }
     // GET /api/favorites - 获取收藏用户列表
-    if (method === "GET" && pathname === "/api/favorites") {
+    if (method === 'GET' && pathname === '/api/favorites') {
       return getFavoriteUsers(req, res);
     }
 
     // ===== 查询 API =====
     // GET /api/status - 获取用户对目标的状态
-    if (method === "GET" && pathname === "/api/status") {
+    if (method === 'GET' && pathname === '/api/status') {
       return getStatus(req, res);
     }
     // GET /api/targets - 获取目标列表
-    if (method === "GET" && pathname === "/api/targets") {
+    if (method === 'GET' && pathname === '/api/targets') {
       return getTargets(req, res);
     }
     // GET /api/user/likes - 获取用户点赞列表
-    if (method === "GET" && pathname === "/api/user/likes") {
+    if (method === 'GET' && pathname === '/api/user/likes') {
       return getUserLikes(req, res);
     }
     // GET /api/user/favorites - 获取用户收藏列表
-    if (method === "GET" && pathname === "/api/user/favorites") {
+    if (method === 'GET' && pathname === '/api/user/favorites') {
       return getUserFavorites(req, res);
     }
     // GET /api/stats - 全局统计
-    if (method === "GET" && pathname === "/api/stats") {
+    if (method === 'GET' && pathname === '/api/stats') {
       return getStats(req, res);
     }
 
-    sendError(res, 404, "Route not found");
+    sendError(res, 404, 'Route not found');
   } catch (err) {
-    if (err.message === "Invalid JSON") {
-      return sendError(res, 400, "Invalid JSON");
+    if (err.message === 'Invalid JSON') {
+      return sendError(res, 400, 'Invalid JSON');
     }
-    console.error("服务器错误:", err);
-    sendError(res, 500, "Internal server error");
+    console.error('服务器错误:', err);
+    sendError(res, 500, 'Internal server error');
   }
 }
 
@@ -757,11 +734,11 @@ server.listen(PORT, () => {
 });
 
 // 优雅关闭
-process.on("SIGINT", () => {
-  console.log("\n正在关闭服务器...");
+process.on('SIGINT', () => {
+  console.log('\n正在关闭服务器...');
   persistNow();
   server.close(() => {
-    console.log("服务器已关闭，数据已保存");
+    console.log('服务器已关闭，数据已保存');
     process.exit(0);
   });
 });

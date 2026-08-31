@@ -1,6 +1,9 @@
 // 指标类型：Counter / Gauge / Histogram
 class Counter {
-  constructor() { this.value = 0; this.labels = new Map(); }
+  constructor() {
+    this.value = 0;
+    this.labels = new Map();
+  }
   inc(labels = {}, n = 1) {
     const key = JSON.stringify(labels);
     this.labels.set(key, (this.labels.get(key) || 0) + n);
@@ -12,15 +15,24 @@ class Counter {
 }
 
 class Gauge {
-  constructor() { this.value = 0; this.labels = new Map(); }
+  constructor() {
+    this.value = 0;
+    this.labels = new Map();
+  }
   set(labels = {}, v) {
     const key = JSON.stringify(labels);
     this.labels.set(key, v);
     this.value = v;
   }
-  inc(labels, n = 1) { this.set(labels, (this.value || 0) + n); }
-  dec(labels, n = 1) { this.set(labels, (this.value || 0) - n); }
-  snapshot() { return { type: 'gauge', value: this.value, labels: [...this.labels] }; }
+  inc(labels, n = 1) {
+    this.set(labels, (this.value || 0) + n);
+  }
+  dec(labels, n = 1) {
+    this.set(labels, (this.value || 0) - n);
+  }
+  snapshot() {
+    return { type: 'gauge', value: this.value, labels: [...this.labels] };
+  }
 }
 
 class Histogram {
@@ -36,7 +48,11 @@ class Histogram {
     this.count++;
     let placed = false;
     for (let i = 0; i < this.buckets.length; i++) {
-      if (v <= this.buckets[i]) { this.counts[i]++; placed = true; break; }
+      if (v <= this.buckets[i]) {
+        this.counts[i]++;
+        placed = true;
+        break;
+      }
     }
     if (!placed) this.counts[this.counts.length - 1]++;
     this.values.push(v);
@@ -56,13 +72,15 @@ class Histogram {
       p50: this.percentile(50),
       p95: this.percentile(95),
       p99: this.percentile(99),
-      buckets: this.buckets.map((b, i) => ({ le: b, count: this.counts[i] }))
+      buckets: this.buckets.map((b, i) => ({ le: b, count: this.counts[i] })),
     };
   }
 }
 
 class Registry {
-  constructor() { this.metrics = new Map(); }
+  constructor() {
+    this.metrics = new Map();
+  }
   counter(name) {
     if (!this.metrics.has(name)) this.metrics.set(name, new Counter());
     return this.metrics.get(name);

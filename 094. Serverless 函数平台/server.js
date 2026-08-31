@@ -14,12 +14,16 @@ fs.mkdirSync(FN_DIR, { recursive: true });
 // 函数元数据 { name, code, runtime, version, createdAt, invocations, errors, totalMs }
 const functions = {};
 const FN_META = path.join(__dirname, 'meta.json');
-try { Object.assign(functions, JSON.parse(fs.readFileSync(FN_META, 'utf-8'))); } catch {}
+try {
+  Object.assign(functions, JSON.parse(fs.readFileSync(FN_META, 'utf-8')));
+} catch {}
 const saveMeta = () => fs.writeFileSync(FN_META, JSON.stringify(functions, null, 2));
 
 // ========= Worker Runner 脚本(每次调用一个新 Worker, 内存隔离) =========
 const RUNNER_FILE = path.join(__dirname, '_runner.js');
-fs.writeFileSync(RUNNER_FILE, `
+fs.writeFileSync(
+  RUNNER_FILE,
+  `
 // Worker 入口: 接收 { code, event, context }, 执行 handler
 const { parentPort, workerData } = require('worker_threads');
 const vm = require('vm');
@@ -46,7 +50,8 @@ const vm = require('vm');
     parentPort.postMessage({ ok: false, error: e.message, stack: e.stack });
   }
 })();
-`);
+`
+);
 
 function invokeFunction(name, event = {}) {
   return new Promise((resolve, reject) => {
@@ -57,15 +62,17 @@ function invokeFunction(name, event = {}) {
       workerData: {
         code: fn.code,
         event,
-        context: { functionName: name, version: fn.version, requestId: 'r_' + Date.now() }
-      }
+        context: { functionName: name, version: fn.version, requestId: 'r_' + Date.now() },
+      },
     });
     const timer = setTimeout(() => {
-      try { worker.terminate(); } catch {}
+      try {
+        worker.terminate();
+      } catch {}
       reject(new Error('Function timeout (5s)'));
     }, 5000);
 
-    worker.on('message', msg => {
+    worker.on('message', (msg) => {
       clearTimeout(timer);
       const duration = Date.now() - start;
       fn.invocations = (fn.invocations || 0) + 1;
@@ -75,7 +82,10 @@ function invokeFunction(name, event = {}) {
       if (msg.ok) resolve({ result: msg.result, duration });
       else reject(new Error(msg.error));
     });
-    worker.on('error', e => { clearTimeout(timer); reject(e); });
+    worker.on('error', (e) => {
+      clearTimeout(timer);
+      reject(e);
+    });
   });
 }
 
@@ -85,10 +95,16 @@ function send(res, code, data) {
   res.end(JSON.stringify(data, null, 2));
 }
 function readBody(req) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let buf = '';
-    req.on('data', c => buf += c);
-    req.on('end', () => { try { resolve(buf ? JSON.parse(buf) : {}); } catch { resolve({}); } });
+    req.on('data', (c) => (buf += c));
+    req.on('end', () => {
+      try {
+        resolve(buf ? JSON.parse(buf) : {});
+      } catch {
+        resolve({});
+      }
+    });
   });
 }
 
@@ -107,16 +123,23 @@ const server = http.createServer(async (req, res) => {
           'DELETE /functions/:name        删除',
           'POST /invoke/:name             调用 {event}',
           'ANY  /trigger/:name            HTTP 触发(等同 invoke,event 来自 query/body)',
-          'GET  /metrics                  全局指标'
-        ]
+          'GET  /metrics                  全局指标',
+        ],
       });
     }
 
     if (pathname === '/functions' && req.method === 'GET') {
-      return send(res, 200, Object.values(functions).map(f => ({
-        name: f.name, version: f.version, invocations: f.invocations || 0,
-        errors: f.errors || 0, avgMs: f.invocations ? Math.round(f.totalMs / f.invocations) : 0
-      })));
+      return send(
+        res,
+        200,
+        Object.values(functions).map((f) => ({
+          name: f.name,
+          version: f.version,
+          invocations: f.invocations || 0,
+          errors: f.errors || 0,
+          avgMs: f.invocations ? Math.round(f.totalMs / f.invocations) : 0,
+        }))
+      );
     }
     if (pathname === '/functions' && req.method === 'POST') {
       const body = await readBody(req);
@@ -130,17 +153,19 @@ const server = http.createServer(async (req, res) => {
         createdAt: existed?.createdAt || Date.now(),
         invocations: existed?.invocations || 0,
         errors: existed?.errors || 0,
-        totalMs: existed?.totalMs || 0
+        totalMs: existed?.totalMs || 0,
       };
       saveMeta();
       return send(res, 200, { ok: true, version: functions[body.name].version });
     }
     if (pathname.startsWith('/functions/')) {
       const name = pathname.split('/')[2];
-      if (req.method === 'GET') return send(res, functions[name] ? 200 : 404, functions[name] || { error: 'Not Found' });
+      if (req.method === 'GET')
+        return send(res, functions[name] ? 200 : 404, functions[name] || { error: 'Not Found' });
       if (req.method === 'DELETE') {
         if (!functions[name]) return send(res, 404, { error: 'Not Found' });
-        delete functions[name]; saveMeta();
+        delete functions[name];
+        saveMeta();
         return send(res, 200, { ok: true });
       }
     }
@@ -150,7 +175,9 @@ const server = http.createServer(async (req, res) => {
       try {
         const out = await invokeFunction(name, body);
         return send(res, 200, out);
-      } catch (e) { return send(res, 500, { error: e.message }); }
+      } catch (e) {
+        return send(res, 500, { error: e.message });
+      }
     }
     if (pathname.startsWith('/trigger/')) {
       const name = pathname.split('/')[2];
@@ -159,15 +186,20 @@ const server = http.createServer(async (req, res) => {
       try {
         const out = await invokeFunction(name, event);
         return send(res, 200, out);
-      } catch (e) { return send(res, 500, { error: e.message }); }
+      } catch (e) {
+        return send(res, 500, { error: e.message });
+      }
     }
     if (pathname === '/metrics') {
-      const total = Object.values(functions).reduce((acc, f) => {
-        acc.invocations += f.invocations || 0;
-        acc.errors += f.errors || 0;
-        acc.totalMs += f.totalMs || 0;
-        return acc;
-      }, { invocations: 0, errors: 0, totalMs: 0 });
+      const total = Object.values(functions).reduce(
+        (acc, f) => {
+          acc.invocations += f.invocations || 0;
+          acc.errors += f.errors || 0;
+          acc.totalMs += f.totalMs || 0;
+          return acc;
+        },
+        { invocations: 0, errors: 0, totalMs: 0 }
+      );
       return send(res, 200, { ...total, functions: Object.keys(functions).length });
     }
     send(res, 404, { error: 'Not Found' });
@@ -183,8 +215,12 @@ if (!functions['hello']) {
     code: `module.exports.handler = async (event, ctx) => {
   return { msg: 'Hello ' + (event.name || 'World'), reqId: ctx.requestId };
 };`,
-    runtime: 'node', version: 1, createdAt: Date.now(),
-    invocations: 0, errors: 0, totalMs: 0
+    runtime: 'node',
+    version: 1,
+    createdAt: Date.now(),
+    invocations: 0,
+    errors: 0,
+    totalMs: 0,
   };
   saveMeta();
 }
@@ -195,8 +231,12 @@ if (!functions['sum']) {
   const arr = event.numbers || [];
   return { sum: arr.reduce((a,b)=>a+b, 0) };
 };`,
-    runtime: 'node', version: 1, createdAt: Date.now(),
-    invocations: 0, errors: 0, totalMs: 0
+    runtime: 'node',
+    version: 1,
+    createdAt: Date.now(),
+    invocations: 0,
+    errors: 0,
+    totalMs: 0,
   };
   saveMeta();
 }
@@ -204,5 +244,7 @@ if (!functions['sum']) {
 const PORT = 3094;
 server.listen(PORT, () => {
   console.log(`[Serverless] http://localhost:${PORT}`);
-  console.log('示例: curl -X POST http://localhost:3094/invoke/hello -d \'{"name":"Node"}\' -H "Content-Type: application/json"');
+  console.log(
+    '示例: curl -X POST http://localhost:3094/invoke/hello -d \'{"name":"Node"}\' -H "Content-Type: application/json"'
+  );
 });

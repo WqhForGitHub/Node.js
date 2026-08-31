@@ -3,7 +3,10 @@ const net = require('net');
 const LRUCache = require('./lru');
 
 const port = parseInt(process.argv[2] || '7600');
-const peers = (process.argv[3] || '').split(',').filter(Boolean).map(p => parseInt(p));
+const peers = (process.argv[3] || '')
+  .split(',')
+  .filter(Boolean)
+  .map((p) => parseInt(p));
 
 const cache = new LRUCache(10000);
 const nodeId = `node-${port}`;
@@ -53,8 +56,10 @@ function handle(cmd) {
     case 'stats': {
       return { ok: true, node: nodeId, size: cache.size(), stats: cache.stats };
     }
-    case 'ping': return { ok: true, node: nodeId };
-    default: return { ok: false, error: 'unknown op' };
+    case 'ping':
+      return { ok: true, node: nodeId };
+    default:
+      return { ok: false, error: 'unknown op' };
   }
 }
 
@@ -81,4 +86,7 @@ setInterval(() => {
   }
 }, 5000);
 
-process.on('SIGINT', () => { server.close(); process.exit(0); });
+process.on('SIGINT', () => {
+  server.close();
+  process.exit(0);
+});

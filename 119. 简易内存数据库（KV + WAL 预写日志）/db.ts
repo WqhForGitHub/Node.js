@@ -9,7 +9,11 @@
  */
 import * as fs from 'fs';
 
-interface OpPut { op: 'put'; key: string; value: string | null; }
+interface OpPut {
+  op: 'put';
+  key: string;
+  value: string | null;
+}
 type Op = OpPut;
 
 export class KVDB {
@@ -43,7 +47,9 @@ export class KVDB {
     }
   }
 
-  get(key: string) { return this.map.get(key); }
+  get(key: string) {
+    return this.map.get(key);
+  }
 
   put(key: string, value: string) {
     const op: Op = { op: 'put', key, value };
@@ -74,9 +80,9 @@ db.put('name', 'Alice');
 db.put('city', 'Beijing');
 db.del('name');
 db.put('lang', 'TypeScript');
-console.log('name =', db.get('name'));   // undefined
-console.log('city =', db.get('city'));   // Beijing
-console.log('lang =', db.get('lang'));   // TypeScript
+console.log('name =', db.get('name')); // undefined
+console.log('city =', db.get('city')); // Beijing
+console.log('lang =', db.get('lang')); // TypeScript
 console.log('snapshot 前:', db.dump());
 db.checkpoint();
 console.log('完成 checkpoint；下次启动将直接从快照恢复');

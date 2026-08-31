@@ -43,7 +43,9 @@ const server = http.createServer((clientReq, clientRes) => {
 
   // 转发路径保留前缀之后部分
   const forwardPath = clientReq.url!.slice(matched.prefix.length);
-  const path = url.pathname.replace(/\/$/, '') + (forwardPath.startsWith('/') ? forwardPath : '/' + forwardPath);
+  const path =
+    url.pathname.replace(/\/$/, '') +
+    (forwardPath.startsWith('/') ? forwardPath : '/' + forwardPath);
 
   const headers = { ...clientReq.headers };
   delete headers.host;
@@ -60,7 +62,7 @@ const server = http.createServer((clientReq, clientRes) => {
     (upstreamRes) => {
       clientRes.writeHead(upstreamRes.statusCode || 200, upstreamRes.headers);
       upstreamRes.pipe(clientRes);
-    },
+    }
   );
 
   upstreamReq.on('error', (err) => {

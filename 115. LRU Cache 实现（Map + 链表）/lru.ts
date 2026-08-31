@@ -63,7 +63,9 @@ export class LRUCache<K, V> {
     }
   }
 
-  size() { return this.map.size; }
+  size() {
+    return this.map.size;
+  }
   keys(): K[] {
     const arr: K[] = [];
     let p = this.head.next;
@@ -77,7 +79,9 @@ export class LRUCache<K, V> {
 
 // demo
 const c = new LRUCache<string, number>(3);
-c.put('a', 1); c.put('b', 2); c.put('c', 3);
+c.put('a', 1);
+c.put('b', 2);
+c.put('c', 3);
 console.log('keys:', c.keys()); // c b a
 c.get('a');
 console.log('keys:', c.keys()); // a c b

@@ -10,7 +10,7 @@ const ratings = {
   u2: { i1: 4, i2: 5, i4: 3, i6: 4 },
   u3: { i2: 2, i3: 5, i4: 4, i5: 3 },
   u4: { i1: 3, i3: 2, i5: 5, i6: 4 },
-  u5: { i2: 4, i4: 5, i6: 3 }
+  u5: { i2: 4, i4: 5, i6: 3 },
 };
 
 // 物品元数据(基于内容推荐)
@@ -20,7 +20,7 @@ const items = {
   i3: { name: '深度学习入门', tags: ['AI', '深度学习'] },
   i4: { name: 'Vue.js 实战', tags: ['前端', 'JavaScript', 'Vue'] },
   i5: { name: 'Python 编程', tags: ['编程', 'Python'] },
-  i6: { name: 'React 高级', tags: ['前端', 'JavaScript', 'React'] }
+  i6: { name: 'React 高级', tags: ['前端', 'JavaScript', 'React'] },
 };
 
 // 行为日志(用于热门统计)
@@ -30,10 +30,15 @@ const events = []; // {userId, itemId, type, ts}
 // 余弦相似度
 function cosineSim(a, b) {
   const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
-  let dot = 0, na = 0, nb = 0;
+  let dot = 0,
+    na = 0,
+    nb = 0;
   for (const k of keys) {
-    const x = a[k] || 0, y = b[k] || 0;
-    dot += x * y; na += x * x; nb += y * y;
+    const x = a[k] || 0,
+      y = b[k] || 0;
+    dot += x * y;
+    na += x * x;
+    nb += y * y;
   }
   if (!na || !nb) return 0;
   return dot / (Math.sqrt(na) * Math.sqrt(nb));
@@ -97,7 +102,7 @@ function contentBased(userId, topN = 3) {
   // 用户标签偏好
   const tagPref = {};
   for (const iid in me) {
-    for (const tag of (items[iid]?.tags || [])) {
+    for (const tag of items[iid]?.tags || []) {
       tagPref[tag] = (tagPref[tag] || 0) + me[iid];
     }
   }
@@ -105,7 +110,7 @@ function contentBased(userId, topN = 3) {
   for (const iid in items) {
     if (me[iid]) continue;
     let s = 0;
-    for (const tag of items[iid].tags) s += (tagPref[tag] || 0);
+    for (const tag of items[iid].tags) s += tagPref[tag] || 0;
     scores[iid] = s;
   }
   return Object.entries(scores)
@@ -156,11 +161,15 @@ function send(res, code, data) {
 }
 
 function readBody(req) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let buf = '';
-    req.on('data', c => buf += c);
+    req.on('data', (c) => (buf += c));
     req.on('end', () => {
-      try { resolve(buf ? JSON.parse(buf) : {}); } catch { resolve({}); }
+      try {
+        resolve(buf ? JSON.parse(buf) : {});
+      } catch {
+        resolve({});
+      }
     });
   });
 }
@@ -171,11 +180,16 @@ const server = http.createServer(async (req, res) => {
   const topN = parseInt(query.topN) || 3;
 
   try {
-    if (pathname === '/recommend/user-cf') return send(res, 200, { algo: 'UserCF', userId, items: userCF(userId, topN) });
-    if (pathname === '/recommend/item-cf') return send(res, 200, { algo: 'ItemCF', userId, items: itemCF(userId, topN) });
-    if (pathname === '/recommend/content') return send(res, 200, { algo: 'ContentBased', userId, items: contentBased(userId, topN) });
-    if (pathname === '/recommend/popular') return send(res, 200, { algo: 'Popular', items: popular(topN) });
-    if (pathname === '/recommend/hybrid') return send(res, 200, { algo: 'Hybrid', userId, items: hybrid(userId, topN) });
+    if (pathname === '/recommend/user-cf')
+      return send(res, 200, { algo: 'UserCF', userId, items: userCF(userId, topN) });
+    if (pathname === '/recommend/item-cf')
+      return send(res, 200, { algo: 'ItemCF', userId, items: itemCF(userId, topN) });
+    if (pathname === '/recommend/content')
+      return send(res, 200, { algo: 'ContentBased', userId, items: contentBased(userId, topN) });
+    if (pathname === '/recommend/popular')
+      return send(res, 200, { algo: 'Popular', items: popular(topN) });
+    if (pathname === '/recommend/hybrid')
+      return send(res, 200, { algo: 'Hybrid', userId, items: hybrid(userId, topN) });
 
     if (pathname === '/rate' && req.method === 'POST') {
       const body = await readBody(req);
@@ -207,8 +221,8 @@ const server = http.createServer(async (req, res) => {
           'POST /rate  {uid,iid,score}',
           'POST /event {userId,itemId,type}',
           'GET  /items',
-          'GET  /users'
-        ]
+          'GET  /users',
+        ],
       });
     }
     send(res, 404, { error: 'Not Found' });

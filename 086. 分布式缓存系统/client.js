@@ -2,7 +2,7 @@
 const net = require('net');
 const ConsistentHash = require('./hash');
 
-const NODES = (process.argv[2] || '7600,7601,7602').split(',').map(p => parseInt(p));
+const NODES = (process.argv[2] || '7600,7601,7602').split(',').map((p) => parseInt(p));
 const ring = new ConsistentHash();
 for (const p of NODES) ring.addNode(p);
 
@@ -16,12 +16,19 @@ function send(port, cmd) {
       buf += d.toString();
       const idx = buf.indexOf('\n');
       if (idx >= 0) {
-        try { resolve(JSON.parse(buf.slice(0, idx))); } catch (e) { reject(e); }
+        try {
+          resolve(JSON.parse(buf.slice(0, idx)));
+        } catch (e) {
+          reject(e);
+        }
         sock.end();
       }
     });
     sock.on('error', reject);
-    sock.setTimeout(3000, () => { sock.destroy(); reject(new Error('timeout')); });
+    sock.setTimeout(3000, () => {
+      sock.destroy();
+      reject(new Error('timeout'));
+    });
   });
 }
 
@@ -42,7 +49,11 @@ class CacheClient {
   async stats() {
     const all = [];
     for (const p of NODES) {
-      try { all.push(await send(p, { op: 'stats' })); } catch (e) { all.push({ node: p, error: e.message }); }
+      try {
+        all.push(await send(p, { op: 'stats' }));
+      } catch (e) {
+        all.push({ node: p, error: e.message });
+      }
     }
     return all;
   }
@@ -65,4 +76,4 @@ async function demo() {
   console.log(JSON.stringify(await client.stats(), null, 2));
 }
 
-demo().catch(e => console.error(e));
+demo().catch((e) => console.error(e));

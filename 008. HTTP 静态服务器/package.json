@@ -1,19 +1,29 @@
 {
-  "name": "http-static-server",
-  "version": "1.0.0",
-  "description": "纯 Node.js 实现的 HTTP 静态文件服务器，零依赖",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js --port 3000 --no-cache",
-    "prod": "node server.js --port 80 --host 0.0.0.0"
-  },
-  "keywords": [
-    "http",
-    "static",
-    "server",
-    "nodejs"
-  ],
-  "author": "",
-  "license": "MIT"
+    "name":  "http-static-server",
+    "version":  "1.0.0",
+    "description":  "纯 Node.js 实现的 HTTP 静态文件服务器，零依赖",
+    "main":  "server.js",
+    "scripts":  {
+                    "start":  "node server.js",
+                    "dev":  "node server.js --port 3000 --no-cache",
+                    "prod":  "node server.js --port 80 --host 0.0.0.0",
+                    "format":  "prettier --write .",
+                    "format:check":  "prettier --check .",
+                    "lint":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue --fix",
+                    "lint:check":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue"
+                },
+    "keywords":  [
+                     "http",
+                     "static",
+                     "server",
+                     "nodejs"
+                 ],
+    "author":  "",
+    "license":  "MIT",
+    "devDependencies":  {
+                            "eslint":  "^8.57.1",
+                            "prettier":  "^3.3.3",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-prettier":  "^5.2.1"
+                        }
 }

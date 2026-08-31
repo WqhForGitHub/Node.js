@@ -12,22 +12,29 @@ import * as http from 'http';
 import * as https from 'https';
 import * as path from 'path';
 
-interface Part { start: number; end: number; }
+interface Part {
+  start: number;
+  end: number;
+}
 
 function fetchRange(url: string, start: number, end: number): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const lib = url.startsWith('https') ? https : http;
-    const req = lib.request(url, { method: 'GET', headers: { Range: `bytes=${start}-${end}` } }, (res) => {
-      if (res.statusCode !== 206 && res.statusCode !== 200) {
-        reject(new Error(`HTTP ${res.statusCode}`));
-        res.resume();
-        return;
+    const req = lib.request(
+      url,
+      { method: 'GET', headers: { Range: `bytes=${start}-${end}` } },
+      (res) => {
+        if (res.statusCode !== 206 && res.statusCode !== 200) {
+          reject(new Error(`HTTP ${res.statusCode}`));
+          res.resume();
+          return;
+        }
+        const chunks: Buffer[] = [];
+        res.on('data', (d) => chunks.push(d));
+        res.on('end', () => resolve(Buffer.concat(chunks)));
+        res.on('error', reject);
       }
-      const chunks: Buffer[] = [];
-      res.on('data', (d) => chunks.push(d));
-      res.on('end', () => resolve(Buffer.concat(chunks)));
-      res.on('error', reject);
-    });
+    );
     req.on('error', reject);
     req.end();
   });
@@ -36,13 +43,16 @@ function fetchRange(url: string, start: number, end: number): Promise<Buffer> {
 async function headContentLength(url: string): Promise<number> {
   return new Promise((resolve, reject) => {
     const lib = url.startsWith('https') ? https : http;
-    lib.request(url, { method: 'HEAD' }, (res) => {
-      res.resume();
-      if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
-      const len = parseInt(res.headers['content-length'] || '0', 10);
-      if (!len) return reject(new Error('无 Content-Length，无法分块下载'));
-      resolve(len);
-    }).on('error', reject).end();
+    lib
+      .request(url, { method: 'HEAD' }, (res) => {
+        res.resume();
+        if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+        const len = parseInt(res.headers['content-length'] || '0', 10);
+        if (!len) return reject(new Error('无 Content-Length，无法分块下载'));
+        resolve(len);
+      })
+      .on('error', reject)
+      .end();
   });
 }
 
@@ -83,7 +93,7 @@ async function main() {
     fs.closeSync(fd);
     downloaded[key] = 1;
     fs.writeFileSync(progressFile, JSON.stringify(downloaded));
-    const pct = ((start + buf.length) / total * 100).toFixed(2);
+    const pct = (((start + buf.length) / total) * 100).toFixed(2);
     process.stdout.write(`\r已下载 ${pct}%`);
   }
   process.stdout.write(`\r已下载 100.00%\n`);

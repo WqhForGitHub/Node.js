@@ -1,13 +1,13 @@
-const http = require("http");
-const url = require("url");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+const http = require('http');
+const url = require('url');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 const PORT = 3032;
-const DATA_DIR = path.join(__dirname, "data");
-const COMMENTS_FILE = path.join(DATA_DIR, "comments.json");
-const REACTIONS_FILE = path.join(DATA_DIR, "reactions.json");
+const DATA_DIR = path.join(__dirname, 'data');
+const COMMENTS_FILE = path.join(DATA_DIR, 'comments.json');
+const REACTIONS_FILE = path.join(DATA_DIR, 'reactions.json');
 
 // ==================== 数据存储 ====================
 
@@ -20,7 +20,7 @@ if (!fs.existsSync(DATA_DIR)) {
 function loadData(filePath, defaultVal) {
   try {
     if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
     }
   } catch (e) {
     console.error(`读取 ${filePath} 失败:`, e.message);
@@ -30,15 +30,15 @@ function loadData(filePath, defaultVal) {
 
 function saveData(filePath, data) {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
   } catch (e) {
     console.error(`写入 ${filePath} 失败:`, e.message);
   }
 }
 
 // 内存数据（启动时从文件加载）
-let comments = loadData(COMMENTS_FILE, []);
-let reactions = loadData(REACTIONS_FILE, {});
+const comments = loadData(COMMENTS_FILE, []);
+const reactions = loadData(REACTIONS_FILE, {});
 
 // 持久化
 function persist() {
@@ -50,23 +50,23 @@ function persist() {
 
 function parseBody(req) {
   return new Promise((resolve, reject) => {
-    let body = "";
-    req.on("data", (chunk) => (body += chunk));
-    req.on("end", () => {
+    let body = '';
+    req.on('data', (chunk) => (body += chunk));
+    req.on('end', () => {
       if (!body) return resolve({});
       try {
         resolve(JSON.parse(body));
       } catch {
-        reject(new Error("Invalid JSON"));
+        reject(new Error('Invalid JSON'));
       }
     });
-    req.on("error", reject);
+    req.on('error', reject);
   });
 }
 
 function send(res, statusCode, data) {
   res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
+    'Content-Type': 'application/json; charset=utf-8',
   });
   res.end(JSON.stringify(data));
 }
@@ -82,7 +82,7 @@ function sendError(res, statusCode, error) {
 // 构建评论树（将扁平评论组织为嵌套结构）
 function buildCommentTree(targetId, targetType) {
   const filtered = comments.filter(
-    (c) => c.targetId === targetId && c.targetType === targetType && !c.deleted,
+    (c) => c.targetId === targetId && c.targetType === targetType && !c.deleted
   );
   const map = {};
   const roots = [];
@@ -105,7 +105,7 @@ function buildCommentTree(targetId, targetType) {
 // 统计评论数
 function countComments(targetId, targetType) {
   return comments.filter(
-    (c) => c.targetId === targetId && c.targetType === targetType && !c.deleted,
+    (c) => c.targetId === targetId && c.targetType === targetType && !c.deleted
   ).length;
 }
 
@@ -117,9 +117,7 @@ function findComment(id) {
 // 查找所有后代评论（递归）
 function findDescendants(parentId) {
   const result = [];
-  const children = comments.filter(
-    (c) => c.parentId === parentId && !c.deleted,
-  );
+  const children = comments.filter((c) => c.parentId === parentId && !c.deleted);
   for (const child of children) {
     result.push(child);
     result.push(...findDescendants(child.id));
@@ -135,35 +133,31 @@ async function createComment(req, res) {
   const { targetId, targetType, parentId, author, content } = body;
 
   if (!targetId || !targetType || !author || !content) {
-    return sendError(
-      res,
-      400,
-      "缺少必填字段: targetId, targetType, author, content",
-    );
+    return sendError(res, 400, '缺少必填字段: targetId, targetType, author, content');
   }
 
-  if (typeof content !== "string" || content.trim().length === 0) {
-    return sendError(res, 400, "评论内容不能为空");
+  if (typeof content !== 'string' || content.trim().length === 0) {
+    return sendError(res, 400, '评论内容不能为空');
   }
 
   if (content.length > 2000) {
-    return sendError(res, 400, "评论内容不能超过2000个字符");
+    return sendError(res, 400, '评论内容不能超过2000个字符');
   }
 
   // 如果是回复，校验父评论存在且属于同一目标
   if (parentId) {
     const parent = findComment(parentId);
     if (!parent) {
-      return sendError(res, 404, "父评论不存在");
+      return sendError(res, 404, '父评论不存在');
     }
     if (parent.targetId !== targetId || parent.targetType !== targetType) {
-      return sendError(res, 400, "父评论与当前目标不匹配");
+      return sendError(res, 400, '父评论与当前目标不匹配');
     }
   }
 
-  const validTypes = ["post", "article", "page", "video"];
+  const validTypes = ['post', 'article', 'page', 'video'];
   if (!validTypes.includes(targetType)) {
-    return sendError(res, 400, `targetType 必须是: ${validTypes.join(", ")}`);
+    return sendError(res, 400, `targetType 必须是: ${validTypes.join(', ')}`);
   }
 
   const comment = {
@@ -190,11 +184,11 @@ function getComments(req, res) {
   const { targetId, targetType, flat } = parsedUrl.query;
 
   if (!targetId || !targetType) {
-    return sendError(res, 400, "缺少查询参数: targetId, targetType");
+    return sendError(res, 400, '缺少查询参数: targetId, targetType');
   }
 
   const filtered = comments.filter(
-    (c) => c.targetId === targetId && c.targetType === targetType && !c.deleted,
+    (c) => c.targetId === targetId && c.targetType === targetType && !c.deleted
   );
 
   // 附加反应数据
@@ -203,7 +197,7 @@ function getComments(req, res) {
     reactions: reactions[c.id] || {},
   }));
 
-  if (flat === "true") {
+  if (flat === 'true') {
     return sendSuccess(res, enriched, { count: enriched.length });
   }
 
@@ -223,7 +217,7 @@ function getComments(req, res) {
 function getComment(req, res, id) {
   const comment = findComment(id);
   if (!comment) {
-    return sendError(res, 404, "评论不存在");
+    return sendError(res, 404, '评论不存在');
   }
   sendSuccess(res, { ...comment, reactions: reactions[id] || {} });
 }
@@ -232,18 +226,18 @@ function getComment(req, res, id) {
 async function updateComment(req, res, id) {
   const comment = findComment(id);
   if (!comment) {
-    return sendError(res, 404, "评论不存在");
+    return sendError(res, 404, '评论不存在');
   }
 
   const body = await parseBody(req);
   const { content } = body;
 
-  if (!content || typeof content !== "string" || content.trim().length === 0) {
-    return sendError(res, 400, "评论内容不能为空");
+  if (!content || typeof content !== 'string' || content.trim().length === 0) {
+    return sendError(res, 400, '评论内容不能为空');
   }
 
   if (content.length > 2000) {
-    return sendError(res, 400, "评论内容不能超过2000个字符");
+    return sendError(res, 400, '评论内容不能超过2000个字符');
   }
 
   comment.content = content.trim();
@@ -257,7 +251,7 @@ async function updateComment(req, res, id) {
 function deleteComment(req, res, id) {
   const comment = comments.find((c) => c.id === id);
   if (!comment || comment.deleted) {
-    return sendError(res, 404, "评论不存在");
+    return sendError(res, 404, '评论不存在');
   }
 
   // 软删除评论及其所有后代
@@ -272,7 +266,7 @@ function deleteComment(req, res, id) {
   persist();
 
   sendSuccess(res, {
-    message: "评论已删除",
+    message: '评论已删除',
     deletedCount: 1 + descendants.length,
   });
 }
@@ -281,22 +275,22 @@ function deleteComment(req, res, id) {
 async function reactToComment(req, res, id) {
   const comment = findComment(id);
   if (!comment) {
-    return sendError(res, 404, "评论不存在");
+    return sendError(res, 404, '评论不存在');
   }
 
   const body = await parseBody(req);
   const { type, action } = body;
 
-  const validTypes = ["like", "dislike", "love", "wow", "angry"];
+  const validTypes = ['like', 'dislike', 'love', 'wow', 'angry'];
   if (!type || !validTypes.includes(type)) {
-    return sendError(res, 400, `type 必须是: ${validTypes.join(", ")}`);
+    return sendError(res, 400, `type 必须是: ${validTypes.join(', ')}`);
   }
 
   if (!reactions[id]) {
     reactions[id] = {};
   }
 
-  if (action === "remove") {
+  if (action === 'remove') {
     reactions[id][type] = Math.max(0, (reactions[id][type] || 0) - 1);
   } else {
     reactions[id][type] = (reactions[id][type] || 0) + 1;
@@ -311,7 +305,7 @@ async function reactToComment(req, res, id) {
 function getReactions(req, res, id) {
   const comment = findComment(id);
   if (!comment) {
-    return sendError(res, 404, "评论不存在");
+    return sendError(res, 404, '评论不存在');
   }
   sendSuccess(res, { commentId: id, reactions: reactions[id] || {} });
 }
@@ -322,11 +316,11 @@ function getStats(req, res) {
   const { targetId, targetType } = parsedUrl.query;
 
   if (!targetId || !targetType) {
-    return sendError(res, 400, "缺少查询参数: targetId, targetType");
+    return sendError(res, 400, '缺少查询参数: targetId, targetType');
   }
 
   const filtered = comments.filter(
-    (c) => c.targetId === targetId && c.targetType === targetType && !c.deleted,
+    (c) => c.targetId === targetId && c.targetType === targetType && !c.deleted
   );
 
   const topLevel = filtered.filter((c) => !c.parentId).length;
@@ -364,30 +358,27 @@ async function handler(req, res) {
   const method = req.method;
 
   // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (method === "OPTIONS") {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
   }
 
   try {
     // POST /api/comments
-    if (method === "POST" && pathname === "/api/comments") {
+    if (method === 'POST' && pathname === '/api/comments') {
       return await createComment(req, res);
     }
 
     // GET /api/comments (列表)
-    if (method === "GET" && pathname === "/api/comments") {
+    if (method === 'GET' && pathname === '/api/comments') {
       return getComments(req, res);
     }
 
     // GET /api/stats
-    if (method === "GET" && pathname === "/api/stats") {
+    if (method === 'GET' && pathname === '/api/stats') {
       return getStats(req, res);
     }
 
@@ -397,42 +388,40 @@ async function handler(req, res) {
       const id = commentMatch[1];
 
       // GET /api/comments/:id
-      if (method === "GET") {
+      if (method === 'GET') {
         return getComment(req, res, id);
       }
 
       // PUT /api/comments/:id
-      if (method === "PUT") {
+      if (method === 'PUT') {
         return await updateComment(req, res, id);
       }
 
       // DELETE /api/comments/:id
-      if (method === "DELETE") {
+      if (method === 'DELETE') {
         return deleteComment(req, res, id);
       }
     }
 
     // POST /api/comments/:id/react
     const reactMatch = pathname.match(/^\/api\/comments\/([\w-]+)\/react$/);
-    if (reactMatch && method === "POST") {
+    if (reactMatch && method === 'POST') {
       return await reactToComment(req, res, reactMatch[1]);
     }
 
     // GET /api/comments/:id/reactions
-    const reactionsMatch = pathname.match(
-      /^\/api\/comments\/([\w-]+)\/reactions$/,
-    );
-    if (reactionsMatch && method === "GET") {
+    const reactionsMatch = pathname.match(/^\/api\/comments\/([\w-]+)\/reactions$/);
+    if (reactionsMatch && method === 'GET') {
       return getReactions(req, res, reactionsMatch[1]);
     }
 
-    sendError(res, 404, "Route not found");
+    sendError(res, 404, 'Route not found');
   } catch (err) {
-    if (err.message === "Invalid JSON") {
-      return sendError(res, 400, "Invalid JSON");
+    if (err.message === 'Invalid JSON') {
+      return sendError(res, 400, 'Invalid JSON');
     }
-    console.error("服务器错误:", err);
-    sendError(res, 500, "Internal server error");
+    console.error('服务器错误:', err);
+    sendError(res, 500, 'Internal server error');
   }
 }
 
@@ -464,11 +453,11 @@ server.listen(PORT, () => {
 });
 
 // 优雅关闭
-process.on("SIGINT", () => {
-  console.log("\n正在关闭服务器...");
+process.on('SIGINT', () => {
+  console.log('\n正在关闭服务器...');
   persist();
   server.close(() => {
-    console.log("服务器已关闭，数据已保存");
+    console.log('服务器已关闭，数据已保存');
     process.exit(0);
   });
 });

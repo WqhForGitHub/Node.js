@@ -21,7 +21,7 @@ class AIClient {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
             'Content-Length': Buffer.byteLength(body),
           },
         },
@@ -55,7 +55,7 @@ class AIClient {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
             'Content-Length': Buffer.byteLength(body),
           },
         },

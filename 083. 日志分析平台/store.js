@@ -13,7 +13,7 @@ class LogStore {
     this.counters = {
       byLevel: { info: 0, warn: 0, error: 0, debug: 0 },
       bySource: new Map(),
-      byMinute: new Map() // YYYY-MM-DDTHH:MM => count
+      byMinute: new Map(), // YYYY-MM-DDTHH:MM => count
     };
   }
 
@@ -62,10 +62,11 @@ class LogStore {
     return {
       byLevel: this.counters.byLevel,
       topSources: [...this.counters.bySource.entries()]
-        .sort((a, b) => b[1] - a[1]).slice(0, 10)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
         .map(([k, v]) => ({ source: k, count: v })),
       trend,
-      total: this.recent.length
+      total: this.recent.length,
     };
   }
 }

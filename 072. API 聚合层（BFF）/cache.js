@@ -19,7 +19,7 @@ class Cache {
   /**
    * 生成缓存 key
    */
-  static key(service, path, params = "") {
+  static key(service, path, params = '') {
     return `${service}:${path}:${params}`;
   }
 
@@ -93,8 +93,7 @@ class Cache {
       ...this.stats,
       size: this.store.size,
       maxSize: this.maxSize,
-      hitRate:
-        total > 0 ? ((this.stats.hits / total) * 100).toFixed(2) + "%" : "N/A",
+      hitRate: total > 0 ? ((this.stats.hits / total) * 100).toFixed(2) + '%' : 'N/A',
     };
   }
 

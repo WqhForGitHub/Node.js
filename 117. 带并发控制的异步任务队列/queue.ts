@@ -41,7 +41,7 @@ export class AsyncTaskQueue<T> {
             this.active--;
             job.reject(e);
             this.afterJob();
-          },
+          }
         );
     }
   }

@@ -32,7 +32,7 @@ class DeviceRegistry {
       lastSeen: 0,
       group: info.group || 'default',
       type: info.type || 'sensor',
-      meta: {}
+      meta: {},
     };
     Object.assign(device, info, { id, lastSeen: now, status: 'online' });
     this.devices.set(id, device);
@@ -59,12 +59,14 @@ class DeviceRegistry {
     return ok;
   }
 
-  get(id) { return this.devices.get(id); }
+  get(id) {
+    return this.devices.get(id);
+  }
   list(filter = {}) {
     let arr = [...this.devices.values()];
-    if (filter.group) arr = arr.filter(d => d.group === filter.group);
-    if (filter.status) arr = arr.filter(d => d.status === filter.status);
-    if (filter.type) arr = arr.filter(d => d.type === filter.type);
+    if (filter.group) arr = arr.filter((d) => d.group === filter.group);
+    if (filter.status) arr = arr.filter((d) => d.status === filter.status);
+    if (filter.type) arr = arr.filter((d) => d.type === filter.type);
     return arr;
   }
 

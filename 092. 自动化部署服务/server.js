@@ -14,7 +14,9 @@ fs.mkdirSync(RELEASES_DIR, { recursive: true });
 
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 let db = { projects: {}, deployments: [] };
-try { db = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')); } catch {}
+try {
+  db = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+} catch {}
 const saveDb = () => fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
 
 // ========= 项目模型 =========
@@ -27,19 +29,26 @@ function runStep(cmd, cwd) {
     const start = Date.now();
     const isWin = process.platform === 'win32';
     const child = spawn(cmd, { shell: true, cwd, env: { ...process.env } });
-    let out = '', err = '';
-    child.stdout.on('data', d => out += d.toString());
-    child.stderr.on('data', d => err += d.toString());
+    let out = '',
+      err = '';
+    child.stdout.on('data', (d) => (out += d.toString()));
+    child.stderr.on('data', (d) => (err += d.toString()));
     child.on('close', (code) => {
       resolve({
-        cmd, code, ok: code === 0,
+        cmd,
+        code,
+        ok: code === 0,
         stdout: out.slice(0, 4000),
         stderr: err.slice(0, 4000),
-        duration: Date.now() - start
+        duration: Date.now() - start,
       });
     });
     // 模拟最多 30s 超时
-    setTimeout(() => { try { child.kill(); } catch {} }, 30000);
+    setTimeout(() => {
+      try {
+        child.kill();
+      } catch {}
+    }, 30000);
   });
 }
 
@@ -51,14 +60,20 @@ async function deploy(projectName, env, opts = {}) {
   if (!envCfg) throw new Error('环境不存在: ' + env);
 
   const id = 'd_' + Date.now() + '_' + crypto.randomBytes(3).toString('hex');
-  const version = opts.version || ('v' + Date.now());
+  const version = opts.version || 'v' + Date.now();
   const releaseDir = path.join(RELEASES_DIR, projectName, env, version);
   fs.mkdirSync(releaseDir, { recursive: true });
 
   const dep = {
-    id, project: projectName, env, version,
-    status: 'running', logs: [], steps: [],
-    startTime: Date.now(), releaseDir
+    id,
+    project: projectName,
+    env,
+    version,
+    status: 'running',
+    logs: [],
+    steps: [],
+    startTime: Date.now(),
+    releaseDir,
   };
   db.deployments.unshift(dep);
   saveDb();
@@ -95,10 +110,16 @@ function rollback(projectName, env) {
   if (!project) throw new Error('项目不存在');
   // 找该环境最近一次成功的非当前部署
   const cur = project.current?.[env]?.id;
-  const candidate = db.deployments.find(d =>
-    d.project === projectName && d.env === env && d.status === 'success' && d.id !== cur);
+  const candidate = db.deployments.find(
+    (d) => d.project === projectName && d.env === env && d.status === 'success' && d.id !== cur
+  );
   if (!candidate) throw new Error('无可回滚的历史版本');
-  project.current[env] = { id: candidate.id, version: candidate.version, releaseDir: candidate.releaseDir, ts: Date.now() };
+  project.current[env] = {
+    id: candidate.id,
+    version: candidate.version,
+    releaseDir: candidate.releaseDir,
+    ts: Date.now(),
+  };
   saveDb();
   return { rolledBackTo: candidate };
 }
@@ -109,10 +130,16 @@ function send(res, code, data) {
   res.end(JSON.stringify(data, null, 2));
 }
 function readBody(req) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let buf = '';
-    req.on('data', c => buf += c);
-    req.on('end', () => { try { resolve(buf ? JSON.parse(buf) : {}); } catch { resolve({}); } });
+    req.on('data', (c) => (buf += c));
+    req.on('end', () => {
+      try {
+        resolve(buf ? JSON.parse(buf) : {});
+      } catch {
+        resolve({});
+      }
+    });
   });
 }
 
@@ -129,8 +156,8 @@ const server = http.createServer(async (req, res) => {
           'POST /rollback/:project/:env    回滚',
           'GET  /deployments',
           'GET  /deployments/:id',
-          'POST /webhook/:project          Webhook 触发(默认部署 prod)'
-        ]
+          'POST /webhook/:project          Webhook 触发(默认部署 prod)',
+        ],
       });
     }
     if (pathname === '/projects' && req.method === 'GET') return send(res, 200, db.projects);
@@ -141,7 +168,7 @@ const server = http.createServer(async (req, res) => {
         name: body.name,
         repo: body.repo || '',
         environments: body.environments || { dev: { steps: ['echo deploying'] } },
-        current: {}
+        current: {},
       };
       saveDb();
       return send(res, 200, db.projects[body.name]);
@@ -161,7 +188,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (pathname.startsWith('/deployments/')) {
       const id = pathname.split('/')[2];
-      const d = db.deployments.find(x => x.id === id);
+      const d = db.deployments.find((x) => x.id === id);
       return send(res, d ? 200 : 404, d || { error: 'Not Found' });
     }
     if (pathname.startsWith('/webhook/') && req.method === 'POST') {
@@ -183,10 +210,23 @@ if (!db.projects['demo-app']) {
     name: 'demo-app',
     repo: 'https://github.com/example/demo-app',
     environments: {
-      dev: { steps: [`${echoCmd} pulling code`, `${echoCmd} installing deps`, `${echoCmd} starting service`] },
-      prod: { steps: [`${echoCmd} pulling code`, `${echoCmd} running tests`, `${echoCmd} building`, `${echoCmd} deploying`] }
+      dev: {
+        steps: [
+          `${echoCmd} pulling code`,
+          `${echoCmd} installing deps`,
+          `${echoCmd} starting service`,
+        ],
+      },
+      prod: {
+        steps: [
+          `${echoCmd} pulling code`,
+          `${echoCmd} running tests`,
+          `${echoCmd} building`,
+          `${echoCmd} deploying`,
+        ],
+      },
     },
-    current: {}
+    current: {},
   };
   saveDb();
 }

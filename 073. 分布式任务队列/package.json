@@ -1,11 +1,21 @@
 {
-  "name": "distributed-task-queue",
-  "version": "1.0.0",
-  "description": "纯 Node.js 分布式任务队列",
-  "scripts": {
-    "server": "node server.js",
-    "worker": "node worker.js",
-    "producer": "node producer.js"
-  },
-  "license": "MIT"
+    "name":  "distributed-task-queue",
+    "version":  "1.0.0",
+    "description":  "纯 Node.js 分布式任务队列",
+    "scripts":  {
+                    "server":  "node server.js",
+                    "worker":  "node worker.js",
+                    "producer":  "node producer.js",
+                    "format":  "prettier --write .",
+                    "format:check":  "prettier --check .",
+                    "lint":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue --fix",
+                    "lint:check":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue"
+                },
+    "license":  "MIT",
+    "devDependencies":  {
+                            "eslint":  "^8.57.1",
+                            "prettier":  "^3.3.3",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-prettier":  "^5.2.1"
+                        }
 }

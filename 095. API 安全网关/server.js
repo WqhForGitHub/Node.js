@@ -9,28 +9,38 @@ const crypto = require('crypto');
 const config = {
   routes: [
     { prefix: '/api/public', target: 'http://localhost:3094', auth: 'none' },
-    { prefix: '/api/users',  target: 'http://localhost:3089', auth: 'apikey' },
-    { prefix: '/api/admin',  target: 'http://localhost:3090', auth: 'jwt', roles: ['admin'] },
-    { prefix: '/api/secure', target: 'http://localhost:3091', auth: 'sign' }
+    { prefix: '/api/users', target: 'http://localhost:3089', auth: 'apikey' },
+    { prefix: '/api/admin', target: 'http://localhost:3090', auth: 'jwt', roles: ['admin'] },
+    { prefix: '/api/secure', target: 'http://localhost:3091', auth: 'sign' },
   ],
   apiKeys: {
     'demo-key-123': { user: 'alice', plan: 'free' },
-    'admin-key-xyz': { user: 'admin', plan: 'pro' }
+    'admin-key-xyz': { user: 'admin', plan: 'pro' },
   },
   jwtSecret: 'gateway-secret-key',
   signSecret: 'shared-sign-secret',
-  ipWhitelist: [],          // 空表示不限制
+  ipWhitelist: [], // 空表示不限制
   ipBlacklist: ['1.2.3.4'],
   // 注入检测正则
   injectionPatterns: [
-    /(union\s+select)|(\bor\s+1=1)|(\bdrop\s+table)/i,   // SQL
-    /<script[^>]*>|javascript:|onerror\s*=/i              // XSS
-  ]
+    /(union\s+select)|(\bor\s+1=1)|(\bdrop\s+table)/i, // SQL
+    /<script[^>]*>|javascript:|onerror\s*=/i, // XSS
+  ],
 };
 
 // ========= JWT(HS256) 实现 =========
-function b64url(buf) { return Buffer.from(buf).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_'); }
-function b64urlDecode(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return Buffer.from(s, 'base64'); }
+function b64url(buf) {
+  return Buffer.from(buf)
+    .toString('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+}
+function b64urlDecode(s) {
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  return Buffer.from(s, 'base64');
+}
 
 function jwtSign(payload, secret) {
   const h = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
@@ -46,7 +56,9 @@ function jwtVerify(token, secret) {
     const payload = JSON.parse(b64urlDecode(p).toString());
     if (payload.exp && Date.now() / 1000 > payload.exp) return null;
     return payload;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // ========= 请求日志 =========
@@ -66,8 +78,7 @@ function detectInjection(text) {
 }
 
 function getClientIp(req) {
-  return (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
-    || req.socket.remoteAddress;
+  return (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress;
 }
 
 // ========= 鉴权 =========
@@ -84,7 +95,7 @@ function authenticate(route, req) {
     const token = auth.replace(/^Bearer\s+/i, '');
     const payload = jwtVerify(token, config.jwtSecret);
     if (!payload) return { ok: false, code: 401, error: 'invalid jwt' };
-    if (route.roles && !(route.roles.includes(payload.role))) {
+    if (route.roles && !route.roles.includes(payload.role)) {
       return { ok: false, code: 403, error: 'forbidden role' };
     }
     return { ok: true, user: payload };
@@ -94,7 +105,8 @@ function authenticate(route, req) {
     const ts = req.headers['x-timestamp'];
     const sign = req.headers['x-sign'];
     if (!ts || !sign) return { ok: false, code: 401, error: 'missing sign' };
-    if (Math.abs(Date.now() - Number(ts)) > 5 * 60 * 1000) return { ok: false, code: 401, error: 'timestamp expired' };
+    if (Math.abs(Date.now() - Number(ts)) > 5 * 60 * 1000)
+      return { ok: false, code: 401, error: 'timestamp expired' };
     return { ok: true, _verifyLater: { ts, sign } };
   }
   return { ok: false, code: 401, error: 'unknown auth' };
@@ -109,13 +121,13 @@ function proxy(req, res, route, body) {
     hostname: targetUrl.hostname,
     port: targetUrl.port,
     path: newPath,
-    headers: { ...req.headers, host: targetUrl.host }
+    headers: { ...req.headers, host: targetUrl.host },
   };
-  const proxyReq = http.request(opts, proxyRes => {
+  const proxyReq = http.request(opts, (proxyRes) => {
     res.writeHead(proxyRes.statusCode, proxyRes.headers);
     proxyRes.pipe(res);
   });
-  proxyReq.on('error', e => {
+  proxyReq.on('error', (e) => {
     res.writeHead(502, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Bad Gateway', detail: e.message }));
   });
@@ -140,53 +152,72 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/__gateway/token' && req.method === 'POST') {
     let body = '';
-    req.on('data', c => body += c);
+    req.on('data', (c) => (body += c));
     return req.on('end', () => {
       try {
         const { user = 'anon', role = 'user' } = JSON.parse(body || '{}');
-        const token = jwtSign({ user, role, exp: Math.floor(Date.now() / 1000) + 3600 }, config.jwtSecret);
+        const token = jwtSign(
+          { user, role, exp: Math.floor(Date.now() / 1000) + 3600 },
+          config.jwtSecret
+        );
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ token }));
       } catch (e) {
-        res.writeHead(400); res.end('bad json');
+        res.writeHead(400);
+        res.end('bad json');
       }
     });
   }
   if (req.url === '/__gateway/config') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({
-      routes: config.routes,
-      apiKeys: Object.keys(config.apiKeys),
-      ipBlacklist: config.ipBlacklist
-    }, null, 2));
+    return res.end(
+      JSON.stringify(
+        {
+          routes: config.routes,
+          apiKeys: Object.keys(config.apiKeys),
+          ipBlacklist: config.ipBlacklist,
+        },
+        null,
+        2
+      )
+    );
   }
   if (req.url === '/') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({
-      name: 'API 安全网关',
-      port: 3095,
-      endpoints: [
-        'GET  /__gateway/health',
-        'GET  /__gateway/logs',
-        'GET  /__gateway/config',
-        'POST /__gateway/token  {user, role}    生成测试 JWT',
-        '路由: ' + config.routes.map(r => `${r.prefix} -> ${r.target} [${r.auth}]`).join(', ')
-      ]
-    }, null, 2));
+    return res.end(
+      JSON.stringify(
+        {
+          name: 'API 安全网关',
+          port: 3095,
+          endpoints: [
+            'GET  /__gateway/health',
+            'GET  /__gateway/logs',
+            'GET  /__gateway/config',
+            'POST /__gateway/token  {user, role}    生成测试 JWT',
+            '路由: ' +
+              config.routes.map((r) => `${r.prefix} -> ${r.target} [${r.auth}]`).join(', '),
+          ],
+        },
+        null,
+        2
+      )
+    );
   }
 
   // IP 检查
   if (config.ipBlacklist.includes(ip)) {
-    res.writeHead(403); res.end('IP banned');
+    res.writeHead(403);
+    res.end('IP banned');
     return logRequest({ reqId, ip, status: 403, reason: 'ip-ban', path: req.url });
   }
   if (config.ipWhitelist.length > 0 && !config.ipWhitelist.includes(ip)) {
-    res.writeHead(403); res.end('IP not allowed');
+    res.writeHead(403);
+    res.end('IP not allowed');
     return logRequest({ reqId, ip, status: 403, reason: 'ip-not-allowed', path: req.url });
   }
 
   // 匹配路由
-  const route = config.routes.find(r => req.url.startsWith(r.prefix));
+  const route = config.routes.find((r) => req.url.startsWith(r.prefix));
   if (!route) {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Route Not Found' }));
@@ -202,8 +233,8 @@ const server = http.createServer((req, res) => {
   }
 
   // 收集 body 后再处理鉴权与签名
-  let bodyChunks = [];
-  req.on('data', c => bodyChunks.push(c));
+  const bodyChunks = [];
+  req.on('data', (c) => bodyChunks.push(c));
   req.on('end', () => {
     const body = Buffer.concat(bodyChunks).toString();
     const bodyInj = detectInjection(body);
@@ -222,8 +253,10 @@ const server = http.createServer((req, res) => {
     // 签名延迟校验
     if (auth._verifyLater) {
       const { ts, sign } = auth._verifyLater;
-      const expect = crypto.createHmac('sha256', config.signSecret)
-        .update(ts + req.url + body).digest('hex');
+      const expect = crypto
+        .createHmac('sha256', config.signSecret)
+        .update(ts + req.url + body)
+        .digest('hex');
       if (expect !== sign) {
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'invalid sign' }));
@@ -233,11 +266,15 @@ const server = http.createServer((req, res) => {
 
     proxy(req, res, route, body);
     logRequest({
-      reqId, ip, ts: Date.now(),
-      method: req.method, path: req.url,
-      route: route.prefix, target: route.target,
+      reqId,
+      ip,
+      ts: Date.now(),
+      method: req.method,
+      path: req.url,
+      route: route.prefix,
+      target: route.target,
       duration: Date.now() - startTime,
-      user: auth.user
+      user: auth.user,
     });
   });
 });
@@ -245,5 +282,7 @@ const server = http.createServer((req, res) => {
 const PORT = 3095;
 server.listen(PORT, () => {
   console.log(`[API 安全网关] http://localhost:${PORT}`);
-  console.log('生成测试 JWT: curl -X POST http://localhost:3095/__gateway/token -d \'{"user":"x","role":"admin"}\' -H "Content-Type: application/json"');
+  console.log(
+    '生成测试 JWT: curl -X POST http://localhost:3095/__gateway/token -d \'{"user":"x","role":"admin"}\' -H "Content-Type: application/json"'
+  );
 });

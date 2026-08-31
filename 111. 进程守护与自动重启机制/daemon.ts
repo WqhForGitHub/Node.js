@@ -43,7 +43,9 @@ function startSupervisor() {
   });
 
   function bind() {
-    child.on('exit', () => { /* 由上面 setTimeout 段处理 */ });
+    child.on('exit', () => {
+      /* 由上面 setTimeout 段处理 */
+    });
   }
   child.on('error', (err) => console.error('[守护] 子进程错误', err));
 }

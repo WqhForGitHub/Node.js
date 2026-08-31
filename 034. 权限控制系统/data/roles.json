@@ -43,13 +43,7 @@
   "viewer": {
     "name": "viewer",
     "description": "查看者，只读权限",
-    "permissions": [
-      "article:read",
-      "user:read",
-      "role:read",
-      "permission:read",
-      "dashboard:read"
-    ],
+    "permissions": ["article:read", "user:read", "role:read", "permission:read", "dashboard:read"],
     "createdAt": "2026-06-11T13:26:53.133Z",
     "updatedAt": "2026-06-11T13:26:53.133Z",
     "isSystem": false

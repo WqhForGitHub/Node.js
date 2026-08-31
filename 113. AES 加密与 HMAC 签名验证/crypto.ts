@@ -27,11 +27,7 @@ function aesEncrypt(plain: string): EncryptedPayload {
 }
 
 function aesDecrypt(p: EncryptedPayload): string {
-  const decipher = crypto.createDecipheriv(
-    'aes-256-gcm',
-    KEY,
-    Buffer.from(p.iv, 'base64'),
-  );
+  const decipher = crypto.createDecipheriv('aes-256-gcm', KEY, Buffer.from(p.iv, 'base64'));
   decipher.setAuthTag(Buffer.from(p.tag, 'base64'));
   const dec = Buffer.concat([decipher.update(Buffer.from(p.data, 'base64')), decipher.final()]);
   return dec.toString('utf8');

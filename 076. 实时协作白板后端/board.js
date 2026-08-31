@@ -6,8 +6,8 @@ class Whiteboard {
   constructor(id) {
     this.id = id;
     this.shapes = new Map(); // shapeId -> shape
-    this.users = new Map();  // userId -> { conn, name, color, cursor }
-    this.history = [];       // 操作历史（用于撤销/重做）
+    this.users = new Map(); // userId -> { conn, name, color, cursor }
+    this.history = []; // 操作历史（用于撤销/重做）
     this.persistFile = path.join(__dirname, `board-${id}.json`);
     this.load();
   }
@@ -38,8 +38,11 @@ class Whiteboard {
     return {
       shapes: [...this.shapes.values()],
       users: [...this.users].map(([id, u]) => ({
-        id, name: u.name, color: u.color, cursor: u.cursor
-      }))
+        id,
+        name: u.name,
+        color: u.color,
+        cursor: u.cursor,
+      })),
     };
   }
 
@@ -51,9 +54,12 @@ class Whiteboard {
 
   persist() {
     try {
-      fs.writeFileSync(this.persistFile, JSON.stringify({
-        shapes: [...this.shapes.values()]
-      }));
+      fs.writeFileSync(
+        this.persistFile,
+        JSON.stringify({
+          shapes: [...this.shapes.values()],
+        })
+      );
     } catch (_) {}
   }
 
@@ -61,7 +67,7 @@ class Whiteboard {
     if (!fs.existsSync(this.persistFile)) return;
     try {
       const data = JSON.parse(fs.readFileSync(this.persistFile, 'utf8'));
-      (data.shapes || []).forEach(s => this.shapes.set(s.id, s));
+      (data.shapes || []).forEach((s) => this.shapes.set(s.id, s));
       console.log(`白板 ${this.id} 已加载 ${this.shapes.size} 个图形`);
     } catch (_) {}
   }

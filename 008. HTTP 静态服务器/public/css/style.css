@@ -5,7 +5,8 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   color: #333;
@@ -61,7 +62,9 @@ section h2 {
   border-radius: 8px;
   padding: 20px;
   text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .feature-card:hover {
@@ -117,7 +120,7 @@ section h2 {
 
 .code-block pre {
   color: #cdd6f4;
-  font-family: "Fira Code", "Consolas", monospace;
+  font-family: 'Fira Code', 'Consolas', monospace;
   font-size: 0.9em;
   line-height: 1.6;
 }

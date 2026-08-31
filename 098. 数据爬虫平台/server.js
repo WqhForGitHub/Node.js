@@ -106,7 +106,7 @@ class Downloader {
           timeout: this.timeout,
           headers: {
             'User-Agent': this.randomUA(),
-            'Accept': 'text/html,application/xhtml+xml',
+            Accept: 'text/html,application/xhtml+xml',
             'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
           },
@@ -120,7 +120,8 @@ class Downloader {
 
           let stream = res;
           if (res.headers['content-encoding'] === 'gzip') stream = res.pipe(zlib.createGunzip());
-          else if (res.headers['content-encoding'] === 'deflate') stream = res.pipe(zlib.createInflate());
+          else if (res.headers['content-encoding'] === 'deflate')
+            stream = res.pipe(zlib.createInflate());
 
           const chunks = [];
           stream.on('data', (c) => chunks.push(c));
@@ -140,7 +141,9 @@ class Downloader {
       req.on('error', async (err) => {
         if (retries < this.maxRetries) {
           const delay = Math.min(1000 * Math.pow(2, retries), 5000);
-          console.log(`[Downloader] 重试 ${targetUrl} (${retries + 1}/${this.maxRetries}) ${delay}ms 后`);
+          console.log(
+            `[Downloader] 重试 ${targetUrl} (${retries + 1}/${this.maxRetries}) ${delay}ms 后`
+          );
           await new Promise((r) => setTimeout(r, delay));
           try {
             resolve(await this.fetch(targetUrl, retries + 1));
@@ -360,7 +363,9 @@ class TaskManager {
     this.tasks.set(id, task);
 
     task.on('item', (item) => console.log(`[${id}] 抓取: ${item.title || item.url}`));
-    task.on('complete', (stats) => console.log(`[${id}] ✓ 完成: 抓取 ${stats.fetched} 页, 失败 ${stats.failed}`));
+    task.on('complete', (stats) =>
+      console.log(`[${id}] ✓ 完成: 抓取 ${stats.fetched} 页, 失败 ${stats.failed}`)
+    );
     task.on('error', (e) => console.log(`[${id}] ✗ 失败: ${e.url} - ${e.error}`));
 
     return task;

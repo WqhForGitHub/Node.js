@@ -8,10 +8,10 @@ class Store {
     this.usersFile = path.join(__dirname, 'users.json');
     this.messagesFile = path.join(__dirname, 'messages.json');
     this.groupsFile = path.join(__dirname, 'groups.json');
-    this.users = new Map();    // username -> { username, passHash, friends: [], groups: [] }
-    this.messages = [];        // 消息历史
-    this.offline = new Map();  // username -> [messages]
-    this.groups = new Map();   // groupId -> { id, name, members: [] }
+    this.users = new Map(); // username -> { username, passHash, friends: [], groups: [] }
+    this.messages = []; // 消息历史
+    this.offline = new Map(); // username -> [messages]
+    this.groups = new Map(); // groupId -> { id, name, members: [] }
     this.load();
   }
 
@@ -26,7 +26,7 @@ class Store {
       passHash: this.hashPwd(password),
       friends: [],
       groups: [],
-      createdAt: Date.now()
+      createdAt: Date.now(),
     });
     this.save();
     return { ok: true };
@@ -102,13 +102,17 @@ class Store {
   load() {
     try {
       if (fs.existsSync(this.usersFile)) {
-        JSON.parse(fs.readFileSync(this.usersFile, 'utf8')).forEach(u => this.users.set(u.username, u));
+        JSON.parse(fs.readFileSync(this.usersFile, 'utf8')).forEach((u) =>
+          this.users.set(u.username, u)
+        );
       }
       if (fs.existsSync(this.messagesFile)) {
         this.messages = JSON.parse(fs.readFileSync(this.messagesFile, 'utf8'));
       }
       if (fs.existsSync(this.groupsFile)) {
-        JSON.parse(fs.readFileSync(this.groupsFile, 'utf8')).forEach(g => this.groups.set(g.id, g));
+        JSON.parse(fs.readFileSync(this.groupsFile, 'utf8')).forEach((g) =>
+          this.groups.set(g.id, g)
+        );
       }
     } catch (_) {}
   }

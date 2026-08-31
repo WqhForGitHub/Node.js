@@ -17,10 +17,15 @@ class TokenBucket {
     const delta = (now - this.last) / 1000;
     this.tokens = Math.min(this.capacity, this.tokens + delta * this.refillPerSec);
     this.last = now;
-    if (this.tokens >= n) { this.tokens -= n; return true; }
+    if (this.tokens >= n) {
+      this.tokens -= n;
+      return true;
+    }
     return false;
   }
-  state() { return { algo: 'token-bucket', tokens: +this.tokens.toFixed(2), capacity: this.capacity }; }
+  state() {
+    return { algo: 'token-bucket', tokens: +this.tokens.toFixed(2), capacity: this.capacity };
+  }
 }
 
 // ========= 2. 漏桶 =========
@@ -36,42 +41,67 @@ class LeakyBucket {
     const leaked = ((now - this.last) / 1000) * this.leakPerSec;
     this.water = Math.max(0, this.water - leaked);
     this.last = now;
-    if (this.water + 1 <= this.capacity) { this.water += 1; return true; }
+    if (this.water + 1 <= this.capacity) {
+      this.water += 1;
+      return true;
+    }
     return false;
   }
-  state() { return { algo: 'leaky-bucket', water: +this.water.toFixed(2), capacity: this.capacity }; }
+  state() {
+    return { algo: 'leaky-bucket', water: +this.water.toFixed(2), capacity: this.capacity };
+  }
 }
 
 // ========= 3. 固定窗口 =========
 class FixedWindow {
   constructor({ windowMs = 1000, max = 5 }) {
-    this.windowMs = windowMs; this.max = max;
-    this.windowStart = Date.now(); this.count = 0;
+    this.windowMs = windowMs;
+    this.max = max;
+    this.windowStart = Date.now();
+    this.count = 0;
   }
   tryConsume() {
     const now = Date.now();
     if (now - this.windowStart >= this.windowMs) {
-      this.windowStart = now; this.count = 0;
+      this.windowStart = now;
+      this.count = 0;
     }
-    if (this.count < this.max) { this.count++; return true; }
+    if (this.count < this.max) {
+      this.count++;
+      return true;
+    }
     return false;
   }
-  state() { return { algo: 'fixed-window', count: this.count, max: this.max, windowMs: this.windowMs }; }
+  state() {
+    return { algo: 'fixed-window', count: this.count, max: this.max, windowMs: this.windowMs };
+  }
 }
 
 // ========= 4. 滑动窗口(基于时间戳数组) =========
 class SlidingWindow {
   constructor({ windowMs = 1000, max = 5 }) {
-    this.windowMs = windowMs; this.max = max; this.timestamps = [];
+    this.windowMs = windowMs;
+    this.max = max;
+    this.timestamps = [];
   }
   tryConsume() {
     const now = Date.now();
     const cutoff = now - this.windowMs;
     while (this.timestamps.length && this.timestamps[0] < cutoff) this.timestamps.shift();
-    if (this.timestamps.length < this.max) { this.timestamps.push(now); return true; }
+    if (this.timestamps.length < this.max) {
+      this.timestamps.push(now);
+      return true;
+    }
     return false;
   }
-  state() { return { algo: 'sliding-window', count: this.timestamps.length, max: this.max, windowMs: this.windowMs }; }
+  state() {
+    return {
+      algo: 'sliding-window',
+      count: this.timestamps.length,
+      max: this.max,
+      windowMs: this.windowMs,
+    };
+  }
 }
 
 // ========= 熔断器 =========
@@ -81,7 +111,7 @@ class CircuitBreaker {
     this.failureThreshold = failureThreshold;
     this.halfOpenAfterMs = halfOpenAfterMs;
     this.halfOpenMaxCalls = halfOpenMaxCalls;
-    this.state = 'CLOSED';   // CLOSED / OPEN / HALF_OPEN
+    this.state = 'CLOSED'; // CLOSED / OPEN / HALF_OPEN
     this.failures = 0;
     this.successes = 0;
     this.openedAt = 0;
@@ -148,23 +178,25 @@ class CircuitBreaker {
 
   status() {
     return {
-      name: this.name, state: this.state,
-      failures: this.failures, successes: this.successes,
+      name: this.name,
+      state: this.state,
+      failures: this.failures,
+      successes: this.successes,
       totalCalls: this.totalCalls,
       totalFailures: this.totalFailures,
       totalShortCircuits: this.totalShortCircuits,
       openedAt: this.openedAt,
-      msSinceOpen: this.openedAt ? Date.now() - this.openedAt : null
+      msSinceOpen: this.openedAt ? Date.now() - this.openedAt : null,
     };
   }
 }
 
 // ========= 限流器注册表 =========
 const limiters = {
-  'tb':  new TokenBucket({ capacity: 5, refillPerSec: 2 }),
-  'lb':  new LeakyBucket({ capacity: 5, leakPerSec: 2 }),
-  'fw':  new FixedWindow({ windowMs: 1000, max: 5 }),
-  'sw':  new SlidingWindow({ windowMs: 1000, max: 5 })
+  tb: new TokenBucket({ capacity: 5, refillPerSec: 2 }),
+  lb: new LeakyBucket({ capacity: 5, leakPerSec: 2 }),
+  fw: new FixedWindow({ windowMs: 1000, max: 5 }),
+  sw: new SlidingWindow({ windowMs: 1000, max: 5 }),
 };
 
 // 按 IP 的限流(用于 /protected 接口演示)
@@ -178,13 +210,13 @@ function getIpLimiter(ip) {
 
 // ========= 熔断器 =========
 const breakers = {
-  flaky: new CircuitBreaker({ name: 'flaky', failureThreshold: 3, halfOpenAfterMs: 5000 })
+  flaky: new CircuitBreaker({ name: 'flaky', failureThreshold: 3, halfOpenAfterMs: 5000 }),
 };
 
 // 模拟一个不稳定的依赖服务
 let flakyMode = 'normal'; // normal / fail
 async function callFlakyService() {
-  await new Promise(r => setTimeout(r, 30));
+  await new Promise((r) => setTimeout(r, 30));
   if (flakyMode === 'fail') throw new Error('upstream failure');
   return { ok: true, data: 'hello from flaky' };
 }
@@ -209,8 +241,8 @@ const server = http.createServer(async (req, res) => {
         'GET /breaker/call               经过熔断器调用 flaky 服务',
         'GET /breaker/mode?mode=fail     设置 flaky 服务为失败模式',
         'GET /breaker/mode?mode=normal   恢复正常',
-        'GET /status                     全局状态'
-      ]
+        'GET /status                     全局状态',
+      ],
     });
   }
 
@@ -220,7 +252,9 @@ const server = http.createServer(async (req, res) => {
     if (!lim) return send(res, 400, { error: 'unknown algo' });
     if (lim.tryConsume()) return send(res, 200, { allowed: true, ...lim.state() });
     res.writeHead(429, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ allowed: false, error: 'rate limited', ...lim.state() }, null, 2));
+    return res.end(
+      JSON.stringify({ allowed: false, error: 'rate limited', ...lim.state() }, null, 2)
+    );
   }
 
   if (pathname === '/protected') {
@@ -248,7 +282,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === '/breaker/reset') {
-    breakers.flaky = new CircuitBreaker({ name: 'flaky', failureThreshold: 3, halfOpenAfterMs: 5000 });
+    breakers.flaky = new CircuitBreaker({
+      name: 'flaky',
+      failureThreshold: 3,
+      halfOpenAfterMs: 5000,
+    });
     return send(res, 200, { ok: true });
   }
 
@@ -257,7 +295,7 @@ const server = http.createServer(async (req, res) => {
       limiters: Object.fromEntries(Object.entries(limiters).map(([k, v]) => [k, v.state()])),
       breakers: Object.fromEntries(Object.entries(breakers).map(([k, v]) => [k, v.status()])),
       flakyMode,
-      ipLimitersCount: ipLimiters.size
+      ipLimitersCount: ipLimiters.size,
     });
   }
 
@@ -268,5 +306,7 @@ const PORT = 3096;
 server.listen(PORT, () => {
   console.log(`[限流+熔断] http://localhost:${PORT}`);
   console.log('限流测试: for i in 1..10; curl http://localhost:3096/limit/tb');
-  console.log('熔断测试: curl "http://localhost:3096/breaker/mode?mode=fail" 然后多次访问 /breaker/call');
+  console.log(
+    '熔断测试: curl "http://localhost:3096/breaker/mode?mode=fail" 然后多次访问 /breaker/call'
+  );
 });

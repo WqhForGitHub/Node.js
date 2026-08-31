@@ -26,7 +26,9 @@ class AOF {
     }
     return n;
   }
-  close() { fs.closeSync(this.fd); }
+  close() {
+    fs.closeSync(this.fd);
+  }
 }
 
 module.exports = AOF;

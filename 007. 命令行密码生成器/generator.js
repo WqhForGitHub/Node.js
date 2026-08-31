@@ -2,18 +2,18 @@
  * 密码生成器核心模块
  * 使用 crypto 模块保证密码的随机性与安全性
  */
-const crypto = require("crypto");
+const crypto = require('crypto');
 
 // 字符集定义
 const CHAR_SETS = {
-  lowercase: "abcdefghijklmnopqrstuvwxyz",
-  uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-  numbers: "0123456789",
-  symbols: "!@#$%^&*()_+-=[]{}|;:,.<>?/~`",
+  lowercase: 'abcdefghijklmnopqrstuvwxyz',
+  uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  numbers: '0123456789',
+  symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?/~`',
 };
 
 // 易混淆字符（用于排除）
-const SIMILAR_CHARS = "il1Lo0O";
+const SIMILAR_CHARS = 'il1Lo0O';
 
 /**
  * 使用加密安全的随机数从字符集中挑选一个字符
@@ -35,12 +35,12 @@ function getRandomChar(charset) {
  * @returns {string} 打乱后的字符串
  */
 function shuffleString(str) {
-  const arr = str.split("");
+  const arr = str.split('');
   for (let i = arr.length - 1; i > 0; i--) {
     const j = crypto.randomInt(0, i + 1);
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  return arr.join("");
+  return arr.join('');
 }
 
 /**
@@ -65,36 +65,32 @@ function generatePassword(options) {
   } = options;
 
   if (length < 1) {
-    throw new Error("密码长度必须大于 0");
+    throw new Error('密码长度必须大于 0');
   }
 
   // 构建字符池
   const enabledSets = [];
-  if (lowercase)
-    enabledSets.push(filterChars(CHAR_SETS.lowercase, excludeSimilar));
-  if (uppercase)
-    enabledSets.push(filterChars(CHAR_SETS.uppercase, excludeSimilar));
+  if (lowercase) enabledSets.push(filterChars(CHAR_SETS.lowercase, excludeSimilar));
+  if (uppercase) enabledSets.push(filterChars(CHAR_SETS.uppercase, excludeSimilar));
   if (numbers) enabledSets.push(filterChars(CHAR_SETS.numbers, excludeSimilar));
   if (symbols) enabledSets.push(filterChars(CHAR_SETS.symbols, excludeSimilar));
 
   if (enabledSets.length === 0) {
-    throw new Error("至少需要启用一种字符类型");
+    throw new Error('至少需要启用一种字符类型');
   }
 
   if (length < enabledSets.length) {
-    throw new Error(
-      `密码长度（${length}）小于已启用的字符类型数（${enabledSets.length}）`,
-    );
+    throw new Error(`密码长度（${length}）小于已启用的字符类型数（${enabledSets.length}）`);
   }
 
   // 保证每种字符类型至少出现一次
-  let password = "";
+  let password = '';
   for (const set of enabledSets) {
     password += getRandomChar(set);
   }
 
   // 用所有可用字符填充剩余位置
-  const allChars = enabledSets.join("");
+  const allChars = enabledSets.join('');
   for (let i = password.length; i < length; i++) {
     password += getRandomChar(allChars);
   }
@@ -108,9 +104,9 @@ function generatePassword(options) {
 function filterChars(charset, excludeSimilar) {
   if (!excludeSimilar) return charset;
   return charset
-    .split("")
+    .split('')
     .filter((c) => !SIMILAR_CHARS.includes(c))
-    .join("");
+    .join('');
 }
 
 /**
@@ -158,10 +154,10 @@ function evaluateStrength(password) {
   const entropy = length * Math.log2(charsetSize || 1);
 
   let level;
-  if (score <= 3) level = "弱";
-  else if (score <= 5) level = "中";
-  else if (score <= 7) level = "强";
-  else level = "极强";
+  if (score <= 3) level = '弱';
+  else if (score <= 5) level = '中';
+  else if (score <= 7) level = '强';
+  else level = '极强';
 
   return {
     score,

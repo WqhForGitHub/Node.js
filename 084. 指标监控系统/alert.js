@@ -29,8 +29,13 @@ class AlertManager {
           if (!state.fired) {
             state.fired = true;
             const alert = {
-              id: rule.id, name: rule.name, value, threshold: rule.threshold,
-              op: rule.op, ts: now, status: 'firing'
+              id: rule.id,
+              name: rule.name,
+              value,
+              threshold: rule.threshold,
+              op: rule.op,
+              ts: now,
+              status: 'firing',
             };
             alerts.push(alert);
             this.history.push(alert);
@@ -57,12 +62,18 @@ class AlertManager {
 
   compare(a, op, b) {
     switch (op) {
-      case '>': return a > b;
-      case '>=': return a >= b;
-      case '<': return a < b;
-      case '<=': return a <= b;
-      case '==': return a == b;
-      default: return false;
+      case '>':
+        return a > b;
+      case '>=':
+        return a >= b;
+      case '<':
+        return a < b;
+      case '<=':
+        return a <= b;
+      case '==':
+        return a == b;
+      default:
+        return false;
     }
   }
 }

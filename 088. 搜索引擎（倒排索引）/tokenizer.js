@@ -1,8 +1,35 @@
 // 分词器：支持英文 + 简单中文（按字切分）
 const STOP_WORDS = new Set([
-  'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
-  'and', 'or', 'but', 'of', 'to', 'in', 'on', 'at', 'for', 'with',
-  '的', '了', '是', '在', '和', '我', '你', '他', '她', '它'
+  'a',
+  'an',
+  'the',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'being',
+  'and',
+  'or',
+  'but',
+  'of',
+  'to',
+  'in',
+  'on',
+  'at',
+  'for',
+  'with',
+  '的',
+  '了',
+  '是',
+  '在',
+  '和',
+  '我',
+  '你',
+  '他',
+  '她',
+  '它',
 ]);
 
 class Tokenizer {
@@ -32,7 +59,7 @@ class Tokenizer {
   }
 
   static analyze(text) {
-    return this.tokenize(text).map(t => this.stem(t));
+    return this.tokenize(text).map((t) => this.stem(t));
   }
 }
 

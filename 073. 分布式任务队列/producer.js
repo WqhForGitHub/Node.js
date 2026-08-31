@@ -11,26 +11,32 @@ client.connect(6700, '127.0.0.1', async () => {
   // 添加一批任务
   for (let i = 0; i < 5; i++) {
     const r = await send({
-      op: 'add', queue: 'default', type: 'send-email',
+      op: 'add',
+      queue: 'default',
+      type: 'send-email',
       payload: { to: `user${i}@test.com`, subject: `通知 ${i}` },
-      options: { priority: i % 3 }
+      options: { priority: i % 3 },
     });
     console.log(`提交邮件任务: ${r.id}`);
   }
 
   for (let i = 0; i < 3; i++) {
     const r = await send({
-      op: 'add', queue: 'default', type: 'image-resize',
-      payload: { url: `pic${i}.jpg`, size: '800x600' }
+      op: 'add',
+      queue: 'default',
+      type: 'image-resize',
+      payload: { url: `pic${i}.jpg`, size: '800x600' },
     });
     console.log(`提交图片任务: ${r.id}`);
   }
 
   // 延迟任务
   await send({
-    op: 'add', queue: 'default', type: 'data-export',
+    op: 'add',
+    queue: 'default',
+    type: 'data-export',
     payload: { userId: 1001, format: 'csv' },
-    options: { delay: 3000 }
+    options: { delay: 3000 },
   });
   console.log('提交了 3 秒后执行的延迟任务');
 

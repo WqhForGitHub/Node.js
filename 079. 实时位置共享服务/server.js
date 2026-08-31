@@ -7,8 +7,8 @@ const { handshake, WSConnection } = require('./ws');
 const { GeoIndex, haversine } = require('./geo');
 
 const geo = new GeoIndex();
-const users = new Map();   // userId -> { conn, name, group, lastUpdate }
-const groups = new Map();  // groupId -> Set(userId)
+const users = new Map(); // userId -> { conn, name, group, lastUpdate }
+const groups = new Map(); // groupId -> Set(userId)
 
 function joinGroup(userId, groupId) {
   const u = users.get(userId);
@@ -64,35 +64,39 @@ server.on('upgrade', (req, socket) => {
 
   conn.on('message', (msg) => {
     if (msg.type === 'join') {
-      userName = msg.name || `用户${userId.slice(0,4)}`;
+      userName = msg.name || `用户${userId.slice(0, 4)}`;
       users.set(userId, { conn, name: userName, group: null, lastUpdate: Date.now() });
       if (msg.group) joinGroup(userId, msg.group);
       conn.send({ type: 'joined', userId, group: msg.group });
       console.log(`${userName} 加入${msg.group ? ' 群组 ' + msg.group : ''}`);
-    }
-    else if (msg.type === 'location') {
+    } else if (msg.type === 'location') {
       if (!userName) return;
       geo.upsert(userId, msg.lat, msg.lon);
       const u = users.get(userId);
       u.lastUpdate = Date.now();
       if (u.group) {
-        broadcastToGroup(u.group, {
-          type: 'location-update',
-          userId, name: userName,
-          lat: msg.lat, lon: msg.lon,
-          accuracy: msg.accuracy, speed: msg.speed,
-          ts: Date.now()
-        }, userId);
+        broadcastToGroup(
+          u.group,
+          {
+            type: 'location-update',
+            userId,
+            name: userName,
+            lat: msg.lat,
+            lon: msg.lon,
+            accuracy: msg.accuracy,
+            speed: msg.speed,
+            ts: Date.now(),
+          },
+          userId
+        );
       }
-    }
-    else if (msg.type === 'nearby') {
+    } else if (msg.type === 'nearby') {
       const results = geo.nearby(msg.lat, msg.lon, msg.radius || 1000);
       conn.send({
         type: 'nearby-result',
-        users: results.map(r => ({ ...r, name: users.get(r.userId)?.name || 'unknown' }))
+        users: results.map((r) => ({ ...r, name: users.get(r.userId)?.name || 'unknown' })),
       });
-    }
-    else if (msg.type === 'group-snapshot') {
+    } else if (msg.type === 'group-snapshot') {
       const u = users.get(userId);
       if (!u || !u.group) return;
       const list = [];
@@ -129,7 +133,9 @@ setInterval(() => {
   const now = Date.now();
   for (const [, u] of users) {
     if (now - u.lastUpdate > 5 * 60 * 1000) {
-      try { u.conn.close(); } catch (_) {}
+      try {
+        u.conn.close();
+      } catch (_) {}
     }
   }
 }, 60000);

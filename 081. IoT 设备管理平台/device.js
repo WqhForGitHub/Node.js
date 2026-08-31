@@ -10,7 +10,9 @@ const socket = net.connect(TCP_PORT, '127.0.0.1', () => {
   send({ type: 'register', id: deviceId, info: { type: deviceType, group: 'demo' } });
 });
 
-function send(obj) { socket.write(JSON.stringify(obj) + '\n'); }
+function send(obj) {
+  socket.write(JSON.stringify(obj) + '\n');
+}
 
 let buffer = '';
 socket.on('data', (chunk) => {
@@ -30,7 +32,10 @@ socket.on('data', (chunk) => {
 });
 
 socket.on('error', (e) => console.error('连接错误:', e.message));
-socket.on('close', () => { console.log('断开'); process.exit(0); });
+socket.on('close', () => {
+  console.log('断开');
+  process.exit(0);
+});
 
 // 心跳
 setInterval(() => send({ type: 'heartbeat', id: deviceId }), 10000);
@@ -42,9 +47,11 @@ setInterval(() => {
     id: deviceId,
     data: {
       temperature: (20 + Math.random() * 10).toFixed(2),
-      humidity: (40 + Math.random() * 20).toFixed(2)
-    }
+      humidity: (40 + Math.random() * 20).toFixed(2),
+    },
   });
 }, 5000);
 
-process.on('SIGINT', () => { socket.end(); });
+process.on('SIGINT', () => {
+  socket.end();
+});

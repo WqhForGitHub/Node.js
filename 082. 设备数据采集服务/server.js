@@ -18,7 +18,7 @@ const httpServer = http.createServer((req, res) => {
 
   if (req.method === 'POST' && u.pathname === '/ingest') {
     let body = '';
-    req.on('data', d => body += d);
+    req.on('data', (d) => (body += d));
     req.on('end', () => {
       try {
         const data = JSON.parse(body);
@@ -40,7 +40,7 @@ const httpServer = http.createServer((req, res) => {
       metric: u.query.metric,
       from: u.query.from,
       to: u.query.to,
-      limit: parseInt(u.query.limit || '100')
+      limit: parseInt(u.query.limit || '100'),
     });
     res.end(JSON.stringify(results));
     return;
@@ -91,7 +91,9 @@ udpServer.bind(UDP_PORT, () => console.log(`UDP 采集: udp://127.0.0.1:${UDP_PO
 tcpServer.listen(TCP_PORT, () => console.log(`TCP 采集: tcp://127.0.0.1:${TCP_PORT}`));
 
 setInterval(() => {
-  console.log(`[stats] received=${collector.stats.received} flushed=${collector.stats.flushed} buffered=${collector.buffer.length}`);
+  console.log(
+    `[stats] received=${collector.stats.received} flushed=${collector.stats.flushed} buffered=${collector.buffer.length}`
+  );
 }, 10000);
 
 process.on('SIGINT', () => {

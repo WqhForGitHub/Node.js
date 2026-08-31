@@ -9,10 +9,16 @@ const SPAN_API = 'http://127.0.0.1:7500/spans';
 let buffer = [];
 Tracer.reporter = (span) => {
   buffer.push({
-    traceId: span.traceId, spanId: span.spanId, parentId: span.parentId,
-    name: span.name, service: span.service,
-    startTime: span.startTime, duration: span.duration,
-    tags: span.tags, status: span.status, logs: span.logs
+    traceId: span.traceId,
+    spanId: span.spanId,
+    parentId: span.parentId,
+    name: span.name,
+    service: span.service,
+    startTime: span.startTime,
+    duration: span.duration,
+    tags: span.tags,
+    status: span.status,
+    logs: span.logs,
   });
   if (buffer.length >= 10) flush();
 };
@@ -21,16 +27,22 @@ function flush() {
   if (buffer.length === 0) return;
   const data = JSON.stringify(buffer);
   buffer = [];
-  const req = http.request(SPAN_API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
-  }, (res) => res.on('data', () => {}));
-  req.on('error', e => console.error('上报失败:', e.message));
+  const req = http.request(
+    SPAN_API,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) },
+    },
+    (res) => res.on('data', () => {})
+  );
+  req.on('error', (e) => console.error('上报失败:', e.message));
   req.end(data);
 }
 setInterval(flush, 1000);
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 // 模拟业务请求
 async function handleRequest() {
@@ -63,4 +75,7 @@ async function handleRequest() {
 console.log('开始模拟带追踪的请求...');
 setInterval(() => handleRequest().catch(() => {}), 500);
 
-process.on('SIGINT', () => { flush(); setTimeout(() => process.exit(0), 500); });
+process.on('SIGINT', () => {
+  flush();
+  setTimeout(() => process.exit(0), 500);
+});

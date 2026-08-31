@@ -1,10 +1,20 @@
 {
-  "name": "device-data-collector",
-  "version": "1.0.0",
-  "description": "设备数据采集服务 - 多协议采集、批处理、持久化",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "simulator": "node simulator.js"
-  }
+    "name":  "device-data-collector",
+    "version":  "1.0.0",
+    "description":  "设备数据采集服务 - 多协议采集、批处理、持久化",
+    "main":  "server.js",
+    "scripts":  {
+                    "start":  "node server.js",
+                    "simulator":  "node simulator.js",
+                    "format":  "prettier --write .",
+                    "format:check":  "prettier --check .",
+                    "lint":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue --fix",
+                    "lint:check":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue"
+                },
+    "devDependencies":  {
+                            "eslint":  "^8.57.1",
+                            "prettier":  "^3.3.3",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-prettier":  "^5.2.1"
+                        }
 }

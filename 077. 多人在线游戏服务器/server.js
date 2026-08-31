@@ -26,17 +26,15 @@ server.on('upgrade', (req, socket) => {
 
   conn.on('message', (msg) => {
     if (msg.type === 'join') {
-      const name = (msg.name || `玩家${id.slice(0,4)}`).slice(0, 12);
+      const name = (msg.name || `玩家${id.slice(0, 4)}`).slice(0, 12);
       world.addPlayer(id, name);
       connections.set(id, conn);
       joined = true;
       conn.send({ type: 'init', id, world: WORLD });
       console.log(`${name} 加入游戏，当前 ${world.players.size} 人`);
-    }
-    else if (msg.type === 'input') {
+    } else if (msg.type === 'input') {
       world.setInput(id, msg.input);
-    }
-    else if (msg.type === 'shoot') {
+    } else if (msg.type === 'shoot') {
       world.shoot(id);
     }
   });
@@ -51,7 +49,7 @@ server.on('upgrade', (req, socket) => {
 });
 
 // 游戏主循环
-setInterval(() => world.update(), 1000 / 60);  // 60 FPS 物理
+setInterval(() => world.update(), 1000 / 60); // 60 FPS 物理
 
 // 状态广播
 setInterval(() => {

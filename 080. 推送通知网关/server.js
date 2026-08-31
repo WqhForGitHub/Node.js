@@ -13,9 +13,13 @@ const API_TOKEN = 'demo-token-12345';
 function readJson(req) {
   return new Promise((resolve, reject) => {
     let body = '';
-    req.on('data', c => body += c);
+    req.on('data', (c) => (body += c));
     req.on('end', () => {
-      try { resolve(body ? JSON.parse(body) : {}); } catch (e) { reject(e); }
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (e) {
+        reject(e);
+      }
     });
   });
 }
@@ -27,12 +31,10 @@ const server = http.createServer(async (req, res) => {
   if (path0 === '/' || path0 === '/index.html') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(fs.readFileSync(path.join(__dirname, 'client.html')));
-  }
-  else if (path0 === '/admin' || path0 === '/admin.html') {
+  } else if (path0 === '/admin' || path0 === '/admin.html') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(fs.readFileSync(path.join(__dirname, 'admin.html')));
-  }
-  else if (path0 === '/api/push' && req.method === 'POST') {
+  } else if (path0 === '/api/push' && req.method === 'POST') {
     if (req.headers['x-api-token'] !== API_TOKEN) {
       return res.writeHead(401).end('Unauthorized');
     }
@@ -49,26 +51,34 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: false, error: e.message }));
     }
-  }
-  else if (path0 === '/api/stats') {
+  } else if (path0 === '/api/stats') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(gateway.stats()));
-  }
-  else if (path0 === '/api/devices') {
+  } else if (path0 === '/api/devices') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify([...gateway.devices.values()].map(d => ({
-      deviceId: d.deviceId, userId: d.userId, platform: d.platform,
-      topics: d.topics, online: gateway.online.has(d.deviceId),
-      offlineCount: d.offline.length
-    }))));
-  }
-  else if (path0 === '/api/topics') {
+    res.end(
+      JSON.stringify(
+        [...gateway.devices.values()].map((d) => ({
+          deviceId: d.deviceId,
+          userId: d.userId,
+          platform: d.platform,
+          topics: d.topics,
+          online: gateway.online.has(d.deviceId),
+          offlineCount: d.offline.length,
+        }))
+      )
+    );
+  } else if (path0 === '/api/topics') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify([...gateway.topics].map(([t, s]) => ({
-      topic: t, subscribers: s.size
-    }))));
-  }
-  else {
+    res.end(
+      JSON.stringify(
+        [...gateway.topics].map(([t, s]) => ({
+          topic: t,
+          subscribers: s.size,
+        }))
+      )
+    );
+  } else {
     res.writeHead(404).end();
   }
 });
@@ -85,18 +95,14 @@ server.on('upgrade', (req, socket) => {
       gateway.setOnline(deviceId, conn);
       conn.send({ type: 'registered', deviceId });
       console.log(`设备注册: ${deviceId} (用户 ${msg.userId})`);
-    }
-    else if (msg.type === 'subscribe') {
+    } else if (msg.type === 'subscribe') {
       gateway.subscribe(deviceId, msg.topic);
       conn.send({ type: 'subscribed', topic: msg.topic });
-    }
-    else if (msg.type === 'unsubscribe') {
+    } else if (msg.type === 'unsubscribe') {
       gateway.unsubscribe(deviceId, msg.topic);
-    }
-    else if (msg.type === 'ack') {
+    } else if (msg.type === 'ack') {
       gateway.ack(msg.msgId);
-    }
-    else if (msg.type === 'ping') {
+    } else if (msg.type === 'ping') {
       conn.send({ type: 'pong', t: Date.now() });
     }
   });

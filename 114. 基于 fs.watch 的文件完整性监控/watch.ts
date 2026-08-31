@@ -47,7 +47,8 @@ function diff(before: Map<string, Fingerprint>, after: Map<string, Fingerprint>)
   for (const [k, v] of after) {
     const old = before.get(k);
     if (!old) console.log(`[新增] ${k} (${v.size}B) sha1=${v.sha1.slice(0, 8)}`);
-    else if (old.sha1 !== v.sha1) console.log(`[修改] ${k} sha1 ${old.sha1.slice(0,8)} -> ${v.sha1.slice(0,8)}`);
+    else if (old.sha1 !== v.sha1)
+      console.log(`[修改] ${k} sha1 ${old.sha1.slice(0, 8)} -> ${v.sha1.slice(0, 8)}`);
     else if (old.size !== v.size || old.mtimeMs !== v.mtimeMs)
       console.log(`[元数据变了] ${k} size=${old.size}->${v.size}`);
   }

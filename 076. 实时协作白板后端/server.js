@@ -40,22 +40,32 @@ server.on('upgrade', (req, socket) => {
     if (msg.type === 'join') {
       board = getBoard(msg.boardId);
       board.users.set(userId, {
-        conn, name: userName, color: userColor, cursor: null
+        conn,
+        name: userName,
+        color: userColor,
+        cursor: null,
       });
       conn.send({
-        type: 'init', userId, name: userName, color: userColor,
-        snapshot: board.snapshot()
+        type: 'init',
+        userId,
+        name: userName,
+        color: userColor,
+        snapshot: board.snapshot(),
       });
-      board.broadcast({
-        type: 'user-join', id: userId, name: userName, color: userColor
-      }, userId);
+      board.broadcast(
+        {
+          type: 'user-join',
+          id: userId,
+          name: userName,
+          color: userColor,
+        },
+        userId
+      );
       console.log(`${userName} 加入白板 ${msg.boardId}, 在线 ${board.users.size}`);
-    }
-    else if (msg.type === 'op' && board) {
+    } else if (msg.type === 'op' && board) {
       board.applyOp(msg.op, userId);
       board.broadcast({ type: 'op', op: msg.op, userId }, userId);
-    }
-    else if (msg.type === 'cursor' && board) {
+    } else if (msg.type === 'cursor' && board) {
       const u = board.users.get(userId);
       if (u) u.cursor = { x: msg.x, y: msg.y };
       board.broadcast({ type: 'cursor', userId, x: msg.x, y: msg.y }, userId);

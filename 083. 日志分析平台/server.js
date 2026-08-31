@@ -16,7 +16,7 @@ const httpServer = http.createServer((req, res) => {
 
   if (req.method === 'POST' && u.pathname === '/ingest') {
     let body = '';
-    req.on('data', d => body += d);
+    req.on('data', (d) => (body += d));
     req.on('end', () => {
       const lines = body.split('\n');
       let n = 0;
@@ -38,7 +38,7 @@ const httpServer = http.createServer((req, res) => {
       q: u.query.q,
       level: u.query.level,
       source: u.query.source,
-      limit: parseInt(u.query.limit || '100')
+      limit: parseInt(u.query.limit || '100'),
     });
     res.end(JSON.stringify(results));
     return;
@@ -77,7 +77,7 @@ loadStats();setInterval(loadStats,5000);
 // ========== TCP 流式接收（syslog 风格）==========
 const tcpServer = net.createServer((socket) => {
   let buffer = '';
-  let source = `tcp-${socket.remoteAddress}:${socket.remotePort}`;
+  const source = `tcp-${socket.remoteAddress}:${socket.remotePort}`;
   socket.on('data', (chunk) => {
     buffer += chunk.toString();
     let idx;
@@ -85,7 +85,10 @@ const tcpServer = net.createServer((socket) => {
       const line = buffer.slice(0, idx);
       buffer = buffer.slice(idx + 1);
       const e = LogParser.parse(line);
-      if (e) { e.source = e.source || source; store.add(e); }
+      if (e) {
+        e.source = e.source || source;
+        store.add(e);
+      }
     }
   });
   socket.on('error', () => {});
@@ -94,4 +97,8 @@ const tcpServer = net.createServer((socket) => {
 httpServer.listen(HTTP_PORT, () => console.log(`HTTP API + UI: http://127.0.0.1:${HTTP_PORT}`));
 tcpServer.listen(TCP_PORT, () => console.log(`TCP 日志接入: tcp://127.0.0.1:${TCP_PORT}`));
 
-process.on('SIGINT', () => { httpServer.close(); tcpServer.close(); process.exit(0); });
+process.on('SIGINT', () => {
+  httpServer.close();
+  tcpServer.close();
+  process.exit(0);
+});

@@ -27,7 +27,7 @@ if (isMainThread) {
         w.on('message', (m) => resolve(m));
         w.on('error', reject);
         w.on('exit', (code) => code !== 0 && reject(new Error(`worker exit ${code}`)));
-      }),
+      })
     );
   }
 
@@ -35,7 +35,8 @@ if (isMainThread) {
     .then((results) => {
       const total = results.reduce((s, r) => s + r.count, 0);
       console.log('各 worker 结果:');
-      for (const r of results) console.log(`  [${r.start}-${r.end}] 质数 ${r.count} 个，最大: ${r.last}`);
+      for (const r of results)
+        console.log(`  [${r.start}-${r.end}] 质数 ${r.count} 个，最大: ${r.last}`);
       console.log(`总计质数 ${total} 个`);
     })
     .catch((e) => {

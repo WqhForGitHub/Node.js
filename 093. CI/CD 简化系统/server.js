@@ -11,7 +11,9 @@ const DATA_DIR = path.join(__dirname, 'data');
 fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 let db = { pipelines: {}, builds: [] };
-try { db = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')); } catch {}
+try {
+  db = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+} catch {}
 const saveDb = () => fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
 
 // ========= Pipeline 配置 =========
@@ -24,23 +26,41 @@ let running = 0;
 const CONCURRENCY = 2;
 
 async function exec(cmd, cwd) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const start = Date.now();
     const child = spawn(cmd, { shell: true, cwd });
-    let out = '', err = '';
-    child.stdout.on('data', d => out += d.toString());
-    child.stderr.on('data', d => err += d.toString());
-    child.on('close', code => {
-      resolve({ cmd, code, ok: code === 0, stdout: out, stderr: err, duration: Date.now() - start });
+    let out = '',
+      err = '';
+    child.stdout.on('data', (d) => (out += d.toString()));
+    child.stderr.on('data', (d) => (err += d.toString()));
+    child.on('close', (code) => {
+      resolve({
+        cmd,
+        code,
+        ok: code === 0,
+        stdout: out,
+        stderr: err,
+        duration: Date.now() - start,
+      });
     });
-    setTimeout(() => { try { child.kill(); } catch {} }, 60000);
+    setTimeout(() => {
+      try {
+        child.kill();
+      } catch {}
+    }, 60000);
   });
 }
 
 async function runJob(job, build, stageName) {
-  const jobRecord = { name: job.name, stage: stageName, steps: [], status: 'running', startTime: Date.now() };
+  const jobRecord = {
+    name: job.name,
+    stage: stageName,
+    steps: [],
+    status: 'running',
+    startTime: Date.now(),
+  };
   build.jobs.push(jobRecord);
-  for (const step of (job.steps || [])) {
+  for (const step of job.steps || []) {
     const r = await exec(step, build.workspace);
     jobRecord.steps.push(r);
     build.logs.push(`[${stageName}/${job.name}] $ ${step}\n${r.stdout || r.stderr || ''}`);
@@ -52,7 +72,7 @@ async function runJob(job, build, stageName) {
   }
   // 收集 artifacts(只是记录文件存在)
   jobRecord.artifacts = [];
-  for (const a of (job.artifacts || [])) {
+  for (const a of job.artifacts || []) {
     const p = path.join(build.workspace, a);
     if (fs.existsSync(p)) jobRecord.artifacts.push(a);
   }
@@ -68,14 +88,18 @@ async function runBuild(build) {
 
   const pipeline = db.pipelines[build.pipeline];
   if (!pipeline) {
-    build.status = 'failed'; build.error = 'pipeline not found'; build.endTime = Date.now(); saveDb(); return;
+    build.status = 'failed';
+    build.error = 'pipeline not found';
+    build.endTime = Date.now();
+    saveDb();
+    return;
   }
 
   try {
     for (const stage of pipeline.stages) {
       build.logs.push(`====== Stage: ${stage.name} ======`);
       // 并行 job
-      await Promise.all(stage.jobs.map(j => runJob(j, build, stage.name)));
+      await Promise.all(stage.jobs.map((j) => runJob(j, build, stage.name)));
     }
     build.status = 'success';
   } catch (e) {
@@ -90,10 +114,15 @@ async function runBuild(build) {
 function enqueueBuild(pipelineName, trigger = 'manual', meta = {}) {
   const id = 'b_' + Date.now() + '_' + crypto.randomBytes(3).toString('hex');
   const build = {
-    id, pipeline: pipelineName, trigger, meta,
-    status: 'queued', queuedAt: Date.now(),
-    logs: [], jobs: [],
-    workspace: path.join(DATA_DIR, 'workspaces', id)
+    id,
+    pipeline: pipelineName,
+    trigger,
+    meta,
+    status: 'queued',
+    queuedAt: Date.now(),
+    logs: [],
+    jobs: [],
+    workspace: path.join(DATA_DIR, 'workspaces', id),
   };
   db.builds.unshift(build);
   saveDb();
@@ -106,7 +135,10 @@ function drain() {
   while (running < CONCURRENCY && queue.length > 0) {
     const b = queue.shift();
     running++;
-    runBuild(b).finally(() => { running--; drain(); });
+    runBuild(b).finally(() => {
+      running--;
+      drain();
+    });
   }
 }
 
@@ -116,10 +148,16 @@ function send(res, code, data) {
   res.end(JSON.stringify(data, null, 2));
 }
 function readBody(req) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let buf = '';
-    req.on('data', c => buf += c);
-    req.on('end', () => { try { resolve(buf ? JSON.parse(buf) : {}); } catch { resolve({}); } });
+    req.on('data', (c) => (buf += c));
+    req.on('end', () => {
+      try {
+        resolve(buf ? JSON.parse(buf) : {});
+      } catch {
+        resolve({});
+      }
+    });
   });
 }
 
@@ -129,7 +167,8 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/' && req.method === 'GET') {
       return send(res, 200, {
         name: 'CI/CD 简化系统',
-        running, queued: queue.length,
+        running,
+        queued: queue.length,
         endpoints: [
           'GET  /pipelines',
           'POST /pipelines               注册 pipeline',
@@ -137,14 +176,15 @@ const server = http.createServer(async (req, res) => {
           'POST /webhook/:pipeline       Webhook',
           'GET  /builds',
           'GET  /builds/:id',
-          'GET  /builds/:id/logs'
-        ]
+          'GET  /builds/:id/logs',
+        ],
       });
     }
     if (pathname === '/pipelines' && req.method === 'GET') return send(res, 200, db.pipelines);
     if (pathname === '/pipelines' && req.method === 'POST') {
       const body = await readBody(req);
-      if (!body.name || !Array.isArray(body.stages)) return send(res, 400, { error: 'name 和 stages 必填' });
+      if (!body.name || !Array.isArray(body.stages))
+        return send(res, 400, { error: 'name 和 stages 必填' });
       db.pipelines[body.name] = body;
       saveDb();
       return send(res, 200, body);
@@ -162,21 +202,28 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { id: b.id });
     }
     if (pathname === '/builds' && req.method === 'GET') {
-      return send(res, 200, db.builds.slice(0, 30).map(b => ({
-        id: b.id, pipeline: b.pipeline, status: b.status,
-        queuedAt: b.queuedAt, duration: b.duration
-      })));
+      return send(
+        res,
+        200,
+        db.builds.slice(0, 30).map((b) => ({
+          id: b.id,
+          pipeline: b.pipeline,
+          status: b.status,
+          queuedAt: b.queuedAt,
+          duration: b.duration,
+        }))
+      );
     }
     if (pathname.startsWith('/builds/') && pathname.endsWith('/logs')) {
       const id = pathname.split('/')[2];
-      const b = db.builds.find(x => x.id === id);
+      const b = db.builds.find((x) => x.id === id);
       if (!b) return send(res, 404, { error: 'Not Found' });
       res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
       return res.end(b.logs.join('\n'));
     }
     if (pathname.startsWith('/builds/')) {
       const id = pathname.split('/')[2];
-      const b = db.builds.find(x => x.id === id);
+      const b = db.builds.find((x) => x.id === id);
       return send(res, b ? 200 : 404, b || { error: 'Not Found' });
     }
     send(res, 404, { error: 'Not Found' });
@@ -191,17 +238,25 @@ if (!db.pipelines['hello-ci']) {
     name: 'hello-ci',
     trigger: ['push', 'manual'],
     stages: [
-      { name: 'build', jobs: [
-        { name: 'compile', steps: ['echo "compiling..."', 'echo done > out.txt'], artifacts: ['out.txt'] }
-      ]},
-      { name: 'test', jobs: [
-        { name: 'unit',        steps: ['echo "running unit tests"'] },
-        { name: 'integration', steps: ['echo "running integration"'] }
-      ]},
-      { name: 'deploy', jobs: [
-        { name: 'release', steps: ['echo "deployed!"'] }
-      ]}
-    ]
+      {
+        name: 'build',
+        jobs: [
+          {
+            name: 'compile',
+            steps: ['echo "compiling..."', 'echo done > out.txt'],
+            artifacts: ['out.txt'],
+          },
+        ],
+      },
+      {
+        name: 'test',
+        jobs: [
+          { name: 'unit', steps: ['echo "running unit tests"'] },
+          { name: 'integration', steps: ['echo "running integration"'] },
+        ],
+      },
+      { name: 'deploy', jobs: [{ name: 'release', steps: ['echo "deployed!"'] }] },
+    ],
   };
   saveDb();
 }

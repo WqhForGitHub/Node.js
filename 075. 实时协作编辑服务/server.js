@@ -68,7 +68,10 @@ server.on('upgrade', (req, socket) => {
     if (msg.type === 'join') {
       currentDoc = getDoc(msg.docId);
       currentDoc.users.set(userId, {
-        conn, name: userName, color: userColor, cursor: 0
+        conn,
+        name: userName,
+        color: userColor,
+        cursor: 0,
       });
       // 发送初始状态
       conn.send({
@@ -79,30 +82,50 @@ server.on('upgrade', (req, socket) => {
         content: currentDoc.content,
         version: currentDoc.version,
         users: [...currentDoc.users].map(([id, u]) => ({
-          id, name: u.name, color: u.color, cursor: u.cursor
-        }))
+          id,
+          name: u.name,
+          color: u.color,
+          cursor: u.cursor,
+        })),
       });
       // 通知其他人
-      currentDoc.broadcast({
-        type: 'user-join', id: userId, name: userName, color: userColor
-      }, userId);
+      currentDoc.broadcast(
+        {
+          type: 'user-join',
+          id: userId,
+          name: userName,
+          color: userColor,
+        },
+        userId
+      );
       console.log(`${userName} 加入文档 ${msg.docId}`);
-    }
-    else if (msg.type === 'op' && currentDoc) {
+    } else if (msg.type === 'op' && currentDoc) {
       const transformed = currentDoc.apply(msg.op, msg.version);
       conn.send({
-        type: 'ack', version: currentDoc.version, op: transformed
+        type: 'ack',
+        version: currentDoc.version,
+        op: transformed,
       });
-      currentDoc.broadcast({
-        type: 'op', op: transformed, version: currentDoc.version, userId
-      }, userId);
-    }
-    else if (msg.type === 'cursor' && currentDoc) {
+      currentDoc.broadcast(
+        {
+          type: 'op',
+          op: transformed,
+          version: currentDoc.version,
+          userId,
+        },
+        userId
+      );
+    } else if (msg.type === 'cursor' && currentDoc) {
       const user = currentDoc.users.get(userId);
       if (user) user.cursor = msg.pos;
-      currentDoc.broadcast({
-        type: 'cursor', userId, pos: msg.pos
-      }, userId);
+      currentDoc.broadcast(
+        {
+          type: 'cursor',
+          userId,
+          pos: msg.pos,
+        },
+        userId
+      );
     }
   });
 

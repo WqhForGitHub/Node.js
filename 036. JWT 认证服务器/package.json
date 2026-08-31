@@ -1,15 +1,25 @@
 {
-  "name": "jwt-auth-server",
-  "version": "1.0.0",
-  "description": "纯 Node.js 实现的 JWT 认证服务器 Demo",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "keywords": [
-    "jwt",
-    "auth",
-    "node"
-  ],
-  "license": "MIT"
+    "name":  "jwt-auth-server",
+    "version":  "1.0.0",
+    "description":  "纯 Node.js 实现的 JWT 认证服务器 Demo",
+    "main":  "server.js",
+    "scripts":  {
+                    "start":  "node server.js",
+                    "format":  "prettier --write .",
+                    "format:check":  "prettier --check .",
+                    "lint":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue --fix",
+                    "lint:check":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue"
+                },
+    "keywords":  [
+                     "jwt",
+                     "auth",
+                     "node"
+                 ],
+    "license":  "MIT",
+    "devDependencies":  {
+                            "eslint":  "^8.57.1",
+                            "prettier":  "^3.3.3",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-prettier":  "^5.2.1"
+                        }
 }

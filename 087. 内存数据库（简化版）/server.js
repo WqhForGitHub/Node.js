@@ -44,9 +44,13 @@ function execute(cmd, fromReplay = false) {
       return { ok: true, rows };
     }
     case 'tables': {
-      return { ok: true, tables: [...db.tables.keys()].map(n => ({
-        name: n, count: db.table(n).count()
-      })) };
+      return {
+        ok: true,
+        tables: [...db.tables.keys()].map((n) => ({
+          name: n,
+          count: db.table(n).count(),
+        })),
+      };
     }
     default:
       throw new Error('unknown op: ' + cmd.op);
@@ -55,7 +59,7 @@ function execute(cmd, fromReplay = false) {
 
 // 回放 AOF
 console.log('回放 AOF...');
-const replayed = aof.replay(cmd => execute(cmd, true));
+const replayed = aof.replay((cmd) => execute(cmd, true));
 console.log(`已回放 ${replayed} 条命令`);
 
 const server = net.createServer((socket) => {
@@ -79,4 +83,8 @@ const server = net.createServer((socket) => {
 });
 
 server.listen(PORT, () => console.log(`内存数据库: tcp://127.0.0.1:${PORT}`));
-process.on('SIGINT', () => { aof.close(); server.close(); process.exit(0); });
+process.on('SIGINT', () => {
+  aof.close();
+  server.close();
+  process.exit(0);
+});
