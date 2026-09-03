@@ -1,0 +1,29 @@
+{
+  "name": "my-app",
+  "version": "1.2.3",
+  "description": "package.json 字段示例",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "node --test",
+    "lint": "eslint src/"
+  },
+  "keywords": ["demo", "nodejs"],
+  "author": "Your Name <you@example.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "dayjs": "^1.11.13"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0"
+  }
+}

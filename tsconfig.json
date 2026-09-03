@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "nodenext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "rootDir": "./",
+    "outDir": "./dist"
+  },
+  "include": ["demo/**/*.ts", "interview/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
