@@ -13,7 +13,7 @@
 - `globalThis` / `global`：全局作用域根对象
 - `process`：进程信息与控制对象（包含上百个属性、方法、事件）
 - `console`：控制台输出对象
-- `Buffer`：二进制缓冲区类
+- `Buffer`块加载：二进制缓冲区类
 - `AbortController` / `AbortSignal`：异步取消控制器
 - `TextEncoder` / `TextDecoder`：文本编解码器
 - `URL` / `URLSearchParams`：标准 URL 处理对象
@@ -23,7 +23,7 @@
 
 - `__dirname`：当前文件所在目录路径
 - `__filename`：当前文件的完整绝对路径
-- `require()` / `module` / `exports`：模块加载与导出变量
+- `require()` / `module` / `exports`：模与导出变量
 
 # 二、核心内置模块 API
 
