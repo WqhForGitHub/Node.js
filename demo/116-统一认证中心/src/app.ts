@@ -31,7 +31,7 @@ function makeToken(user: User): string {
       username: user.username,
       role: user.role,
       ts: Date.now(),
-    }),
+    })
   ).toString('base64url');
   const sig = crypto.createHmac('sha256', 'secret').update(payload).digest('hex');
   return 'eyJhbGci.' + payload + '.' + sig;

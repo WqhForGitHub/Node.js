@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-let items: Todo[] = [
+const items: Todo[] = [
   { id: 1, title: 'todo-1', done: false } as Todo,
   { id: 2, title: 'todo-1-2', done: false } as Todo,
 ];

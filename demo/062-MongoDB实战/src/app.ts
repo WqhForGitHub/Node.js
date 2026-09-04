@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-let items: Document[] = [
+const items: Document[] = [
   { id: 1, title: 'doc-1', data: null } as Document,
   { id: 2, title: 'doc-1-2', data: null } as Document,
 ];

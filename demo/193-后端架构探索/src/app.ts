@@ -12,7 +12,7 @@ class User {
     public readonly id: number,
     public email: string,
     public name: string,
-    public status: 'active' | 'inactive' = 'active',
+    public status: 'active' | 'inactive' = 'active'
   ) {}
 
   changeName(name: string): void {
@@ -68,7 +68,7 @@ interface UserRepository {
 class UserUseCase {
   constructor(
     private repo: UserRepository,
-    private domainService: UserDomainService,
+    private domainService: UserDomainService
   ) {}
 
   createUser(dto: CreateUserDTO): UserDTO {

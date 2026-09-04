@@ -24,7 +24,7 @@ app.use(express.json());
 const startTime = Date.now();
 const metrics: Metric[] = [];
 let requestCount = 0;
-let errorCount = 0;
+const errorCount = 0;
 
 // 请求计数中间件
 app.use((req, _res, next) => {

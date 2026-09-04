@@ -13,7 +13,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-let items: Item[] = [{ id: 1, name: 'item-1' } as Item, { id: 2, name: 'item-1-2' } as Item];
+const items: Item[] = [{ id: 1, name: 'item-1' } as Item, { id: 2, name: 'item-1-2' } as Item];
 let nextId = 3;
 
 app.get('/health', (_req: Request, res: Response) => {

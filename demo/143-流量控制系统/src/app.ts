@@ -12,7 +12,7 @@ class RateLimiter {
   private hits = new Map<string, { count: number; resetAt: number }>();
   constructor(
     private max: number,
-    private windowMs: number,
+    private windowMs: number
   ) {}
 
   check(key: string): { allowed: boolean; remaining: number; resetAt: number } {

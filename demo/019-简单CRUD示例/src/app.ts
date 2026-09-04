@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-let items: Task[] = [
+const items: Task[] = [
   { id: 1, title: 'task-1', status: 'pending' } as Task,
   { id: 2, title: 'task-1-2', status: 'pending-2' } as Task,
 ];

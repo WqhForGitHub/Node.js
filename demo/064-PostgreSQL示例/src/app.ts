@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-let items: Record[] = [
+const items: Record[] = [
   { id: 1, name: 'pg-record', data: null } as Record,
   { id: 2, name: 'pg-record-2', data: null } as Record,
 ];
