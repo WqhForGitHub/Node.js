@@ -1,0 +1,14 @@
+{
+  "name": "测试文件",
+  "version": "1.0.0",
+  "enable": true,
+  "list": [
+    1,
+    2,
+    3
+  ],
+  "info": {
+    "author": "demo",
+    "desc": "简短示例json"
+  }
+}
