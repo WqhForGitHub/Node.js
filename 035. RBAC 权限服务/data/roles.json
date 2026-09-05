@@ -1,0 +1,85 @@
+{
+  "superadmin": {
+    "name": "superadmin",
+    "description": "超级管理员，拥有所有权限，包含通配符",
+    "permissions": ["*:*"],
+    "inherits": [],
+    "dataScope": "all",
+    "isSystem": true,
+    "createdAt": "2026-06-11T13:43:40.042Z",
+    "updatedAt": "2026-06-11T13:43:40.042Z"
+  },
+  "admin": {
+    "name": "admin",
+    "description": "管理员，拥有大部分权限",
+    "permissions": [
+      "article:read",
+      "article:write",
+      "article:delete",
+      "article:publish",
+      "article:audit",
+      "user:read",
+      "user:write",
+      "user:delete",
+      "role:read",
+      "role:write",
+      "permission:read",
+      "group:read",
+      "group:write",
+      "system:read",
+      "system:audit"
+    ],
+    "inherits": ["editor"],
+    "dataScope": "all",
+    "isSystem": true,
+    "createdAt": "2026-06-11T13:43:40.042Z",
+    "updatedAt": "2026-06-11T13:43:40.042Z"
+  },
+  "editor": {
+    "name": "editor",
+    "description": "编辑者，可管理文章和审核",
+    "permissions": [
+      "article:read",
+      "article:write",
+      "article:delete",
+      "article:publish",
+      "article:audit",
+      "user:read",
+      "role:read",
+      "permission:read",
+      "group:read"
+    ],
+    "inherits": ["author"],
+    "dataScope": "department",
+    "isSystem": false,
+    "createdAt": "2026-06-11T13:43:40.042Z",
+    "updatedAt": "2026-06-11T13:43:40.042Z"
+  },
+  "author": {
+    "name": "author",
+    "description": "作者，可编写和发布自己的文章",
+    "permissions": [
+      "article:read",
+      "article:write",
+      "article:publish",
+      "user:read",
+      "role:read",
+      "permission:read"
+    ],
+    "inherits": ["viewer"],
+    "dataScope": "self",
+    "isSystem": false,
+    "createdAt": "2026-06-11T13:43:40.042Z",
+    "updatedAt": "2026-06-11T13:43:40.042Z"
+  },
+  "viewer": {
+    "name": "viewer",
+    "description": "查看者，只读权限",
+    "permissions": ["article:read", "user:read", "role:read", "permission:read"],
+    "inherits": [],
+    "dataScope": "self",
+    "isSystem": false,
+    "createdAt": "2026-06-11T13:43:40.042Z",
+    "updatedAt": "2026-06-11T13:43:40.042Z"
+  }
+}

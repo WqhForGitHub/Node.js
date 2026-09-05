@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>点赞收藏系统 Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f0f2f5;
+        color: #1a1a2e;
+        min-height: 100vh;
+      }
+
+      /* Header */
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 24px 0;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+      }
+      .header h1 {
+        font-size: 28px;
+        font-weight: 700;
+      }
+      .header p {
+        margin-top: 6px;
+        opacity: 0.9;
+        font-size: 14px;
+      }
+
+      /* Container */
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 24px 16px;
+      }
+
+      /* User Bar */
+      .user-bar {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+      .user-bar label {
+        font-weight: 600;
+        font-size: 14px;
+        white-space: nowrap;
+      }
+      .user-bar select,
+      .user-bar input {
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .user-bar select:focus,
+      .user-bar input:focus {
+        border-color: #667eea;
+      }
+      .user-bar .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+        font-size: 16px;
+      }
+
+      /* Stats Cards */
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+      .stat-card .number {
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .stat-card .label {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 4px;
+      }
+
+      /* Content Cards */
+      .content-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .content-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .content-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      }
+      .card-image {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        display: block;
+      }
+      .card-body {
+        padding: 16px 20px;
+      }
+      .card-body h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .card-body .meta {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-bottom: 12px;
+      }
+      .card-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #f3f4f6;
+      }
+      .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+        background: #f3f4f6;
+        color: #6b7280;
+      }
+      .action-btn:hover {
+        background: #e5e7eb;
+      }
+      .action-btn.liked {
+        background: #fee2e2;
+        color: #ef4444;
+      }
+      .action-btn.liked:hover {
+        background: #fecaca;
+      }
+      .action-btn.favorited {
+        background: #fef3c7;
+        color: #f59e0b;
+      }
+      .action-btn.favorited:hover {
+        background: #fde68a;
+      }
+      .action-btn .icon {
+        font-size: 18px;
+      }
+      .action-btn .count {
+        font-size: 13px;
+      }
+
+      /* Favorite Note */
+      .fav-note-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed #e5e7eb;
+      }
+      .fav-note-row input {
+        flex: 1;
+        padding: 6px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 13px;
+        outline: none;
+      }
+      .fav-note-row input:focus {
+        border-color: #f59e0b;
+      }
+      .fav-note-row button {
+        padding: 6px 12px;
+        background: #f59e0b;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .fav-note-row button:hover {
+        background: #d97706;
+      }
+
+      /* Tabs */
+      .tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 20px;
+        background: white;
+        border-radius: 12px;
+        padding: 4px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+      .tab-btn {
+        flex: 1;
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        color: #6b7280;
+        transition: all 0.2s;
+      }
+      .tab-btn.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+      }
+      .tab-btn:hover:not(.active) {
+        background: #f3f4f6;
+      }
+
+      /* User List Panel */
+      .user-list-panel {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+      .user-list-panel h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+      .user-list-panel .empty {
+        color: #9ca3af;
+        font-size: 14px;
+        text-align: center;
+        padding: 20px;
+      }
+      .user-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 14px;
+      }
+      .user-item:last-child {
+        border-bottom: none;
+      }
+      .user-item .time {
+        color: #9ca3af;
+        font-size: 12px;
+      }
+
+      /* Toast */
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+      }
+      .toast {
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-size: 14px;
+        margin-bottom: 8px;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      .toast.success {
+        background: #10b981;
+      }
+      .toast.error {
+        background: #ef4444;
+      }
+      .toast.info {
+        background: #3b82f6;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      /* Responsive */
+      @media (max-width: 640px) {
+        .stats-row {
+          grid-template-columns: 1fr;
+        }
+        .header h1 {
+          font-size: 22px;
+        }
+        .user-bar {
+          flex-wrap: wrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>点赞收藏系统 Demo</h1>
+      <p>纯 Node.js 实现 - 无第三方依赖</p>
+    </div>
+
+    <div class="container">
+      <!-- User Selection -->
+      <div class="user-bar">
+        <label>当前用户:</label>
+        <select id="userSelect">
+          <option value="user_alice">Alice</option>
+          <option value="user_bob">Bob</option>
+          <option value="user_charlie">Charlie</option>
+          <option value="user_diana">Diana</option>
+        </select>
+        <div class="user-avatar" id="userAvatar" style="background: #667eea">A</div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="number" id="statTargets">0</div>
+          <div class="label">内容总数</div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="statLikes">0</div>
+          <div class="label">点赞总数</div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="statFavorites">0</div>
+          <div class="label">收藏总数</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="feed">内容列表</button>
+        <button class="tab-btn" data-tab="my-likes">我的点赞</button>
+        <button class="tab-btn" data-tab="my-favorites">我的收藏</button>
+      </div>
+
+      <!-- Feed Tab -->
+      <div id="tab-feed" class="tab-content">
+        <div class="content-list" id="contentList"></div>
+      </div>
+
+      <!-- My Likes Tab -->
+      <div id="tab-my-likes" class="tab-content" style="display: none">
+        <div class="user-list-panel">
+          <h3>我点赞的内容</h3>
+          <div id="myLikesList"><div class="empty">暂无点赞记录</div></div>
+        </div>
+      </div>
+
+      <!-- My Favorites Tab -->
+      <div id="tab-my-favorites" class="tab-content" style="display: none">
+        <div class="user-list-panel">
+          <h3>我收藏的内容</h3>
+          <div id="myFavoritesList"><div class="empty">暂无收藏记录</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+      const API = '';
+
+      // Mock content data
+      const MOCK_CONTENTS = [
+        {
+          targetId: 'post_001',
+          targetType: 'post',
+          title: '深入理解 Node.js 事件循环机制',
+          desc: '2024-06-01 · 技术文章',
+          color: '#3b82f6',
+        },
+        {
+          targetId: 'post_002',
+          targetType: 'post',
+          title: 'CSS Grid 布局完全指南',
+          desc: '2024-06-03 · 前端开发',
+          color: '#10b981',
+        },
+        {
+          targetId: 'video_001',
+          targetType: 'video',
+          title: 'TypeScript 5.0 新特性解读',
+          desc: '2024-06-05 · 视频教程',
+          color: '#ef4444',
+        },
+        {
+          targetId: 'article_001',
+          targetType: 'article',
+          title: '微服务架构设计最佳实践',
+          desc: '2024-06-08 · 架构设计',
+          color: '#8b5cf6',
+        },
+        {
+          targetId: 'photo_001',
+          targetType: 'photo',
+          title: '2024 日出摄影合集',
+          desc: '2024-06-10 · 摄影作品',
+          color: '#f59e0b',
+        },
+        {
+          targetId: 'product_001',
+          targetType: 'product',
+          title: '机械键盘选购终极指南',
+          desc: '2024-06-12 · 好物推荐',
+          color: '#ec4899',
+        },
+      ];
+
+      const AVATAR_COLORS = {
+        user_alice: '#667eea',
+        user_bob: '#10b981',
+        user_charlie: '#f59e0b',
+        user_diana: '#ec4899',
+      };
+      const AVATAR_LETTERS = {
+        user_alice: 'A',
+        user_bob: 'B',
+        user_charlie: 'C',
+        user_diana: 'D',
+      };
+
+      function getUserId() {
+        return document.getElementById('userSelect').value;
+      }
+
+      // API helpers
+      async function apiPost(path, body) {
+        const res = await fetch(API + path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        return res.json();
+      }
+
+      async function apiDelete(path, body) {
+        const res = await fetch(API + path, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        return res.json();
+      }
+
+      async function apiPut(path, body) {
+        const res = await fetch(API + path, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        return res.json();
+      }
+
+      async function apiGet(path) {
+        const res = await fetch(API + path);
+        return res.json();
+      }
+
+      // Toast
+      function showToast(msg, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        el.className = 'toast ' + type;
+        el.textContent = msg;
+        container.appendChild(el);
+        setTimeout(() => el.remove(), 2500);
+      }
+
+      // Stats
+      async function loadStats() {
+        const result = await apiGet('/api/stats');
+        if (result.success) {
+          document.getElementById('statTargets').textContent = result.data.totalTargets;
+          document.getElementById('statLikes').textContent = result.data.totalLikes;
+          document.getElementById('statFavorites').textContent = result.data.totalFavorites;
+        }
+      }
+
+      // Render content cards
+      async function loadFeed() {
+        const userId = getUserId();
+        const listEl = document.getElementById('contentList');
+
+        // Fetch statuses for all mock contents
+        const cards = [];
+        for (const content of MOCK_CONTENTS) {
+          const statusRes = await apiGet(
+            `/api/status?targetId=${content.targetId}&userId=${userId}`
+          );
+          const status = statusRes.success ? statusRes.data : {};
+          cards.push({ ...content, ...status });
+        }
+
+        listEl.innerHTML = cards
+          .map(
+            (c) => `
+    <div class="content-card">
+      <div class="card-image" style="background: linear-gradient(135deg, ${c.color}, ${c.color}88); display:flex; align-items:center; justify-content:center;">
+        <span style="font-size:48px; opacity:0.3;">${getTypeIcon(c.targetType)}</span>
+      </div>
+      <div class="card-body">
+        <h3>${c.title}</h3>
+        <div class="meta">${c.desc}</div>
+        <div class="card-actions">
+          <button class="action-btn ${c.liked ? 'liked' : ''}" onclick="toggleLike('${c.targetId}', '${c.targetType}', '${c.title}')">
+            <span class="icon">${c.liked ? '❤️' : '🤍'}</span>
+            <span class="count">${c.likeCount || 0}</span>
+          </button>
+          <button class="action-btn ${c.favorited ? 'favorited' : ''}" onclick="toggleFavorite('${c.targetId}', '${c.targetType}', '${c.title}')">
+            <span class="icon">${c.favorited ? '⭐' : '☆'}</span>
+            <span class="count">${c.favoriteCount || 0}</span>
+          </button>
+        </div>
+        ${
+          c.favorited
+            ? `
+        <div class="fav-note-row">
+          <input type="text" id="note-${c.targetId}" value="${c.favoriteNote || ''}" placeholder="添加收藏备注..." />
+          <button onclick="saveNote('${c.targetId}')">保存</button>
+        </div>
+        `
+            : ''
+        }
+      </div>
+    </div>
+  `
+          )
+          .join('');
+      }
+
+      function getTypeIcon(type) {
+        const icons = {
+          post: '📝',
+          article: '📰',
+          video: '🎬',
+          photo: '📷',
+          product: '🛒',
+          comment: '💬',
+        };
+        return icons[type] || '📄';
+      }
+
+      // Toggle like
+      async function toggleLike(targetId, targetType, title) {
+        const userId = getUserId();
+        const result = await apiPost('/api/like/toggle', { targetId, targetType, userId, title });
+        if (result.success) {
+          showToast(result.data.liked ? '已点赞' : '已取消点赞');
+          loadFeed();
+          loadStats();
+        } else {
+          showToast(result.error, 'error');
+        }
+      }
+
+      // Toggle favorite
+      async function toggleFavorite(targetId, targetType, title) {
+        const userId = getUserId();
+        const result = await apiPost('/api/favorite/toggle', {
+          targetId,
+          targetType,
+          userId,
+          title,
+        });
+        if (result.success) {
+          showToast(result.data.favorited ? '已收藏' : '已取消收藏');
+          loadFeed();
+          loadStats();
+        } else {
+          showToast(result.error, 'error');
+        }
+      }
+
+      // Save note
+      async function saveNote(targetId) {
+        const userId = getUserId();
+        const note = document.getElementById('note-' + targetId).value;
+        const result = await apiPut('/api/favorite/note', { targetId, userId, note });
+        if (result.success) {
+          showToast('备注已保存');
+        } else {
+          showToast(result.error, 'error');
+        }
+      }
+
+      // My Likes
+      async function loadMyLikes() {
+        const userId = getUserId();
+        const result = await apiGet(`/api/user/likes?userId=${userId}`);
+        const el = document.getElementById('myLikesList');
+        if (result.success && result.data.length > 0) {
+          el.innerHTML = result.data
+            .map(
+              (item) => `
+      <div class="user-item">
+        <span>${getTypeIcon(item.targetType)} ${item.title || item.targetId}</span>
+        <span class="time">${new Date(item.createdAt).toLocaleString('zh-CN')}</span>
+      </div>
+    `
+            )
+            .join('');
+        } else {
+          el.innerHTML = '<div class="empty">暂无点赞记录</div>';
+        }
+      }
+
+      // My Favorites
+      async function loadMyFavorites() {
+        const userId = getUserId();
+        const result = await apiGet(`/api/user/favorites?userId=${userId}`);
+        const el = document.getElementById('myFavoritesList');
+        if (result.success && result.data.length > 0) {
+          el.innerHTML = result.data
+            .map(
+              (item) => `
+      <div class="user-item">
+        <span>${getTypeIcon(item.targetType)} ${item.title || item.targetId}${item.note ? ' - ' + item.note : ''}</span>
+        <span class="time">${new Date(item.createdAt).toLocaleString('zh-CN')}</span>
+      </div>
+    `
+            )
+            .join('');
+        } else {
+          el.innerHTML = '<div class="empty">暂无收藏记录</div>';
+        }
+      }
+
+      // Tab switching
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          const tab = btn.dataset.tab;
+          document.querySelectorAll('.tab-content').forEach((c) => (c.style.display = 'none'));
+          document.getElementById('tab-' + tab).style.display = '';
+          if (tab === 'my-likes') loadMyLikes();
+          if (tab === 'my-favorites') loadMyFavorites();
+        });
+      });
+
+      // User change
+      document.getElementById('userSelect').addEventListener('change', () => {
+        const userId = getUserId();
+        const avatar = document.getElementById('userAvatar');
+        avatar.style.background = AVATAR_COLORS[userId] || '#667eea';
+        avatar.textContent = AVATAR_LETTERS[userId] || '?';
+        loadFeed();
+      });
+
+      // Initial load
+      loadStats();
+      loadFeed();
+    </script>
+  </body>
+</html>

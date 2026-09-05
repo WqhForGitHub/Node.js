@@ -1,0 +1,18 @@
+{
+  "name": "HTTP 静态服务器",
+  "version": "1.0.0",
+  "description": "纯 Node.js 实现的 HTTP 静态文件服务器",
+  "features": [
+    "MIME 类型自动识别",
+    "目录列表生成",
+    "流式文件传输",
+    "缓存控制",
+    "路径遍历防护",
+    "命令行参数配置",
+    "默认首页支持",
+    "HEAD 请求支持",
+    "优雅关闭"
+  ],
+  "author": "Node.js Demo",
+  "license": "MIT"
+}

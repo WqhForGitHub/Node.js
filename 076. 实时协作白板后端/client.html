@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>协作白板</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial;
+      }
+      #toolbar {
+        padding: 8px;
+        background: #f0f0f0;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      #canvas {
+        display: block;
+        background: white;
+        cursor: crosshair;
+      }
+      .user-tag {
+        padding: 4px 8px;
+        border-radius: 4px;
+        color: white;
+        font-size: 12px;
+      }
+      button {
+        padding: 4px 12px;
+        cursor: pointer;
+      }
+      .swatch {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #ccc;
+        cursor: pointer;
+      }
+      .swatch.active {
+        border-color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="toolbar">
+      <button data-tool="pen">✏️ 画笔</button>
+      <button data-tool="rect">▭ 矩形</button>
+      <button data-tool="circle">○ 圆</button>
+      <button data-tool="erase">🧹 删除</button>
+      <button id="clear">清空</button>
+      <span>颜色:</span>
+      <span class="swatch active" style="background: #000" data-color="#000"></span>
+      <span class="swatch" style="background: #e74c3c" data-color="#e74c3c"></span>
+      <span class="swatch" style="background: #3498db" data-color="#3498db"></span>
+      <span class="swatch" style="background: #2ecc71" data-color="#2ecc71"></span>
+      <span style="margin-left: auto">在线:</span>
+      <div id="users" style="display: flex; gap: 4px"></div>
+    </div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+      const boardId = location.hash.slice(1) || 'demo';
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const usersEl = document.getElementById('users');
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight - 50;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      let ws, myId;
+      let tool = 'pen',
+        color = '#000';
+      const shapes = new Map();
+      const users = new Map();
+      let currentShape = null;
+
+      function uuid() {
+        return Math.random().toString(36).slice(2, 10);
+      }
+
+      function connect() {
+        ws = new WebSocket('ws://' + location.host);
+        ws.onopen = () => ws.send(JSON.stringify({ type: 'join', boardId }));
+        ws.onmessage = (e) => {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'init') {
+            myId = msg.userId;
+            msg.snapshot.shapes.forEach((s) => shapes.set(s.id, s));
+            msg.snapshot.users.forEach((u) => users.set(u.id, u));
+            render();
+            renderUsers();
+          } else if (msg.type === 'op') {
+            applyOp(msg.op);
+            render();
+          } else if (msg.type === 'user-join') {
+            users.set(msg.id, msg);
+            renderUsers();
+          } else if (msg.type === 'user-leave') {
+            users.delete(msg.id);
+            renderUsers();
+          } else if (msg.type === 'cursor') {
+            const u = users.get(msg.userId);
+            if (u) {
+              u.cursor = { x: msg.x, y: msg.y };
+              render();
+            }
+          }
+        };
+        ws.onclose = () => setTimeout(connect, 2000);
+      }
+
+      function applyOp(op) {
+        if (op.kind === 'add') shapes.set(op.shape.id, op.shape);
+        else if (op.kind === 'update') {
+          if (shapes.has(op.shape.id))
+            shapes.set(op.shape.id, { ...shapes.get(op.shape.id), ...op.shape });
+        } else if (op.kind === 'delete') shapes.delete(op.shapeId);
+        else if (op.kind === 'clear') shapes.clear();
+      }
+
+      function sendOp(op) {
+        applyOp(op);
+        ws.send(JSON.stringify({ type: 'op', op }));
+        render();
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const s of shapes.values()) drawShape(s);
+        if (currentShape) drawShape(currentShape);
+        // 远程光标
+        for (const [id, u] of users) {
+          if (id !== myId && u.cursor) {
+            ctx.fillStyle = u.color;
+            ctx.beginPath();
+            ctx.arc(u.cursor.x, u.cursor.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText(u.name, u.cursor.x + 8, u.cursor.y);
+          }
+        }
+      }
+
+      function drawShape(s) {
+        ctx.strokeStyle = s.color || '#000';
+        ctx.fillStyle = s.color || '#000';
+        ctx.lineWidth = 2;
+        if (s.type === 'pen') {
+          ctx.beginPath();
+          s.points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+          ctx.stroke();
+        } else if (s.type === 'rect') {
+          ctx.strokeRect(s.x, s.y, s.w, s.h);
+        } else if (s.type === 'circle') {
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      function renderUsers() {
+        usersEl.innerHTML = '';
+        for (const [id, u] of users) {
+          const el = document.createElement('span');
+          el.className = 'user-tag';
+          el.style.background = u.color;
+          el.textContent = u.name;
+          usersEl.appendChild(el);
+        }
+      }
+
+      // 工具栏
+      document.querySelectorAll('[data-tool]').forEach((btn) => {
+        btn.onclick = () => {
+          tool = btn.dataset.tool;
+          document.querySelectorAll('[data-tool]').forEach((b) => (b.style.fontWeight = ''));
+          btn.style.fontWeight = 'bold';
+        };
+      });
+      document.querySelectorAll('.swatch').forEach((s) => {
+        s.onclick = () => {
+          color = s.dataset.color;
+          document.querySelectorAll('.swatch').forEach((x) => x.classList.remove('active'));
+          s.classList.add('active');
+        };
+      });
+      document.getElementById('clear').onclick = () => sendOp({ kind: 'clear' });
+
+      // 鼠标
+      let drawing = false,
+        startX,
+        startY;
+      canvas.addEventListener('mousedown', (e) => {
+        drawing = true;
+        startX = e.offsetX;
+        startY = e.offsetY;
+        if (tool === 'pen') {
+          currentShape = { id: uuid(), type: 'pen', color, points: [{ x: startX, y: startY }] };
+        } else if (tool === 'rect') {
+          currentShape = { id: uuid(), type: 'rect', color, x: startX, y: startY, w: 0, h: 0 };
+        } else if (tool === 'circle') {
+          currentShape = { id: uuid(), type: 'circle', color, x: startX, y: startY, r: 0 };
+        } else if (tool === 'erase') {
+          // 找到点击的图形并删除
+          for (const s of [...shapes.values()].reverse()) {
+            if (hitTest(s, startX, startY)) {
+              sendOp({ kind: 'delete', shapeId: s.id });
+              break;
+            }
+          }
+          drawing = false;
+        }
+      });
+
+      canvas.addEventListener('mousemove', (e) => {
+        if (ws && ws.readyState === 1) {
+          ws.send(JSON.stringify({ type: 'cursor', x: e.offsetX, y: e.offsetY }));
+        }
+        if (!drawing || !currentShape) return;
+        if (currentShape.type === 'pen') {
+          currentShape.points.push({ x: e.offsetX, y: e.offsetY });
+        } else if (currentShape.type === 'rect') {
+          currentShape.w = e.offsetX - startX;
+          currentShape.h = e.offsetY - startY;
+        } else if (currentShape.type === 'circle') {
+          currentShape.r = Math.hypot(e.offsetX - startX, e.offsetY - startY);
+        }
+        render();
+      });
+
+      canvas.addEventListener('mouseup', () => {
+        if (drawing && currentShape) {
+          sendOp({ kind: 'add', shape: currentShape });
+          currentShape = null;
+        }
+        drawing = false;
+      });
+
+      function hitTest(s, x, y) {
+        if (s.type === 'rect') {
+          return x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h;
+        } else if (s.type === 'circle') {
+          return Math.hypot(x - s.x, y - s.y) <= s.r;
+        } else if (s.type === 'pen') {
+          return s.points.some((p) => Math.hypot(p.x - x, p.y - y) < 8);
+        }
+        return false;
+      }
+
+      connect();
+    </script>
+  </body>
+</html>

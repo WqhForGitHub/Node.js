@@ -1,0 +1,29 @@
+[
+  {
+    "id": "57ec5fb6-3fed-4353-89c4-ef027242cacd",
+    "username": "admin",
+    "password": "70f0c7ca14767c75308447c58e55f00ee2a95b054857eb4ad183193d4c2bc800",
+    "roles": ["admin"],
+    "isActive": true,
+    "createdAt": "2026-06-11T13:26:53.134Z",
+    "updatedAt": "2026-06-11T13:26:53.134Z"
+  },
+  {
+    "id": "7220074e-cff9-4340-892c-91ec250f87aa",
+    "username": "editor",
+    "password": "134c9fd9baccfb6b2a7b8e4b8752f5cff437f1d55ee733f8267b1b467d6b8a62",
+    "roles": ["editor"],
+    "isActive": true,
+    "createdAt": "2026-06-11T13:26:53.134Z",
+    "updatedAt": "2026-06-11T13:26:53.134Z"
+  },
+  {
+    "id": "6e8a882a-554b-4252-abfa-d84a48544f69",
+    "username": "viewer",
+    "password": "d2aa75638252042460eb309c758cecaa757204382aff6048d5590d36c30c3869",
+    "roles": ["viewer"],
+    "isActive": true,
+    "createdAt": "2026-06-11T13:26:53.134Z",
+    "updatedAt": "2026-06-11T13:26:53.134Z"
+  }
+]

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>推送管理台</title>
+    <style>
+      body {
+        font-family: Arial;
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 0 20px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 12px;
+        margin: 16px 0;
+      }
+      .stat {
+        background: #f5f5f5;
+        padding: 12px;
+        border-radius: 4px;
+        text-align: center;
+      }
+      .stat .num {
+        font-size: 24px;
+        font-weight: bold;
+        color: #3498db;
+      }
+      .stat .lbl {
+        color: #888;
+        font-size: 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+      }
+      th,
+      td {
+        padding: 8px;
+        border-bottom: 1px solid #eee;
+        text-align: left;
+      }
+      th {
+        background: #f5f5f5;
+      }
+      input,
+      select,
+      textarea,
+      button {
+        padding: 6px;
+        margin: 4px 0;
+      }
+      textarea {
+        width: 100%;
+        min-height: 60px;
+      }
+      .form-row {
+        margin: 8px 0;
+      }
+      .form-row label {
+        display: inline-block;
+        width: 80px;
+      }
+      .online {
+        color: #2ecc71;
+      }
+      .offline {
+        color: #e74c3c;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📡 推送管理台</h1>
+
+    <h3>📊 实时指标</h3>
+    <div class="grid" id="stats"></div>
+
+    <h3>📤 发送推送</h3>
+    <div>
+      <div class="form-row">
+        <label>目标:</label>
+        <select id="target">
+          <option value="broadcast">广播全部</option>
+          <option value="topic">按主题</option>
+          <option value="user">按用户</option>
+          <option value="device">按设备</option>
+        </select>
+        <input id="targetValue" placeholder="主题/用户ID/设备ID（broadcast 不需要）" />
+        <label>QoS:</label>
+        <select id="qos">
+          <option value="0">0 (at-most-once)</option>
+          <option value="1">1 (at-least-once)</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>标题:</label>
+        <input id="title" style="width: 60%" value="测试通知" />
+      </div>
+      <div class="form-row">
+        <label>内容:</label>
+        <textarea id="body">这是一条来自管理台的推送测试。</textarea>
+      </div>
+      <button onclick="sendPush()">发送推送</button>
+      <span id="result"></span>
+    </div>
+
+    <h3>📱 设备列表</h3>
+    <table id="devices">
+      <thead>
+        <tr>
+          <th>Device ID</th>
+          <th>用户</th>
+          <th>平台</th>
+          <th>状态</th>
+          <th>主题</th>
+          <th>离线</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>🏷️ 主题列表</h3>
+    <table id="topics">
+      <thead>
+        <tr>
+          <th>主题</th>
+          <th>订阅数</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      const TOKEN = 'demo-token-12345';
+
+      async function loadStats() {
+        const r = await fetch('/api/stats').then((r) => r.json());
+        const stats = [
+          ['设备总数', r.devices],
+          ['在线', r.online],
+          ['主题数', r.topics],
+          ['待 ACK', r.pendingAck],
+          ['已发送', r.sent],
+          ['已送达', r.delivered],
+          ['离线队列', r.queued],
+          ['失败', r.failed],
+        ];
+        document.getElementById('stats').innerHTML = stats
+          .map(
+            ([lbl, num]) =>
+              `<div class="stat"><div class="num">${num}</div><div class="lbl">${lbl}</div></div>`
+          )
+          .join('');
+      }
+
+      async function loadDevices() {
+        const list = await fetch('/api/devices').then((r) => r.json());
+        document.querySelector('#devices tbody').innerHTML = list
+          .map(
+            (d) =>
+              `<tr><td>${d.deviceId}</td><td>${d.userId}</td><td>${d.platform}</td>
+     <td class="${d.online ? 'online' : 'offline'}">${d.online ? '在线' : '离线'}</td>
+     <td>${d.topics.join(', ')}</td><td>${d.offlineCount}</td></tr>`
+          )
+          .join('');
+      }
+
+      async function loadTopics() {
+        const list = await fetch('/api/topics').then((r) => r.json());
+        document.querySelector('#topics tbody').innerHTML = list
+          .map((t) => `<tr><td>${t.topic}</td><td>${t.subscribers}</td></tr>`)
+          .join('');
+      }
+
+      async function sendPush() {
+        const target = document.getElementById('target').value;
+        const v = document.getElementById('targetValue').value;
+        const body = {
+          target,
+          payload: {
+            title: document.getElementById('title').value,
+            body: document.getElementById('body').value,
+          },
+          qos: parseInt(document.getElementById('qos').value),
+        };
+        if (target === 'topic') body.topic = v;
+        else if (target === 'user') body.userId = v;
+        else if (target === 'device') body.deviceId = v;
+        try {
+          const r = await fetch('/api/push', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-API-Token': TOKEN },
+            body: JSON.stringify(body),
+          }).then((r) => r.json());
+          document.getElementById('result').textContent = r.ok
+            ? `✅ 已投递 ${r.delivered} 个设备`
+            : `❌ ${r.error}`;
+        } catch (e) {
+          document.getElementById('result').textContent = '❌ ' + e.message;
+        }
+        refresh();
+      }
+
+      function refresh() {
+        loadStats();
+        loadDevices();
+        loadTopics();
+      }
+      refresh();
+      setInterval(refresh, 2000);
+    </script>
+  </body>
+</html>

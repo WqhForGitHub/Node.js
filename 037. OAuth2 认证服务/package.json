@@ -1,0 +1,27 @@
+{
+    "name":  "oauth2-auth-server",
+    "version":  "1.0.0",
+    "description":  "纯 Node.js 实现的 OAuth2 认证服务 Demo",
+    "main":  "server.js",
+    "scripts":  {
+                    "start":  "node server.js",
+                    "dev":  "node --watch server.js",
+                    "format":  "prettier --write .",
+                    "format:check":  "prettier --check .",
+                    "lint":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue --fix",
+                    "lint:check":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue"
+                },
+    "keywords":  [
+                     "oauth2",
+                     "auth",
+                     "authorization",
+                     "node"
+                 ],
+    "license":  "MIT",
+    "devDependencies":  {
+                            "eslint":  "^8.57.1",
+                            "prettier":  "^3.3.3",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-prettier":  "^5.2.1"
+                        }
+}

@@ -1,0 +1,31 @@
+时间	级别	来源	状态码	耗时(ms)	详情
+2026-06-10T07:42:13.971Z	INFO	api-gateway	200	334	Request processed successfully
+2026-06-10T08:42:13.972Z	WARN	auth-service	201	427	Request processed successfully
+2026-06-10T09:42:13.972Z	ERROR	user-service	301	336	Request processed successfully
+2026-06-10T10:42:13.972Z	DEBUG	order-service	400	225	Invalid request parameter
+2026-06-10T11:42:13.972Z	INFO	payment-service	401	493	Invalid request parameter
+2026-06-10T12:42:13.972Z	WARN	api-gateway	403	135	Invalid request parameter
+2026-06-10T13:42:13.972Z	ERROR	auth-service	404	59	Invalid request parameter
+2026-06-10T14:42:13.972Z	DEBUG	user-service	500	39	Connection timeout after 39ms
+2026-06-10T15:42:13.972Z	INFO	order-service	502	70	Connection timeout after 70ms
+2026-06-10T16:42:13.972Z	WARN	payment-service	503	309	Connection timeout after 309ms
+2026-06-10T17:42:13.972Z	ERROR	api-gateway	200	139	Request processed successfully
+2026-06-10T18:42:13.972Z	DEBUG	auth-service	201	372	Request processed successfully
+2026-06-10T19:42:13.972Z	INFO	user-service	301	143	Request processed successfully
+2026-06-10T20:42:13.972Z	WARN	order-service	400	127	Invalid request parameter
+2026-06-10T21:42:13.972Z	ERROR	payment-service	401	323	Invalid request parameter
+2026-06-10T22:42:13.972Z	DEBUG	api-gateway	403	272	Invalid request parameter
+2026-06-10T23:42:13.972Z	INFO	auth-service	404	264	Invalid request parameter
+2026-06-11T00:42:13.972Z	WARN	user-service	500	99	Connection timeout after 99ms
+2026-06-11T01:42:13.972Z	ERROR	order-service	502	100	Connection timeout after 100ms
+2026-06-11T02:42:13.972Z	DEBUG	payment-service	503	311	Connection timeout after 311ms
+2026-06-11T03:42:13.972Z	INFO	api-gateway	200	64	Request processed successfully
+2026-06-11T04:42:13.972Z	WARN	auth-service	201	168	Request processed successfully
+2026-06-11T05:42:13.972Z	ERROR	user-service	301	318	Request processed successfully
+2026-06-11T06:42:13.972Z	DEBUG	order-service	400	293	Invalid request parameter
+2026-06-11T07:42:13.972Z	INFO	payment-service	401	182	Invalid request parameter
+2026-06-11T08:42:13.972Z	WARN	api-gateway	403	187	Invalid request parameter
+2026-06-11T09:42:13.972Z	ERROR	auth-service	404	401	Invalid request parameter
+2026-06-11T10:42:13.972Z	DEBUG	user-service	500	148	Connection timeout after 148ms
+2026-06-11T11:42:13.972Z	INFO	order-service	502	315	Connection timeout after 315ms
+2026-06-11T12:42:13.972Z	WARN	payment-service	503	177	Connection timeout after 177ms

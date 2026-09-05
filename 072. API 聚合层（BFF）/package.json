@@ -1,0 +1,31 @@
+{
+    "name":  "bff-aggregation-layer",
+    "version":  "1.0.0",
+    "description":  "纯 Node.js API 聚合层（BFF）Demo",
+    "main":  "start.js",
+    "scripts":  {
+                    "start":  "node start.js",
+                    "bff":  "node bff-server.js",
+                    "user-service":  "node services/user-service.js",
+                    "order-service":  "node services/order-service.js",
+                    "product-service":  "node services/product-service.js",
+                    "inventory-service":  "node services/inventory-service.js",
+                    "format":  "prettier --write .",
+                    "format:check":  "prettier --check .",
+                    "lint":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue --fix",
+                    "lint:check":  "eslint . --ext .js,.jsx,.ts,.tsx,.vue"
+                },
+    "keywords":  [
+                     "bff",
+                     "aggregation",
+                     "nodejs",
+                     "api-gateway"
+                 ],
+    "license":  "MIT",
+    "devDependencies":  {
+                            "eslint":  "^8.57.1",
+                            "prettier":  "^3.3.3",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-prettier":  "^5.2.1"
+                        }
+}

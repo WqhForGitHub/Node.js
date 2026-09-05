@@ -1,0 +1,20 @@
+[
+  {
+    "id": "3d326a8a-d207-410d-bba5-802fd4bd0c8f",
+    "type": "article",
+    "title": "RBAC 权限系统介绍",
+    "content": "本文介绍基于角色的访问控制系统...",
+    "author": "admin",
+    "status": "published",
+    "createdAt": "2026-06-11T13:26:53.134Z"
+  },
+  {
+    "id": "f2d939e9-1b11-44f4-9dc0-1d2ec7d9c17d",
+    "type": "article",
+    "title": "Node.js 最佳实践",
+    "content": "Node.js 开发中的最佳实践总结...",
+    "author": "editor",
+    "status": "draft",
+    "createdAt": "2026-06-11T13:26:53.134Z"
+  }
+]

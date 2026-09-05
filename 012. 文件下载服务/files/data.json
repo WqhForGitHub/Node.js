@@ -1,0 +1,6 @@
+{
+  "service": "文件下载服务",
+  "version": "1.0.0",
+  "features": ["断点续传", "压缩传输", "打包下载", "下载限速", "ETag 缓存", "下载统计"],
+  "author": "Node.js Demo"
+}
