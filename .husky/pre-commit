@@ -1,0 +1,11 @@
+# git commit 之前: 对当前目录所有文件执行 eslint + prettier + ts-check, 任一失败则中止提交
+echo '[pre-commit 1/3] eslint .'
+npm run lint || exit 1
+
+echo '[pre-commit 2/3] prettier --check .'
+npm run format:check || exit 1
+
+echo '[pre-commit 3/3] ts-check (tsc --noEmit)'
+npm run typecheck || exit 1
+
+echo '[pre-commit] all checks passed'

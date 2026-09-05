@@ -18,7 +18,9 @@ const server = https.createServer(options, (req, res) => {
     res.end('Hello from HTTPS server!');
   } else if (req.url === '/json') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ message: 'Hello from HTTPS server!', time: new Date().toISOString() }));
+    res.end(
+      JSON.stringify({ message: 'Hello from HTTPS server!', time: new Date().toISOString() }),
+    );
   } else {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('404 Not Found');

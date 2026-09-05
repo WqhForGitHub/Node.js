@@ -19,6 +19,6 @@ async function calcDirSize(dir: string): Promise<number> {
   return total;
 }
 
-calcDirSize('./').then(size => {
+calcDirSize('./').then((size) => {
   console.log(`目录大小：${(size / 1024 / 1024).toFixed(2)} MB`);
-})
+});
