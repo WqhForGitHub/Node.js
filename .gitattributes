@@ -1,0 +1,6 @@
+# 统一文本文件行尾符为 LF, 防止不同平台/编辑器引入 CRLF 造成 prettier 反复报错
+* text=auto eol=lf
+
+# 证书文件不做行尾转换, 保持原样
+*.crt -text
+*.key -text

@@ -19,4 +19,3 @@ const pems = selfsigned.generate([{ name: 'commonName', value: 'localhost' }], {
 fs.mkdirSync('certs', { recursive: true });
 fs.writeFileSync('certs/server.key', pems.private);
 fs.writeFileSync('certs/server.crt', pems.cert);
-console.log('Generated certs/server.key and certs/server.crt');
