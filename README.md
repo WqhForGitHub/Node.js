@@ -12,7 +12,7 @@
 - `ts-git-assistant` —— Git 操作增强 CLI
 - `ts-json-toolkit` —— JSON 格式化 & diff 工具
 
-👉 这类项目在 roadmap.sh 里也属于入门到进阶的经典方向，比如 CLI 工具、日志分析等 ([roadmap.sh][1])
+👉 这类项目在 roadmap.sh 里也属于入门到进阶的 经典方向，比如 CLI 工具、日志分析等 ([roadmap.sh][1])
 
 ---
 
