@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
+    "target": "es2025",
+    "module": "es2022",
     "outDir": "./dist",
     "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
     "types": ["node"]
   },
-  "include": ["./src"]
+  "include": ["**/src/**.ts", "**/**.ts"]
 }
