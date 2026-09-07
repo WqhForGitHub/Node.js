@@ -10,7 +10,6 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
@@ -19,8 +18,6 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
-    "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
     "types": ["node"]
   },
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
