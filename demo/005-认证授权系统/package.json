@@ -1,7 +1,7 @@
 {
-    "name":  "基础后端服务",
+    "name":  "认证授权系统",
     "version":  "1.0.0",
-    "description":  "基础后端服务",
+    "description":  "认证授权系统",
     "main":  "src/app.ts",
     "scripts":  {
                     "dev":  "ts-node src/app.ts",

@@ -1,7 +1,7 @@
 {
-    "name":  "基础后端服务",
+    "name":  "Redis缓存系统",
     "version":  "1.0.0",
-    "description":  "基础后端服务",
+    "description":  "Redis缓存系统",
     "main":  "src/app.ts",
     "scripts":  {
                     "dev":  "ts-node src/app.ts",
